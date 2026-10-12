@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * La paleta `brand` (tailwind.config.js) lee estas variables como canales RGB,
+ * para que `bg-brand-900/30` siga funcionando. Modo claro: grises neutros del
+ * logo (negro, blanco y la manzana gris). Modo oscuro: el verde salvia de
+ * siempre, sin cambios. `.dark` la pone el layout en <html> y en su contenedor.
+ */
+:root {
+    --brand-50: 245 245 247;
+    --brand-100: 236 236 240;
+    --brand-200: 216 216 221;
+    --brand-300: 199 199 204;
+    --brand-400: 161 161 170;
+    --brand-500: 110 110 115;
+    --brand-600: 58 58 60;
+    --brand-700: 44 44 46;
+    --brand-800: 29 29 31;
+    --brand-900: 17 17 19;
+    --brand-950: 0 0 0;
+}
+
+.dark {
+    --brand-50: 243 246 241;
+    --brand-100: 227 235 223;
+    --brand-200: 200 215 192;
+    --brand-300: 165 189 153;
+    --brand-400: 127 159 113;
+    --brand-500: 95 131 82;
+    --brand-600: 74 106 64;
+    --brand-700: 60 85 52;
+    --brand-800: 50 70 44;
+    --brand-900: 42 58 38;
+    --brand-950: 21 31 19;
+}
+
+[x-cloak] {
+    display: none;
+}
