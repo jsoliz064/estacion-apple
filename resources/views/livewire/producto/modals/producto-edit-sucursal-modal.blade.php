@@ -62,7 +62,7 @@
                         <label class="block text-sm font-medium text-gray-700">Buscar IMEI o SKU</label>
                         {{-- Enter (pistola o camara): un IMEI o SKU exacto se agrega solo y el
                              campo queda listo para el siguiente. --}}
-                        <div class="mt-1 flex gap-2" data-escaner>
+                        <div class="mt-1 flex gap-2" data-escaner data-escaner-principal="1">
                             <input type="text"
                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm"
                                 placeholder="Escanee o escriba el IMEI o SKU..." wire:model.live.debounce.500ms="searchImei"

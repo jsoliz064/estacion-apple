@@ -1,4 +1,5 @@
 import './bootstrap';
+import { escribirCodigo, iniciarPistola } from './pistola.js';
 
 // El lector de codigos por camara (components/escaner-overlay). Hay uno solo,
 // en el layout, y cualquier campo lo abre con:
@@ -6,10 +7,9 @@ import './bootstrap';
 //   $dispatch('abrir-escaner', { destino: <input>, modo: 'enter'|'input', continuo: bool })
 //
 // Al leer un codigo hace lo MISMO que la pistola USB: escribe en el campo y
-// "aprieta" Enter. Asi el servidor tiene un solo camino para los dos.
-//   - modo 'enter': el campo tiene su Enter, que lee $el.value y lo manda.
-//   - modo 'input': el campo es un wire:model comun (ficha, busqueda de tabla):
-//     se disparan input y change para que Livewire lo sincronice, y luego Enter.
+// "aprieta" Enter (escribirCodigo, en pistola.js). Asi el servidor tiene un solo
+// camino para los dos. La pistola se escucha en segundo plano desde aqui: solo
+// las paginas con el lector (el main-layout) la tienen.
 //
 // Lo que no es reactivo (el campo, la camara, el bucle) vive fuera de Alpine:
 // un elemento del DOM envuelto en un Proxy reactivo da "Illegal invocation".
@@ -22,6 +22,40 @@ let audio = null;
 let camara = null;
 // A quien se le entregan las fotos (una funcion: no va en el estado de Alpine).
 let alTomarFoto = null;
+
+// La senal de que se leyo un codigo, para la camara y para la pistola: quien
+// escanea con la pistola no siempre ve el buscador.
+function pitido() {
+    try {
+        navigator.vibrate?.(80);
+    } catch {
+        // sin vibracion
+    }
+
+    // La camara lo crea al abrirse (iOS solo deja dentro de un toque); la
+    // tecla de la pistola tambien cuenta como gesto del usuario.
+    try {
+        audio ??= new (window.AudioContext || window.webkitAudioContext)();
+    } catch {
+        audio = null;
+    }
+
+    if (!audio) {
+        return;
+    }
+
+    try {
+        const osc = audio.createOscillator();
+        const vol = audio.createGain();
+        osc.frequency.value = 1400;
+        vol.gain.value = 0.15;
+        osc.connect(vol).connect(audio.destination);
+        osc.start();
+        osc.stop(audio.currentTime + 0.08);
+    } catch {
+        // sin sonido
+    }
+}
 
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('escaner', () => ({
@@ -50,6 +84,9 @@ document.addEventListener('alpine:init', () => {
             document.addEventListener('visibilitychange', () => document.hidden && this.cerrar());
             window.addEventListener('pagehide', () => this.cerrar());
             document.addEventListener('livewire:navigating', () => this.cerrar());
+
+            // Con el lector de camara abierto, la pistola no se mete.
+            iniciarPistola({ pitido, lectorAbierto: () => this.abierto });
         },
 
         async abrir(detalle) {
@@ -143,7 +180,7 @@ document.addEventListener('alpine:init', () => {
             this.ultimo = codigo;
             this.ultimoEn = Date.now();
             this.lecturas++;
-            this.pitido();
+            pitido();
 
             const campo = destino;
 
@@ -155,40 +192,7 @@ document.addEventListener('alpine:init', () => {
                 return;
             }
 
-            campo.value = codigo;
-
-            if (this.modo === 'input') {
-                campo.dispatchEvent(new Event('input', { bubbles: true }));
-                campo.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-
-            campo.dispatchEvent(new KeyboardEvent('keydown', {
-                key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true, cancelable: true,
-            }));
-        },
-
-        pitido() {
-            try {
-                navigator.vibrate?.(80);
-            } catch {
-                // sin vibracion
-            }
-
-            if (!audio) {
-                return;
-            }
-
-            try {
-                const osc = audio.createOscillator();
-                const vol = audio.createGain();
-                osc.frequency.value = 1400;
-                vol.gain.value = 0.15;
-                osc.connect(vol).connect(audio.destination);
-                osc.start();
-                osc.stop(audio.currentTime + 0.08);
-            } catch {
-                // sin sonido
-            }
+            escribirCodigo(campo, codigo, this.modo);
         },
 
         async alternarLinterna() {

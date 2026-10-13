@@ -7,11 +7,13 @@
      El Enter manda $el.value y vacia el campo en el acto: el wire:model va con
      debounce, asi que la pistola aprieta Enter antes de que $busqueda tenga el
      codigo, y el servidor recibia el campo vacio o a medias.
+     La pistola llega aqui aunque el foco este en otro campo
+     (data-escaner-principal="2": le gana a la busqueda de la tabla de la compra).
      Variables: $placeholder, $conCatalogo (bool), $escanerContinuo (bool). --}}
 @php($habilitado = $this->sucursalDelDocumento() !== null)
 
 <div class="relative">
-    <div class="flex gap-2" data-escaner>
+    <div class="flex gap-2" data-escaner data-escaner-principal="2">
         <div class="relative flex-1">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                 <i class="fa-solid fa-barcode"></i>

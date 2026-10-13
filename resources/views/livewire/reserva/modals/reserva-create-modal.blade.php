@@ -17,7 +17,7 @@
                         </div>
                     @else
                         <div class="relative">
-                            <div class="mt-1 flex gap-2" data-escaner>
+                            <div class="mt-1 flex gap-2" data-escaner data-escaner-principal="1">
                                 <x-input type="text" class="w-full" placeholder="Escanee o escriba el IMEI o SKU..."
                                     wire:model.live.debounce.400ms="buscarEquipo"
                                     x-on:keydown.enter.prevent="$wire.elegirEquipoPorCodigo($el.value); $el.value = ''" autocomplete="off" />

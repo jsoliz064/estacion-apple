@@ -2,7 +2,9 @@
 
 {{-- Las tablas con codigos (productos, repuestos, accesorios, lotes) declaran
      public bool $buscarConEscaner = true y ganan el boton de camara: el lector
-     escribe el codigo en el campo y la busqueda corre como si se tecleara. --}}
+     escribe el codigo en el campo y la busqueda corre como si se tecleara.
+     Tambien es el buscador de la pistola (data-escaner-principal), con
+     prioridad 1: en la compra le gana Repuestos y accesorios. --}}
 @php($conEscaner = property_exists($this, 'buscarConEscaner') && $this->buscarConEscaner)
 
 <div
@@ -12,7 +14,7 @@
         'flex' => ($isTailwind && !$this->hasSearchIcon),
         'relative inline-flex flex-row' => $this->hasSearchIcon,
     ])
-    @if ($conEscaner) data-escaner @endif>
+    @if ($conEscaner) data-escaner data-escaner-principal="1" @endif>
 
         @if($this->hasSearchIcon)
             <x-livewire-tables::tools.toolbar.items.search.icon :searchIcon="$this->getSearchIcon" :searchIconClasses="$this->getSearchIconClasses" :searchIconOtherAttributes="$this->getSearchIconOtherAttributes"  />

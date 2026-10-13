@@ -4,10 +4,14 @@
 
      modo     'enter' (el campo tiene su Enter, que lee $el.value) o 'input'
               (un wire:model comun: ficha, busqueda de tabla).
-     continuo true donde lo normal es leer muchos seguidos (compra, transferencia). --}}
+     continuo true donde lo normal es leer muchos seguidos (compra, transferencia).
+
+     data-modo lo lee tambien la pistola (resources/js/pistola.js) cuando el
+     contenedor es el buscador de la pantalla (data-escaner-principal). --}}
 @props(['modo' => 'enter', 'continuo' => false])
 
 <button type="button" title="Escanear con la cámara" aria-label="Escanear con la cámara" x-data
+    data-modo="{{ $modo }}"
     x-on:click="$dispatch('abrir-escaner', {
         destino: $el.closest('[data-escaner]')?.querySelector('input'),
         modo: @js($modo),

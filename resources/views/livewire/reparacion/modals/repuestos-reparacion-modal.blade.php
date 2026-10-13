@@ -41,7 +41,7 @@
                     <div class="sm:col-span-2">
                         <x-label>Buscar</x-label>
                         {{-- El Enter manda $el.value: el debounce todavia no tiene el codigo de la pistola. --}}
-                        <div class="mt-1 flex gap-2" data-escaner>
+                        <div class="mt-1 flex gap-2" data-escaner data-escaner-principal="1">
                             <x-input type="text" class="w-full" placeholder="Nombre, SKU o código..."
                                 wire:model.live.debounce.500ms="search"
                                 x-on:keydown.enter.prevent="$wire.marcarPorCodigo($el.value); $el.value = ''"

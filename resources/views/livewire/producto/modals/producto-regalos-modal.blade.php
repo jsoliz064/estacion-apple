@@ -112,7 +112,7 @@
                                     <x-button wire:click="agregar()" wire:loading.attr="disabled" wire:target="agregar">Agregar</x-button>
                                 </div>
                             @else
-                                <div class="mt-1 flex gap-2" data-escaner>
+                                <div class="mt-1 flex gap-2" data-escaner data-escaner-principal="1">
                                     <x-input type="text" class="w-full" wire:model.live.debounce.300ms="busqueda"
                                         x-on:keydown.enter.prevent="$wire.elegirPorCodigo($el.value); $el.value = ''"
                                         placeholder="Escanee o escriba nombre, SKU o código de barras" />
