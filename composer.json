@@ -15,6 +15,7 @@
         "laravel/tinker": "^2.10.1",
         "livewire/livewire": "^3.8.3",
         "maatwebsite/excel": "^3.1",
+        "picqer/php-barcode-generator": "^3.3",
         "rappasoft/laravel-livewire-tables": "^3.7",
         "spatie/laravel-permission": "^6.16",
         "yoeunes/toastr": "^3.1"

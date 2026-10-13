@@ -154,8 +154,9 @@ class ProductoEditSucursalModal extends Component
 
     /**
      * Enter en el buscador: lo que manda la pistola (o la camara) al leer el
-     * IMEI o el SKU de un equipo. Con una coincidencia exacta lo agrega y deja
-     * el campo listo para el siguiente; si no, muestra la lista y el motivo.
+     * IMEI, el SKU o el sticker (UPC) de un equipo. Con una coincidencia exacta
+     * (unica: el UPC de una caja se repite) lo agrega y deja el campo listo
+     * para el siguiente; si no, muestra la lista y el motivo.
      */
     public function elegirPorCodigo(?string $codigo = null): void
     {
@@ -165,11 +166,11 @@ class ProductoEditSucursalModal extends Component
         $producto = $codigo === '' || !$this->puedeBuscar() ? null : $this->unicoPorCodigo(
             $this->baseQuery()
                 ->whereNotIn('id', $idsExistentes)
-                ->where(fn($q) => $q->where('imei', $codigo)->orWhere('sku', $codigo))
+                ->where(fn($q) => $q->where('imei', $codigo)->orWhere('sku', $codigo)->orWhere('upc', $codigo))
                 ->limit(2)
                 ->get(),
             $codigo,
-            ['imei', 'sku'],
+            ['imei', 'sku', 'upc'],
         );
 
         if ($producto) {

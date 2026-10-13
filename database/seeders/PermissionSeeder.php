@@ -53,6 +53,12 @@ class PermissionSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'cliente.delete']);
         Permission::firstOrCreate(['name' => 'cliente.historial']);
 
+        //CODIGOS DE BARRAS
+        // Los stickers con codigo propio (CodigoBarrasService): ver e imprimir
+        // los lotes, y generar nuevos.
+        Permission::firstOrCreate(['name' => 'codigo.index']);
+        Permission::firstOrCreate(['name' => 'codigo.generar']);
+
         //USUARIOS
         // Ver todo lo que hizo un usuario, leido de la bitacora. Suelto, como el
         // resto: se asigna a mano desde Editar Rol.

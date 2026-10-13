@@ -71,9 +71,11 @@ class ProductoSelectorModal extends Component
     }
 
     /**
-     * Enter en el buscador (pistola o camara): un IMEI o SKU exacto marca ese
-     * equipo y deja el campo listo para el siguiente. El UPC no basta: es el
-     * del modelo, y deja la lista filtrada para elegir a mano.
+     * Enter en el buscador (pistola o camara): un IMEI, SKU o UPC exacto y
+     * UNICO marca ese equipo y deja el campo listo para el siguiente. El UPC de
+     * una caja es del modelo y lo comparten varios: no elige y deja la lista
+     * filtrada para elegir a mano. El de un sticker de Codigos de barras es de
+     * un solo equipo, y elige.
      */
     public function marcarPorCodigo(?string $codigo = null): void
     {
@@ -82,7 +84,7 @@ class ProductoSelectorModal extends Component
         $this->pagina = 1;
 
         $productos = $this->productosQuery();
-        $producto = $this->unicoPorCodigo($productos->getCollection(), $codigo, ['imei', 'sku']);
+        $producto = $this->unicoPorCodigo($productos->getCollection(), $codigo, ['imei', 'sku', 'upc']);
 
         if (!$producto) {
             if ($codigo !== '' && $productos->total() === 0) {

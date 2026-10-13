@@ -15,6 +15,7 @@ use App\Models\ProductoModeloAlmacenamiento;
 use App\Models\ProductoReparacion;
 use App\Models\Sucursal;
 use App\Models\Tecnicos;
+use App\Rules\CodigoGeneradoLibre;
 use App\Services\CompraService;
 use App\Traits\NormalizaCodigosTrait;
 use Illuminate\Database\QueryException;
@@ -109,8 +110,9 @@ class CompraLoteAddModelModal extends Component
             'color' => 'required',
             'version' => 'nullable',
             'imei' => 'required|string|min:1|max:20|unique:productos,imei',
-            'sku' => 'nullable|string|max:50|unique:productos,sku',
-            'upc' => 'nullable|string|max:50',
+            // Un sticker de Codigos de barras se asigna a un solo registro.
+            'sku' => ['nullable', 'string', 'max:50', 'unique:productos,sku', new CodigoGeneradoLibre('Producto')],
+            'upc' => ['nullable', 'string', 'max:50', new CodigoGeneradoLibre('Producto')],
             'bateria_porcentaje' => 'required|numeric|min:1|max:100',
             'costo_unidad' => 'required|numeric|min:0|decimal:0,2',
             'costo_moneda' => ['required', Rule::in(Moneda::values())],

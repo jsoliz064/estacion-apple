@@ -3,6 +3,7 @@
 use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\CobranzaController;
+use App\Http\Controllers\CodigoBarrasController;
 use App\Http\Controllers\ComisionController;
 use App\Http\Controllers\CompraController;
 use App\Http\Controllers\CuentaPagarController;
@@ -89,6 +90,16 @@ Route::middleware([
     Route::get('metodos-pago', [MetodoPagoController::class, 'index'])
         ->middleware('can:metodo-pago.index')
         ->name('metodos-pago');
+
+    // Los stickers con codigo de barras propio, y su hoja para la impresora
+    // de etiquetas (HTML suelto que se imprime solo, como la nota de venta).
+    Route::get('codigos', [CodigoBarrasController::class, 'index'])
+        ->middleware('can:codigo.index')
+        ->name('codigos');
+    Route::get('codigos/lotes/{id}/imprimir', [CodigoBarrasController::class, 'imprimir'])
+        ->whereNumber('id')
+        ->middleware('can:codigo.index')
+        ->name('codigos.imprimir');
 
     // Lo que esta por cobrar: las ventas a credito (docs/04).
     Route::get('cobranzas', [CobranzaController::class, 'index'])

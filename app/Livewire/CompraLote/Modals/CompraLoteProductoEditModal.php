@@ -11,6 +11,7 @@ use App\Enums\ProductoVersion;
 use App\Models\Producto;
 use App\Models\ProductoImagen;
 use App\Models\Sucursal;
+use App\Rules\CodigoGeneradoLibre;
 use App\Services\CompraService;
 use App\Services\EstadoProductoService;
 use App\Traits\NormalizaCodigosTrait;
@@ -164,8 +165,10 @@ class CompraLoteProductoEditModal extends Component
             'producto.costo_moneda' => ['required', Rule::in(Moneda::values())],
             'producto.costo_moneda_monto' => ($this->producto['costo_moneda'] ?? null) === Moneda::USD->value ? 'required|numeric|gt:0' : 'nullable',
             'producto.costo_tipo_cambio' => ($this->producto['costo_moneda'] ?? null) === Moneda::USD->value ? 'required|numeric|gt:0|decimal:0,2' : 'nullable',
-            'producto.sku' => ['nullable', 'string', 'max:50', Rule::unique('productos', 'sku')->ignore($this->producto['id'] ?? null)],
-            'producto.upc' => 'nullable|string|max:50',
+            // Un sticker de Codigos de barras se asigna a un solo registro.
+            'producto.sku' => ['nullable', 'string', 'max:50', Rule::unique('productos', 'sku')->ignore($this->producto['id'] ?? null),
+                new CodigoGeneradoLibre('Producto', $this->producto['id'] ?? null)],
+            'producto.upc' => ['nullable', 'string', 'max:50', new CodigoGeneradoLibre('Producto', $this->producto['id'] ?? null)],
             'producto.tipo_venta' => ['required', Rule::in(ProductoTipoVenta::values())],
             'producto.precio_cliente' => 'required|numeric|min:0',
             'producto.precio_vendedor' => 'required|numeric|min:0',

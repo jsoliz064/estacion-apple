@@ -74,8 +74,9 @@ class Producto extends Model
      *
      * Orden: exacto → termina en → empieza con → contiene.
      *
-     * El SKU entra solo EXACTO: es lo que lee la pistola en un equipo con
-     * etiqueta interna, y un LIKE sobre el mezclaria codigos ajenos.
+     * El SKU y el UPC entran solo EXACTOS: son lo que lee la pistola en un
+     * equipo con etiqueta interna o con su sticker de Codigos de barras, y un
+     * LIKE sobre ellos mezclaria codigos ajenos.
      */
     public function scopeBuscarPorImei(Builder $query, ?string $termino): Builder
     {
@@ -92,15 +93,16 @@ class Producto extends Model
         return $query
             ->where(fn($q) => $q
                 ->where('imei', 'like', '%' . $patron . '%')
-                ->orWhere('sku', $termino))
+                ->orWhere('sku', $termino)
+                ->orWhere('upc', $termino))
             ->orderByRaw(
                 'CASE
-                    WHEN imei = ? OR sku = ? THEN 0
+                    WHEN imei = ? OR sku = ? OR upc = ? THEN 0
                     WHEN imei LIKE ? THEN 1
                     WHEN imei LIKE ? THEN 2
                     ELSE 3
                 END',
-                [$termino, $termino, '%' . $patron, $patron . '%']
+                [$termino, $termino, $termino, '%' . $patron, $patron . '%']
             )
             ->orderBy('imei');
     }

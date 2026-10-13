@@ -6,6 +6,7 @@ use App\Enums\ArticuloTipo;
 use App\Models\AccesorioCategoria;
 use App\Models\ProductoModelo;
 use App\Models\RepuestoCategoria;
+use App\Rules\CodigoGeneradoLibre;
 use App\Traits\ArticuloStockSucursalTrait;
 use App\Traits\NormalizaCodigosTrait;
 use Illuminate\Database\QueryException;
@@ -67,8 +68,11 @@ class ArticuloFormModal extends Component
             'articulo.nombre' => 'required|string|max:255',
             // Unico en la base, y aqui tambien para dar el error en el campo. El
             // indice es quien lo garantiza de verdad: de ahi el catch de guardar().
-            'articulo.sku' => ['nullable', 'string', 'max:50', Rule::unique($tabla, 'sku')->ignore($this->articuloId)],
-            'articulo.upc' => 'nullable|string|max:50',
+            // Un sticker de Codigos de barras se asigna a un solo registro, en
+            // cualquiera de los dos campos y de las tres tablas.
+            'articulo.sku' => ['nullable', 'string', 'max:50', Rule::unique($tabla, 'sku')->ignore($this->articuloId),
+                new CodigoGeneradoLibre($this->articuloTipo()->value, $this->articuloId)],
+            'articulo.upc' => ['nullable', 'string', 'max:50', new CodigoGeneradoLibre($this->articuloTipo()->value, $this->articuloId)],
             'articulo.costo' => 'required|numeric|min:0',
             'articulo.precio' => 'required|numeric|min:0',
         ];

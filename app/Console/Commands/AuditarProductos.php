@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Enums\ArticuloTipo;
 use App\Enums\ProductoEstado;
+use App\Models\CodigoBarras;
 use App\Models\Producto;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
@@ -72,6 +73,7 @@ class AuditarProductos extends Command
         $this->comisionesGanadaIncoherente();
         $this->comisionesMontoDescuadrado();
         $this->liquidacionesDescuadradas();
+        $this->codigosGeneradosRepetidos();
 
         $this->newLine();
 
@@ -637,6 +639,23 @@ class AuditarProductos extends Command
         );
 
         $this->reportar('Liquidaciones descuadradas con sus comisiones', collect($filas), ['id', 'total', 'suma', 'cantidad', 'filas']);
+    }
+
+    /**
+     * Un sticker de Codigos de barras es de un solo equipo o articulo. Lo
+     * impide la regla CodigoGeneradoLibre, no un indice (productos.upc no
+     * puede ser UNIQUE: las cajas repiten UPC), asi que aqui se mide.
+     */
+    private function codigosGeneradosRepetidos(): void
+    {
+        $filas = DB::table('codigos_barras as cb')
+            ->joinSub(CodigoBarras::consultaDuenos(), 'u', 'u.codigo', '=', 'cb.codigo')
+            ->groupBy('cb.codigo')
+            ->havingRaw('COUNT(DISTINCT u.tipo, u.dueno_id) > 1')
+            ->selectRaw("cb.codigo, COUNT(DISTINCT u.tipo, u.dueno_id) as duenos, GROUP_CONCAT(DISTINCT CONCAT(u.tipo, ' #', u.dueno_id) SEPARATOR ', ') as quienes")
+            ->get();
+
+        $this->reportar('Codigos generados asignados a mas de un registro', $filas, ['codigo', 'duenos', 'quienes']);
     }
 
     /** Imprime una comprobacion y cuenta el hallazgo si trajo filas. */

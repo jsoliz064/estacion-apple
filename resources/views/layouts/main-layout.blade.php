@@ -505,6 +505,18 @@
                                         </a>
                                     </li>
                                 @endcan
+                                @can('codigo.index')
+                                    <li>
+                                        <a href="{{ route('codigos') }}"
+                                            class="relative flex items-center h-10 pl-6 pr-6 text-sm hover:bg-brand-300 dark:hover:bg-gray-700 transition-colors duration-150 group {{ request()->routeIs('codigos') ? 'bg-brand-300 dark:bg-gray-700 font-semibold' : '' }}">
+                                            <span class="inline-flex justify-center items-center ml-4">
+                                                <i
+                                                    class="fa-solid fa-barcode text-lg w-5 h-5 flex items-center justify-center"></i>
+                                            </span>
+                                            <span class="ml-2 tracking-wide truncate">Códigos de barras</span>
+                                        </a>
+                                    </li>
+                                @endcan
                                 @can('repuesto-categoria.index')
                                     <li>
                                         <a href="{{ route('repuestos.categorias') }}"
