@@ -2,10 +2,10 @@
     <x-dropdown-table>
 
         @can('rol.edit')
-            <button wire:click="openRoleEditModal({{ $row->id }})"
+            <a href="{{ route('roles.editar', $row->id) }}"
                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
                 Editar
-            </button>
+            </a>
         @endcan
         @can('rol.delete')
             <button wire:click="openRoleDestroyModal({{ $row->id }})"

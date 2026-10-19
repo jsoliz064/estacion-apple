@@ -40,11 +40,6 @@ class RoleTable extends DataTableComponent
         $this->builder();
     }
 
-    public function openRoleEditModal($id)
-    {
-        $this->dispatch('openRoleEditModal', $id);
-    }
-
     public function openRoleDestroyModal($id)
     {
         $this->dispatch('openRoleDestroyModal', $id);

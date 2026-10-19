@@ -53,6 +53,14 @@ Route::middleware([
     Route::get('roles', [RoleController::class, 'index'])
         ->middleware('can:rol.index')
         ->name('roles');
+    // Pantalla completa: los permisos agrupados por modulo no caben en un modal.
+    Route::get('roles/crear', [RoleController::class, 'create'])
+        ->middleware('can:rol.create')
+        ->name('roles.crear');
+    Route::get('roles/{id}/editar', [RoleController::class, 'edit'])
+        ->whereNumber('id')
+        ->middleware('can:rol.edit')
+        ->name('roles.editar');
 
     // Desde aqui y hasta el final del grupo, cada ruta lleva el mismo permiso
     // que el @can del enlace o boton que la abre. Antes ninguna lo tenia: el
