@@ -1,7 +1,7 @@
 name: ${CONTAINER_NAME}
 
 services:
-  estacion-apple:
+  app:
     build:
       context: ./
       dockerfile: Dockerfile
