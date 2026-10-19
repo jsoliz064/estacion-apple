@@ -140,7 +140,7 @@
     @livewire('compra-lote.modals.compra-lote-add-model-modal', ['compra_lote' => $compra])
     @livewire('compra-lote.modals.compra-lote-producto-edit-modal')
     @livewire('compra-lote.modals.compra-lote-producto-destroy-modal')
-    @livewire('producto.modals.producto-estado-modal')
+    @include('livewire.producto.partials.modales-estado')
     @livewire('producto.modals.producto-fotos-modal')
     @livewire('producto.modals.producto-estado-masivo-modal')
     @livewire('compra.modals.reclamo-abrir-modal')
@@ -155,5 +155,4 @@
         @livewire('articulo.modals.articulo-form-modal', ['tipo' => 'Repuesto', 'conStock' => false], key('alta-repuesto'))
         @livewire('articulo.modals.articulo-form-modal', ['tipo' => 'Accesorio', 'conStock' => false], key('alta-accesorio'))
     @endcan
-    @livewire('reparacion.modals.repuestos-reparacion-modal')
 </div>

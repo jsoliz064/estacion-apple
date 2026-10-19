@@ -20,6 +20,7 @@ $maxWidth = [
     x-on:close.stop="show = false"
     x-on:keydown.escape.window="show = false"
     x-show="show"
+    x-effect="if (show && window.capaModal) $el.style.zIndex = capaModal($el)"
     id="{{ $id }}"
     class="jetstream-modal fixed inset-0 overflow-y-auto px-4 py-6 sm:px-0 z-50"
     style="display: none;"

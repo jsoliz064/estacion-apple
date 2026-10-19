@@ -1,5 +1,5 @@
 <div>
-    @livewire('producto.modals.producto-estado-modal')
+    @include('livewire.producto.partials.modales-estado')
 
     <div class="h-full">
 
@@ -68,5 +68,4 @@
         </div>
 
     </div>
-    @livewire('reparacion.modals.repuestos-reparacion-modal')
 </div>

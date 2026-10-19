@@ -217,12 +217,15 @@ function programarCierre() {
 
 // El modal abierto de mas arriba; si no hay, la pagina. Los modales de la casa
 // van dentro de un @if, asi que uno cerrado ni siquiera esta en el DOM; los de
-// Jetstream quedan con display:none.
+// Jetstream quedan con display:none. "Arriba" es la capa que le dio capaModal
+// (app.js), no el orden del DOM: el cliente que se abre desde la reserva queda
+// encima aunque se haya montado antes. Con la misma capa, gana el ultimo.
 function contexto() {
-    const abiertos = [...document.querySelectorAll('.jetstream-modal')]
-        .filter((m) => m.style.display !== 'none');
+    const capa = (m) => Number(m.style.zIndex) || 50;
 
-    return abiertos.at(-1) ?? document;
+    return [...document.querySelectorAll('.jetstream-modal')]
+        .filter((m) => m.style.display !== 'none')
+        .reduce((arriba, m) => (arriba === document || capa(m) >= capa(arriba) ? m : arriba), document);
 }
 
 function buscador() {

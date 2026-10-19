@@ -57,6 +57,15 @@ function pitido() {
     }
 }
 
+// La capa de un x-modal al abrirse (su x-effect). Un modal que se abre desde otro
+// (el cliente desde la reserva) tiene que quedar encima: todos son z-50 y ganaba
+// el que estaba mas abajo en el DOM, asi que dependia del orden de los @livewire
+// de cada pantalla. Uno mas que el de mas arriba ya abierto, y no un contador
+// global: subiria sin tope y taparia al lector (z-[70]).
+window.capaModal = (el) => Math.max(50, ...[...document.querySelectorAll('.jetstream-modal')]
+    .filter((m) => m !== el && m.style.display !== 'none')
+    .map((m) => Number(m.style.zIndex) || 50)) + 1;
+
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('escaner', () => ({
         abierto: false,

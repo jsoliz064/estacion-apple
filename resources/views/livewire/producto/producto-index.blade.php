@@ -102,10 +102,8 @@
     <div class="mt-4">
         @livewire('producto.producto-table')
     </div>
-    @livewire('producto.modals.producto-estado-modal')
+    @include('livewire.producto.partials.modales-estado')
     @livewire('producto.modals.producto-fotos-modal')
-    @livewire('cliente.modals.cliente-selector-modal')
-@livewire('cliente.modals.cliente-create-modal')
     @livewire('compra-lote.modals.compra-lote-producto-edit-modal')
     @livewire('producto.modals.producto-destroy-modal')
     @livewire('producto.modals.producto-baja-modal')
@@ -114,7 +112,4 @@
     @livewire('producto.modals.producto-edit-sucursal-modal')
     @livewire('tecnico-producto.modals.reparacion-edit-modal')
     @livewire('producto.modals.producto-estado-masivo-modal')
-    @livewire('reserva.modals.reserva-create-modal')
-    @livewire('reserva.modals.reserva-cancelar-modal')
-    @livewire('reparacion.modals.repuestos-reparacion-modal')
 </div>
