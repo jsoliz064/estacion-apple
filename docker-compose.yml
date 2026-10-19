@@ -1,13 +1,15 @@
+name: ${CONTAINER_NAME}
+
 services:
   estacion-apple:
     build:
       context: ./
       dockerfile: Dockerfile
-    image: estacion-apple
+    image: ${CONTAINER_NAME}
     working_dir: /var/www/html/
     restart: always
-    container_name: estacion-apple
-    hostname: estacion-apple
+    container_name: ${CONTAINER_NAME}
+    hostname: ${CONTAINER_NAME}
     volumes:
       - ./:/var/www/html/:rw
     networks:
