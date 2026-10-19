@@ -16,12 +16,11 @@
                 <div class="m-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <x-label>SKU (opcional):</x-label>
-                        {{-- El Enter que manda la pistola no hace nada aqui: no hay formulario que enviar. --}}
-                        <div class="flex gap-2" data-escaner>
-                            <x-input type="text" wire:model="articulo.sku" class="w-full" placeholder="Código interno"
-                                x-on:keydown.enter.prevent=""></x-input>
-                            <x-boton-escaner modo="input" />
-                        </div>
+                        {{-- Codigo interno, se escribe a mano: sin boton de camara (para
+                             escanear esta el UPC). El Enter no hace nada: no hay formulario
+                             que enviar. --}}
+                        <x-input type="text" wire:model="articulo.sku" class="w-full" placeholder="Código interno"
+                            x-on:keydown.enter.prevent=""></x-input>
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Para buscarlo rápido si no tiene código de barras.</p>
                         <x-input-error for="articulo.sku"></x-input-error>
                     </div>

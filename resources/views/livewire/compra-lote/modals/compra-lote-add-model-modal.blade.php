@@ -72,10 +72,10 @@
                             ])
                             <div>
                                 <x-label for="sku" value="SKU (opcional)" />
-                                <div class="mt-2 flex gap-2" data-escaner>
+                                {{-- Codigo interno, a mano: sin boton de camara (para escanear esta el UPC). --}}
+                                <div class="mt-2">
                                     <x-input wire:model="sku" id="sku" type="text" class="block w-full h-10" placeholder="Código interno"
                                         x-on:keydown.enter.prevent="$el.closest('.jetstream-modal')?.querySelector('#upc')?.focus()" />
-                                    <x-boton-escaner modo="input" />
                                 </div>
                                 <x-input-error for="sku" class="mt-1" />
                             </div>
