@@ -22,6 +22,12 @@ class CodigoBarrasController extends Controller
 
     public const TAMANO_POR_DEFECTO = '50x25';
 
+    /** [clave => nombre], para el :options de x-select (que ignora su contenido). */
+    public static function opcionesTamano(): array
+    {
+        return array_map(fn($t) => $t['nombre'], self::TAMANOS);
+    }
+
     public function index()
     {
         return view('app.codigo.index');

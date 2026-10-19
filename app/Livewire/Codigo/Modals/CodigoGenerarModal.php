@@ -65,7 +65,7 @@ class CodigoGenerarModal extends Component
     public function render()
     {
         return view('livewire.codigo.modals.codigo-generar-modal', [
-            'tamanos' => CodigoBarrasController::TAMANOS,
+            'tamanos' => CodigoBarrasController::opcionesTamano(),
         ]);
     }
 }

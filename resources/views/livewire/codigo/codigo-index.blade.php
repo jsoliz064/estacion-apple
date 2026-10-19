@@ -22,11 +22,7 @@
 
         <div>
             <x-label>Tamaño de etiqueta:</x-label>
-            <x-select wire:model.live="tamano" class="w-full sm:w-80">
-                @foreach ($tamanos as $clave => $t)
-                    <option value="{{ $clave }}">{{ $t['nombre'] }}</option>
-                @endforeach
-            </x-select>
+            <x-select wire:model.live="tamano" class="w-full sm:w-80" :options="$tamanos" />
         </div>
     </div>
 

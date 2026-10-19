@@ -80,7 +80,7 @@ class CodigoIndex extends Component
             'asignados' => $asignados,
             'codigos' => $codigos,
             'duenos' => $duenos,
-            'tamanos' => CodigoBarrasController::TAMANOS,
+            'tamanos' => CodigoBarrasController::opcionesTamano(),
         ]);
     }
 }
