@@ -3,6 +3,9 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,5 +22,20 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // Un 419 de formulario (el token era de una sesion que ya no existe: la
+        // pestana quedo abierta dias) vuelve a pedir la pagina en vez de mostrar
+        // "Page Expired", que solo se arreglaba recargando. Llega como
+        // HttpException(419): Laravel convierte el TokenMismatchException antes
+        // de estos callbacks. Livewire tiene su propio aviso del 419.
+        $exceptions->render(function (HttpExceptionInterface $e, Request $request) {
+            if ($e->getStatusCode() !== 419 || $request->expectsJson() || $request->hasHeader('X-Livewire')) {
+                return null;
+            }
+
+            $mensaje = 'Tu sesión había caducado. Vuelve a intentarlo.';
+
+            return Auth::check()
+                ? back()->withInput($request->except('password', 'password_confirmation', '_token'))->with('status', $mensaje)
+                : redirect()->route('login')->withInput($request->only('email'))->with('status', $mensaje);
+        });
     })->create();

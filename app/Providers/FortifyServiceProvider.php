@@ -56,6 +56,13 @@ class FortifyServiceProvider extends ServiceProvider
             return $user;
         });
 
+        // no-store: con el no-cache de Laravel el navegador guardaba el login y,
+        // al volver a una pestana de hace dias (o con "atras"), mostraba esa
+        // copia con el token de una sesion vencida: cada intento daba 419.
+        // Reemplaza la vista que registra Jetstream (este provider va despues).
+        Fortify::loginView(fn () => response()->view('auth.login')
+            ->header('Cache-Control', 'no-store, private'));
+
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
 
