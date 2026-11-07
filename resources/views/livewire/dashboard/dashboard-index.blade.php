@@ -52,6 +52,8 @@
         </div>
         <!-- ./Statistics Cards -->
 
+        @livewire('dashboard.inventario-por-modelo')
+
         <div class="m-3 mt-5">
             <div class="text-center">
                 <h4 class="text-lg font-semibold text-gray-600 dark:text-gray-200">Últimos Productos Vendidos</h4>
