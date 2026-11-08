@@ -6,21 +6,28 @@
        $enBs: si esta en Bs
        $costo, $precio: los valores en USD (en Bs, los calculados)
        $etiquetaCosto: el rotulo del costo («Costo», «Costo (código)»)
-       $costoBloqueado: el costo de una permuta no se edita (es el pago); la
-         moneda tampoco, porque es de los dos montos. --}}
+       $costoBloqueado: no se edita el costo (una permuta, cuyo costo es el
+         pago, o sin el permiso editar-costo)
+       $precioBloqueado: no se edita el precio (sin el permiso editar-precio)
+       $aviso: una nota bajo los montos (por que estan bloqueados)
+     Con cualquiera de los dos bloqueado, la moneda y el TC tambien: son de los
+     dos montos, y cambiarlos moveria el bloqueado. --}}
 @php
     $costoBloqueado = $costoBloqueado ?? false;
+    $precioBloqueado = $precioBloqueado ?? false;
+    $monedaBloqueada = $costoBloqueado || $precioBloqueado;
     $etiquetaCosto = $etiquetaCosto ?? 'Costo';
+    $aviso = $aviso ?? null;
 @endphp
 <div class="space-y-2">
     <div class="flex items-center justify-between gap-2">
         <x-label value="Costo y precio *" />
         <div class="inline-flex overflow-hidden rounded-md border border-gray-300 text-xs font-semibold dark:border-gray-600">
             <label @class(['cursor-pointer px-3 py-1', 'bg-brand-600 text-white' => !$enBs, 'text-gray-600 dark:text-gray-300' => $enBs])>
-                <input type="radio" class="sr-only" value="USD" wire:model.live="{{ $c['moneda'] }}" @disabled($costoBloqueado)> USD
+                <input type="radio" class="sr-only" value="USD" wire:model.live="{{ $c['moneda'] }}" @disabled($monedaBloqueada)> USD
             </label>
             <label @class(['cursor-pointer px-3 py-1', 'bg-brand-600 text-white' => $enBs, 'text-gray-600 dark:text-gray-300' => !$enBs])>
-                <input type="radio" class="sr-only" value="BOB" wire:model.live="{{ $c['moneda'] }}" @disabled($costoBloqueado)> Bs
+                <input type="radio" class="sr-only" value="BOB" wire:model.live="{{ $c['moneda'] }}" @disabled($monedaBloqueada)> Bs
             </label>
         </div>
     </div>
@@ -35,13 +42,13 @@
             </div>
             <div>
                 <x-input wire:model.live.debounce.400ms="{{ $c['precio_bs'] }}" type="number" step="0.01" min="0" inputmode="decimal"
-                    class="block w-full h-10" onfocus="this.select()" placeholder="0.00" />
+                    class="block w-full h-10" onfocus="this.select()" placeholder="0.00" :disabled="$precioBloqueado" />
                 <span class="text-xs text-gray-500">Precio Bs = {{ \App\Support\Dinero::usd($precio) }}</span>
                 <x-input-error for="{{ $c['precio_bs'] }}" class="mt-1" />
             </div>
             <div>
                 <x-input wire:model.live.debounce.400ms="{{ $c['tc'] }}" type="number" step="0.0001" min="0" inputmode="decimal"
-                    class="block w-full h-10" onfocus="this.select()" placeholder="T/C" :disabled="$costoBloqueado" />
+                    class="block w-full h-10" onfocus="this.select()" placeholder="T/C" :disabled="$monedaBloqueada" />
                 <span class="text-xs text-gray-500">Tipo de cambio</span>
                 <x-input-error for="{{ $c['tc'] }}" class="mt-1" />
             </div>
@@ -55,10 +62,13 @@
             </div>
             <div>
                 <x-input wire:model.live.debounce.400ms="{{ $c['precio'] }}" type="number" step="0.01" min="0" inputmode="decimal"
-                    class="block w-full h-10" onfocus="this.select()" placeholder="0.00" />
+                    class="block w-full h-10" onfocus="this.select()" placeholder="0.00" :disabled="$precioBloqueado" />
                 <span class="text-xs text-gray-500">Precio USD · {{ \App\Support\Dinero::bs($precio) }}</span>
             </div>
         </div>
+    @endif
+    @if ($aviso)
+        <p class="text-xs text-amber-700 dark:text-amber-300"><i class="fa-solid fa-lock mr-1"></i>{{ $aviso }}</p>
     @endif
     <x-input-error for="{{ $c['costo'] }}" class="mt-1" />
     <x-input-error for="{{ $c['precio'] }}" class="mt-1" />

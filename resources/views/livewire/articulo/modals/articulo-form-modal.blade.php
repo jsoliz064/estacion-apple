@@ -86,6 +86,9 @@
                         ],
                         'enBs' => $this->enBs(), 'costo' => $articulo['costo'] ?? 0, 'precio' => $articulo['precio'] ?? 0,
                         'etiquetaCosto' => 'Costo (código)',
+                        'costoBloqueado' => !$puedeCosto,
+                        'precioBloqueado' => !$puedePrecio,
+                        'aviso' => $this->avisoPermisoMontos($puedeCosto, $puedePrecio),
                     ])
                 </div>
 

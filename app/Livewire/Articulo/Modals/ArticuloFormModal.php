@@ -165,6 +165,12 @@ class ArticuloFormModal extends Component
         $this->sincronizarMontosEnMoneda();
         $this->validate($this->rules(), $this->messages(), $this->atributosMontosEnMoneda());
 
+        // Al editar, sin editar-costo / editar-precio la plata no cambia. Al
+        // crear no aplica: quien da de alta carga el costo y el precio.
+        if ($this->articuloId) {
+            $this->exigirPermisoDeMontos(($tipo->modelo())::findOrFail($this->articuloId), $this->puedeEditarCosto(), $this->puedeEditarPrecio());
+        }
+
         $campos = $this->esRepuesto()
             ? ['nombre', 'upc', 'costo', 'precio', 'fabricante', 'producto_modelo_id', 'repuesto_categoria_id']
             : ['nombre', 'upc', 'costo', 'precio', 'marca', 'accesorio_categoria_id'];
@@ -199,6 +205,17 @@ class ArticuloFormModal extends Component
         $this->resetExcept(['tipo', 'conStock']);
     }
 
+    /** Crear siempre puede cargar la plata; editar, solo con su permiso. */
+    private function puedeEditarCosto(): bool
+    {
+        return !$this->articuloId || (bool) Auth::user()?->can($this->articuloTipo()->permiso() . '.editar-costo');
+    }
+
+    private function puedeEditarPrecio(): bool
+    {
+        return !$this->articuloId || (bool) Auth::user()?->can($this->articuloTipo()->permiso() . '.editar-precio');
+    }
+
     public function closeModal()
     {
         $this->resetExcept(['tipo', 'conStock']);
@@ -216,6 +233,8 @@ class ArticuloFormModal extends Component
                 : AccesorioCategoria::orderBy('nombre')->get(['id', 'nombre'])),
             'sucursalesDisponibles' => $abierto && $this->conStock ? $this->sucursalesDisponibles() : collect(),
             'sucursalesPorId' => $abierto && $this->conStock ? $this->sucursalesPorId() : collect(),
+            'puedeCosto' => $this->puedeEditarCosto(),
+            'puedePrecio' => $this->puedeEditarPrecio(),
         ]);
     }
 }

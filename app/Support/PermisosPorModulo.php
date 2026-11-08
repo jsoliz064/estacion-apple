@@ -32,6 +32,7 @@ class PermisosPorModulo
         'producto' => 'Productos',
         'producto.estado' => 'Estados del equipo',
         'producto-categoria' => 'Categorías de productos',
+        'producto-color' => 'Colores de equipo',
         'producto-marca' => 'Marcas',
         'producto-modelo' => 'Modelos',
         'proveedor' => 'Proveedores',

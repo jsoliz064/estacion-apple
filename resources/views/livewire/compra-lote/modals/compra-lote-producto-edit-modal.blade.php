@@ -66,7 +66,9 @@
                                     'costo_bs' => 'producto.costo_moneda_monto', 'precio_bs' => 'producto.precio_moneda_monto', 'tc' => 'producto.tipo_cambio',
                                 ],
                                 'enBs' => $this->enBs(), 'costo' => $producto['costo_unidad'] ?? 0, 'precio' => $producto['precio'] ?? 0,
-                                'costoBloqueado' => $producto['es_permuta'] ?? false,
+                                'costoBloqueado' => ($producto['es_permuta'] ?? false) || !$puedeCosto,
+                                'precioBloqueado' => !$puedePrecio,
+                                'aviso' => $this->avisoPermisoMontos($puedeCosto, $puedePrecio),
                             ])
                             @if ($producto['es_permuta'] ?? false)
                                 <p class="mt-1 text-xs text-gray-500">Recibido en permuta: su costo es el valor reconocido en la venta y no se cambia aquí.</p>

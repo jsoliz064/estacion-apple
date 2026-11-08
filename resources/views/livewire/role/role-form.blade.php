@@ -21,7 +21,7 @@
         </div>
         <div>
             <x-label>Buscar permiso</x-label>
-            <x-input type="search" wire:model.live.debounce.300ms="buscar" class="w-full" placeholder="venta, producto.estado..." />
+            <x-input type="search" wire:model.live.debounce.300ms="buscar" class="w-full" placeholder="costo, venta, anular..." />
         </div>
         <p class="text-sm text-gray-600 dark:text-gray-300 md:text-right md:pb-2">
             <span class="font-bold text-gray-900 dark:text-white">{{ $marcados }}</span> de {{ $total }} permisos
@@ -52,11 +52,18 @@
                     </button>
                 </div>
 
-                <div class="space-y-1.5">
+                {{-- La descripcion es lo que se lee; el nombre tecnico queda abajo,
+                     chico, para quien busca uno en concreto. --}}
+                <div class="space-y-2.5">
                     @foreach ($grupo['permisos'] as $permiso)
-                        <label class="flex items-center gap-2 cursor-pointer" wire:key="perm-{{ $permiso->id }}">
-                            <x-checkbox wire:model.live="seleccionados" value="{{ $permiso->name }}" />
-                            <span class="text-sm text-gray-700 dark:text-gray-200 break-all">{{ $permiso->name }}</span>
+                        <label class="flex items-start gap-2 cursor-pointer" wire:key="perm-{{ $permiso->id }}">
+                            <x-checkbox wire:model.live="seleccionados" value="{{ $permiso->name }}" class="mt-0.5 shrink-0" />
+                            <span class="min-w-0">
+                                <span class="block text-sm leading-snug text-gray-800 dark:text-gray-100">{{ $permiso->descripcion ?: $permiso->name }}</span>
+                                @if ($permiso->descripcion)
+                                    <span class="block font-mono text-[11px] text-gray-400 dark:text-gray-500 break-all">{{ $permiso->name }}</span>
+                                @endif
+                            </span>
                         </label>
                     @endforeach
                 </div>

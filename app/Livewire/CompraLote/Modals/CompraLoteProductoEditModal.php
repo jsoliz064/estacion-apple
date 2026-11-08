@@ -15,6 +15,7 @@ use App\Rules\CodigoGeneradoLibre;
 use App\Services\CompraService;
 use App\Services\EstadoProductoService;
 use App\Traits\NormalizaCodigosTrait;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -63,7 +64,20 @@ class CompraLoteProductoEditModal extends Component
                 array_map(fn($foto) => $foto->temporaryUrl(), $this->fotos),
             ),
             'colores' => $this->openModal ? $this->coloresOfrecidos() : collect(),
+            'puedeCosto' => $this->puedeEditarCosto(),
+            'puedePrecio' => $this->puedeEditarPrecio(),
         ]);
+    }
+
+    /** Los permisos de la plata: sin ellos, se editan los datos pero no el costo o el precio. */
+    private function puedeEditarCosto(): bool
+    {
+        return (bool) Auth::user()?->can('producto.editar-costo');
+    }
+
+    private function puedeEditarPrecio(): bool
+    {
+        return (bool) Auth::user()?->can('producto.editar-precio');
     }
 
     /**
@@ -78,6 +92,9 @@ class CompraLoteProductoEditModal extends Component
     #[On('openCompraLoteProductoEditModal')]
     public function openModal($id)
     {
+        // Antes solo lo pedia el @can del boton: el servidor no comprobaba nada.
+        abort_unless(Auth::user()?->can('producto.edit'), 403);
+
         $producto = Producto::with(['modelo', 'modelo.almacenamientos', 'imagenes',])->find($id);
         $this->producto = $producto->toArray();
         $this->producto['nombre'] = $producto->modelo->nombre;
@@ -143,6 +160,8 @@ class CompraLoteProductoEditModal extends Component
 
     public function updateProduct()
     {
+        abort_unless(Auth::user()?->can('producto.edit'), 403);
+
         // FUERA de la transaccion y antes del try: ValidationException extiende
         // Exception, asi que el catch de abajo la atrapaba y convertia los
         // errores por campo en un unico addError('general'). El usuario veia
@@ -179,6 +198,10 @@ class CompraLoteProductoEditModal extends Component
             'producto.estado_grado' => ['required', Rule::in(ProductoGrado::values())],
         ] + $this->reglasMontosEnMoneda(), [
         ], $this->atributosMontosEnMoneda());
+
+        // Sin editar-costo / editar-precio, la plata no cambia (la pantalla ya
+        // los bloquea; esto cubre una peticion armada a mano).
+        $this->exigirPermisoDeMontos(Producto::findOrFail($this->producto['id']), $this->puedeEditarCosto(), $this->puedeEditarPrecio());
 
         $estados = app(EstadoProductoService::class);
 

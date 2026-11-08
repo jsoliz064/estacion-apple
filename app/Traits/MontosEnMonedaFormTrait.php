@@ -4,7 +4,9 @@ namespace App\Traits;
 
 use App\Enums\Moneda;
 use App\Models\TipoCambio;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * El lado de la pantalla de MontosEnMonedaTrait: costo y precio en USD (por
@@ -104,6 +106,64 @@ trait MontosEnMonedaFormTrait
             $c['precio_bs'] => 'precio en Bs',
             $c['tc'] => 'tipo de cambio',
         ];
+    }
+
+    /**
+     * La red del servidor de los permisos editar-costo / editar-precio: compara
+     * lo enviado con lo guardado y rechaza lo que el usuario no puede cambiar.
+     * La pantalla ya bloquea esos campos; esto cubre una peticion armada a mano.
+     *
+     * La moneda y el tipo de cambio son de LOS DOS montos (en Bs, USD = Bs / TC):
+     * cambiarlos moveria el costo o el precio, asi que sin cualquiera de los
+     * dos permisos tampoco se cambian.
+     *
+     * Llamar despues de sincronizarMontosEnMoneda(), con el modelo sin cambios.
+     */
+    protected function exigirPermisoDeMontos(Model $guardado, bool $puedeCosto, bool $puedePrecio): void
+    {
+        if ($puedeCosto && $puedePrecio) {
+            return;
+        }
+
+        $columnas = $guardado::columnasEnMoneda();
+        [$usdCosto, $usdPrecio] = array_keys($columnas);
+        [$bsCosto, $bsPrecio] = array_values($columnas);
+        $c = $this->camposMoneda();
+        $distinto = fn($a, $b, int $decimales = 2) => round((float) $a, $decimales) !== round((float) $b, $decimales);
+        $enBs = $this->enBs();
+        $errores = [];
+
+        if (!$puedeCosto && ($distinto($this->campoMoneda('costo'), $guardado->getAttribute($usdCosto))
+            || ($enBs && $distinto($this->campoMoneda('costo_bs'), $guardado->getAttribute($bsCosto))))) {
+            $errores[$c['costo']] = 'No tienes permiso para cambiar el costo.';
+        }
+
+        if (!$puedePrecio && ($distinto($this->campoMoneda('precio'), $guardado->getAttribute($usdPrecio))
+            || ($enBs && $distinto($this->campoMoneda('precio_bs'), $guardado->getAttribute($bsPrecio))))) {
+            $errores[$c['precio']] = 'No tienes permiso para cambiar el precio.';
+        }
+
+        $monedaGuardada = $guardado->getAttribute('moneda') ?? Moneda::base()->value;
+        if ($this->campoMoneda('moneda') !== $monedaGuardada
+            || ($enBs && $distinto($this->campoMoneda('tc'), $guardado->getAttribute('tipo_cambio'), 4))) {
+            $errores[$c[$puedeCosto ? 'precio' : 'costo']] ??= 'No tienes permiso para cambiar la moneda ni el tipo de cambio: cambiaría el '
+                . ($puedeCosto ? 'precio.' : 'costo.');
+        }
+
+        if ($errores) {
+            throw ValidationException::withMessages($errores);
+        }
+    }
+
+    /** La nota bajo los montos cuando falta un permiso, o null. */
+    public function avisoPermisoMontos(bool $puedeCosto, bool $puedePrecio): ?string
+    {
+        return match (true) {
+            !$puedeCosto && !$puedePrecio => 'No tienes permiso para cambiar el costo ni el precio.',
+            !$puedeCosto => 'No tienes permiso para cambiar el costo (ni la moneda o el tipo de cambio).',
+            !$puedePrecio => 'No tienes permiso para cambiar el precio (ni la moneda o el tipo de cambio).',
+            default => null,
+        };
     }
 
     /** Las columnas de moneda para guardar (el modelo pone NULL las de Bs en USD). */

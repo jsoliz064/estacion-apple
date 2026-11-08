@@ -20,7 +20,7 @@ use Spatie\Permission\Models\Role;
  */
 class RoleForm extends Component
 {
-    /** El rol del seeder: PermissionSeeder lo busca por este nombre. */
+    /** El rol del seeder: PermisoSeeder lo busca por este nombre. */
     public const ADMINISTRADOR = 'Administrador';
 
     #[Locked]
@@ -89,7 +89,7 @@ class RoleForm extends Component
 
         $role = $this->roleId ? Role::findOrFail($this->roleId) : null;
 
-        // PermissionSeeder le da todos los permisos buscandolo por nombre:
+        // PermisoSeeder le da todos los permisos buscandolo por nombre:
         // renombrado, el seeder fallaria y el rol quedaria sin los nuevos.
         if ($role && $role->name === self::ADMINISTRADOR && $this->nombre !== self::ADMINISTRADOR) {
             $this->addError('nombre', 'El rol Administrador no se puede renombrar.');
@@ -109,10 +109,13 @@ class RoleForm extends Component
         return $this->redirectRoute('roles');
     }
 
-    /** Los permisos que deja ver el buscador (por su nombre o por el de su grupo). */
+    /**
+     * Los permisos que deja ver el buscador: por su nombre, su descripcion
+     * («costo» encuentra los editar-costo) o el nombre de su grupo.
+     */
     private function visibles()
     {
-        $permisos = Permission::orderBy('name')->get(['id', 'name']);
+        $permisos = Permission::orderBy('name')->get(['id', 'name', 'descripcion']);
         $termino = Str::lower(trim($this->buscar));
 
         if ($termino === '') {
@@ -120,6 +123,7 @@ class RoleForm extends Component
         }
 
         return $permisos->filter(fn($p) => str_contains(Str::lower($p->name), $termino)
+            || str_contains(Str::lower(Str::ascii((string) $p->descripcion)), Str::ascii($termino))
             || str_contains(Str::lower(PermisosPorModulo::nombre(PermisosPorModulo::clave($p->name))), $termino));
     }
 
