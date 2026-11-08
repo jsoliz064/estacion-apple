@@ -10,7 +10,7 @@
                     <option value="{{ $metodo->id }}">{{ $metodo->nombre }}</option>
                 @endforeach
             </select>
-            <select wire:model.live="pagos.{{ $i }}.moneda" class="block w-20 h-10 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm" title="Moneda">
+            <select wire:model.live="pagos.{{ $i }}.moneda" class="block w-24 shrink-0 h-10 pl-3 pr-8 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm" title="Moneda">
                 <option value="USD">USD</option>
                 <option value="BOB">Bs</option>
             </select>

@@ -17,7 +17,7 @@
                             <x-label value="Monto recibido" />
                             <div class="mt-1 flex gap-2">
                                 <select wire:model.live="moneda"
-                                    class="block w-20 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm h-10">
+                                    class="block w-24 shrink-0 pl-3 pr-8 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm h-10">
                                     <option value="USD">USD</option>
                                     <option value="BOB">Bs</option>
                                 </select>
