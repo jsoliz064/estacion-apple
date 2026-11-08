@@ -8,7 +8,7 @@ use Livewire\Attributes\On;
 
 /**
  * El buscador de las pantallas de venta y compra: un solo campo que acepta
- * IMEI, codigo de barras, SKU o nombre (BuscadorArticulosService).
+ * IMEI, codigo de barras (serial o UPC) o nombre (BuscadorArticulosService).
  *
  *  - Escribir muestra la lista de coincidencias.
  *  - Enter (lo manda la pistola USB al terminar de "teclear" el codigo, y la

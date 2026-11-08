@@ -3,20 +3,14 @@
 namespace App\Traits;
 
 /**
- * Normaliza el SKU y el UPC de un articulo: sin espacios y NULL cuando vienen
- * vacios.
- *
- * Imprescindible por los UNIQUE de `sku`: en MySQL varios NULL conviven en un
- * indice unico, pero dos '' chocan. Sin esto, el segundo articulo guardado con
- * el campo SKU en blanco reventaria con 1062.
+ * Normaliza el UPC (serial o codigo de barras) de un equipo o articulo: sin
+ * espacios y NULL cuando viene vacio. Un '' no es un codigo: con el, la
+ * busqueda exacta por codigo y los stickers de Codigos de barras verian un
+ * valor donde no hay ninguno. (Antes protegia tambien el UNIQUE del SKU, que
+ * se quito: la tienda no lo usa.)
  */
 trait NormalizaCodigosTrait
 {
-    public function setSkuAttribute($value): void
-    {
-        $this->attributes['sku'] = self::normalizarCodigo($value);
-    }
-
     public function setUpcAttribute($value): void
     {
         $this->attributes['upc'] = self::normalizarCodigo($value);

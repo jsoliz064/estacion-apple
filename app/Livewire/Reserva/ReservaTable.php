@@ -43,7 +43,7 @@ class ReservaTable extends DataTableComponent
         return Reserva::query()
             ->with(['producto.modelo', 'cliente', 'metodo', 'user'])
             ->when($search !== '', fn($q) => $q->where(fn($w) => $w
-                ->whereHas('producto', fn($p) => $p->where('imei', 'like', '%' . addcslashes($search, '%_\\') . '%')->orWhere('sku', $search))
+                ->whereHas('producto', fn($p) => $p->where('imei', 'like', '%' . addcslashes($search, '%_\\') . '%')->orWhere('upc', $search))
                 ->orWhereHas('cliente', fn($c) => $c->where('nombre', 'like', '%' . addcslashes($search, '%_\\') . '%')->orWhere('ci', $search))));
     }
 

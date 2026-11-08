@@ -29,7 +29,7 @@ class CompraLoteTable extends DataTableComponent
     public function configure(): void
     {
         $this->setPrimaryKey('id')
-            ->setSearchPlaceholder('Buscar por modelo, IMEI, SKU o código de barras...');
+            ->setSearchPlaceholder('Buscar por modelo, IMEI o código de barras...');
         $this->setAdditionalSelects(['productos.dado_de_baja_at', 'productos.motivo_baja',
             'productos.costo_unidad', 'productos.moneda', 'productos.costo_moneda_monto', 'productos.precio_moneda_monto', 'productos.tipo_cambio']);
     }
@@ -98,12 +98,11 @@ class CompraLoteTable extends DataTableComponent
             Column::make("Version", "version")
                 ->sortable()
                 ->collapseOnTablet(),
-            // IMEI parcial; SKU y UPC exactos, que es lo que lee la pistola.
+            // IMEI parcial; UPC exacto, que es lo que lee la pistola.
             Column::make("Imei", "imei")
                 ->sortable()
                 ->searchable(fn(Builder $q, $term) => $q
                     ->orWhere('productos.imei', 'like', '%' . $term . '%')
-                    ->orWhere('productos.sku', trim($term))
                     ->orWhere('productos.upc', trim($term))),
             Column::make("Batería(%)", "bateria_porcentaje")
                 ->sortable()

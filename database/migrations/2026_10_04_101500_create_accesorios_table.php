@@ -17,7 +17,6 @@ return new class extends Migration
         Schema::create('accesorios', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
-            $table->string('sku', 50)->nullable();
             $table->string('upc', 50)->nullable();
             $table->string('marca')->nullable();
             // En USD. En pantalla se rotula "Costo (código)" (pedido del cliente).
@@ -36,7 +35,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('nombre', 'accesorios_nombre_index');
-            $table->unique('sku', 'accesorios_sku_unico');
             $table->index('upc', 'accesorios_upc_index');
             $table->foreign('accesorio_categoria_id', 'accesorios_categoria_fk')
                 ->references('id')->on('accesorios_categorias')->nullOnDelete();

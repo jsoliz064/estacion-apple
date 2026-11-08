@@ -8,8 +8,8 @@
 
             <x-slot name="content">
                 {{-- La pistola "teclea" el codigo y manda Enter. Aqui el Enter
-                     nunca guarda: salta al campo siguiente (SKU -> codigo de
-                     barras -> IMEI -> bateria), que es el orden en que se leen
+                     nunca guarda: salta al campo siguiente (serial o UPC ->
+                     IMEI -> bateria), que es el orden en que se leen
                      las etiquetas de la caja. Tras "Guardar y continuar" el foco
                      vuelve al codigo de barras para el equipo siguiente. --}}
                 <div x-data x-on:compra-equipo-guardado.window="$nextTick(() => $el.querySelector('#upc')?.focus())">
@@ -72,27 +72,6 @@
                             ])
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-                            <div>
-                                <x-label for="sku" value="SKU (opcional)" />
-                                {{-- Codigo interno, a mano: sin boton de camara (para escanear esta el UPC). --}}
-                                <div class="mt-2">
-                                    <x-input wire:model="sku" id="sku" type="text" class="block w-full h-10" placeholder="Código interno"
-                                        x-on:keydown.enter.prevent="$el.closest('.jetstream-modal')?.querySelector('#upc')?.focus()" />
-                                </div>
-                                <x-input-error for="sku" class="mt-1" />
-                            </div>
-                            <div>
-                                <x-label for="upc" value="Código de barras (opcional)" />
-                                <div class="mt-2 flex gap-2" data-escaner>
-                                    <x-input wire:model="upc" id="upc" type="text" class="block w-full h-10" placeholder="Escanee o escriba"
-                                        x-on:keydown.enter.prevent="$el.closest('.jetstream-modal')?.querySelector('#imei')?.focus()" />
-                                    <x-boton-escaner modo="input" />
-                                </div>
-                                <x-input-error for="upc" class="mt-1" />
-                            </div>
-                        </div>
-
 
                         <div class="animate-fade-in">
                             <x-label value="Color *" />
@@ -138,6 +117,19 @@
                             <x-label>Detalles:</x-label>
                             <textarea wire:model.defer="detallesText" rows="3"
                                 class="w-full mt-1 p-2 border border-gray-300 rounded-lg shadow-sm resize-none bg-gray-50 text-gray-700"></textarea>
+                        </div>
+
+                        {{-- Serial o UPC y, justo debajo, el IMEI: se cargan juntos con la
+                             pistola (Enter salta de uno al otro y del IMEI a la bateria). --}}
+                        <div class="animate-fade-in">
+                            <x-label for="upc" value="Serial o UPC (opcional)" />
+                            <div class="mt-2 flex gap-2" data-escaner>
+                                <x-input wire:model="upc" id="upc" type="text" class="block w-full h-10" placeholder="Escanee o escriba"
+                                    autocomplete="off"
+                                    x-on:keydown.enter.prevent="$el.closest('.jetstream-modal')?.querySelector('#imei')?.focus()" />
+                                <x-boton-escaner modo="input" />
+                            </div>
+                            <x-input-error for="upc" class="mt-1" />
                         </div>
 
                         <div class="animate-fade-in">

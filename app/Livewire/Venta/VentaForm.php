@@ -35,7 +35,7 @@ use App\Support\Dinero;
  * Registrar o editar una venta: equipos, repuestos y accesorios en el mismo
  * documento, en USD. Lo escribe VentaService.
  *
- * Un solo buscador (IMEI, codigo de barras, SKU o nombre) y el catalogo. Los
+ * Un solo buscador (IMEI, codigo de barras o nombre) y el catalogo. Los
  * equipos llevan garantia y, si tuvieron reparaciones, se les pueden cobrar las
  * piezas montadas (RepuestosDeReparacionService).
  *
@@ -187,7 +187,7 @@ class VentaForm extends Component
                 'tipo' => $d->tipo,
                 'id' => (int) $articulo->id,
                 'descripcion' => $d->descripcion(),
-                'codigo' => $d->producto_id ? $articulo->imei : $articulo->sku,
+                'codigo' => $d->producto_id ? $articulo->imei : $articulo->upc,
                 'cantidad' => (int) $d->cantidad,
                 'precio' => (float) $d->precio,
                 'descuento' => (float) $d->descuento,
@@ -324,7 +324,7 @@ class VentaForm extends Component
             'tipo' => $tipo,
             'id' => $articulo->id,
             'descripcion' => $articulo->nombre,
-            'codigo' => $articulo->sku,
+            'codigo' => $articulo->upc,
             'cantidad' => 1,
             'precio' => (float) $articulo->precio,
             'descuento' => 0,

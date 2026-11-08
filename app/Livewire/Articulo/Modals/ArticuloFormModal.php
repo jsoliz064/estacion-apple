@@ -11,17 +11,15 @@ use App\Enums\Moneda;
 use App\Traits\ArticuloStockSucursalTrait;
 use App\Traits\MontosEnMonedaFormTrait;
 use App\Traits\NormalizaCodigosTrait;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
  * Crear y editar un repuesto o un accesorio. Un solo modal para las dos
- * acciones y los dos tipos: los campos comunes (nombre, SKU, codigo de barras,
+ * acciones y los dos tipos: los campos comunes (nombre, codigo de barras,
  * costo, precio, stock por sucursal) son los mismos, y cada tipo agrega los
  * suyos (repuesto: fabricante, modelo, categoria de pieza, color; accesorio:
  * marca, categoria de accesorio, modelos compatibles).
@@ -65,16 +63,10 @@ class ArticuloFormModal extends Component
 
     protected function rules(): array
     {
-        $tabla = $this->articuloTipo()->tabla();
-
         $reglas = [
             'articulo.nombre' => 'required|string|max:255',
-            // Unico en la base, y aqui tambien para dar el error en el campo. El
-            // indice es quien lo garantiza de verdad: de ahi el catch de guardar().
             // Un sticker de Codigos de barras se asigna a un solo registro, en
-            // cualquiera de los dos campos y de las tres tablas.
-            'articulo.sku' => ['nullable', 'string', 'max:50', Rule::unique($tabla, 'sku')->ignore($this->articuloId),
-                new CodigoGeneradoLibre($this->articuloTipo()->value, $this->articuloId)],
+            // cualquiera de las tres tablas.
             'articulo.upc' => ['nullable', 'string', 'max:50', new CodigoGeneradoLibre($this->articuloTipo()->value, $this->articuloId)],
             'articulo.costo' => 'required|numeric|min:0',
             'articulo.precio' => 'required|numeric|min:0',
@@ -105,7 +97,6 @@ class ArticuloFormModal extends Component
     {
         return [
             'articulo.nombre.required' => 'Debe ingresar un nombre',
-            'articulo.sku.unique' => 'Ese SKU ya lo tiene otro artículo',
             'articulo.costo.required' => 'Debe ingresar el costo',
             'articulo.precio.required' => 'Debe ingresar el precio',
             'articulo.producto_modelo_id.required' => 'Debe seleccionar el modelo al que corresponde el repuesto',
@@ -173,46 +164,34 @@ class ArticuloFormModal extends Component
         $tipo = $this->articuloTipo();
         abort_unless(Auth::user()?->can($tipo->permiso() . ($this->articuloId ? '.edit' : '.create')), 403);
 
-        // Un SKU en blanco es NULL, antes de validar el unique.
-        $this->articulo['sku'] = NormalizaCodigosTrait::normalizarCodigo($this->articulo['sku'] ?? null);
+        // Un codigo en blanco es NULL, antes de validar el sticker.
+        $this->articulo['upc'] = NormalizaCodigosTrait::normalizarCodigo($this->articulo['upc'] ?? null);
         $this->sincronizarMontosEnMoneda();
         $this->validate($this->rules(), $this->messages(), $this->atributosMontosEnMoneda());
 
         $campos = $this->esRepuesto()
-            ? ['nombre', 'sku', 'upc', 'costo', 'precio', 'fabricante', 'producto_modelo_id', 'repuesto_categoria_id', 'color', 'color_hex']
-            : ['nombre', 'sku', 'upc', 'costo', 'precio', 'marca', 'accesorio_categoria_id'];
+            ? ['nombre', 'upc', 'costo', 'precio', 'fabricante', 'producto_modelo_id', 'repuesto_categoria_id', 'color', 'color_hex']
+            : ['nombre', 'upc', 'costo', 'precio', 'marca', 'accesorio_categoria_id'];
 
         $datos = collect($campos)->mapWithKeys(fn($c) => [$c => ($this->articulo[$c] ?? null) === '' ? null : ($this->articulo[$c] ?? null)])->all()
             + $this->datosMontosEnMoneda();
 
-        try {
-            $articulo = DB::transaction(function () use ($tipo, $datos) {
-                $modelo = $tipo->modelo();
-                $articulo = $this->articuloId
-                    ? tap($modelo::findOrFail($this->articuloId))->update($datos)
-                    : $modelo::create($datos);
+        $articulo = DB::transaction(function () use ($tipo, $datos) {
+            $modelo = $tipo->modelo();
+            $articulo = $this->articuloId
+                ? tap($modelo::findOrFail($this->articuloId))->update($datos)
+                : $modelo::create($datos);
 
-                if (!$this->esRepuesto()) {
-                    $articulo->modelosCompatibles()->sync(array_map('intval', $this->modelos));
-                }
-
-                if ($this->conStock) {
-                    $this->guardarStockSucursales($articulo->id);
-                }
-
-                return $articulo;
-            });
-        } catch (QueryException $e) {
-            // El unique del SKU es la garantia real: dos pestanas a la vez pasan
-            // las dos la regla de validacion.
-            if (($e->errorInfo[1] ?? null) === 1062 && str_contains($e->getMessage(), '_sku_unico')) {
-                $this->addError('articulo.sku', 'Ese SKU ya lo tiene otro artículo.');
-
-                return;
+            if (!$this->esRepuesto()) {
+                $articulo->modelosCompatibles()->sync(array_map('intval', $this->modelos));
             }
 
-            throw $e;
-        }
+            if ($this->conStock) {
+                $this->guardarStockSucursales($articulo->id);
+            }
+
+            return $articulo;
+        });
 
         $creado = !$this->articuloId;
         $this->dispatch('refreshArticuloTable');

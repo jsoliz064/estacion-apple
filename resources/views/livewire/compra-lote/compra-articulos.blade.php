@@ -22,7 +22,7 @@
             </div>
         </div>
 
-        @include('livewire.partials.buscador-articulos', ['placeholder' => 'Escanee o escriba código, SKU o nombre...', 'escanerContinuo' => true])
+        @include('livewire.partials.buscador-articulos', ['placeholder' => 'Escanee o escriba código o nombre...', 'escanerContinuo' => true])
         <x-input-error for="detalles" class="mt-1" />
     @endif
 
@@ -46,8 +46,8 @@
                         <td class="p-2">
                             {!! \App\Enums\LineaTipo::badge($d->tipo) !!}
                             <span class="text-gray-900 dark:text-gray-100">{{ $d->articulo()?->nombre }}</span>
-                            @if ($d->articulo()?->sku)
-                                <span class="text-xs text-gray-500">· {{ $d->articulo()->sku }}</span>
+                            @if ($d->articulo()?->upc)
+                                <span class="text-xs text-gray-500">· {{ $d->articulo()->upc }}</span>
                             @endif
                         </td>
                         @if ($puedeEditar && isset($lineas[$d->id]))

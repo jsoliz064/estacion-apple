@@ -47,7 +47,6 @@ class CompraLoteAddModelModal extends Component
     public $color;
     public $version;
     public $imei;
-    public $sku;
     public $upc;
     public $bateria_porcentaje = 0;
     public $disponible_catalogo = false;
@@ -113,7 +112,6 @@ class CompraLoteAddModelModal extends Component
             'version' => 'nullable',
             'imei' => 'required|string|min:1|max:20|unique:productos,imei',
             // Un sticker de Codigos de barras se asigna a un solo registro.
-            'sku' => ['nullable', 'string', 'max:50', 'unique:productos,sku', new CodigoGeneradoLibre('Producto')],
             'upc' => ['nullable', 'string', 'max:50', new CodigoGeneradoLibre('Producto')],
             'bateria_porcentaje' => 'required|numeric|min:1|max:100',
             'costo_unidad' => 'required|numeric|min:0|decimal:0,2',
@@ -140,7 +138,6 @@ class CompraLoteAddModelModal extends Component
             'required' => 'El campo :attribute es obligatorio.',
             'numeric' => 'El campo :attribute debe ser numérico.',
             'imei.unique' => 'Este IMEI ya existe en el sistema.',
-            'sku.unique' => 'Ese SKU ya lo tiene otro equipo.',
             'min' => 'El valor mínimo para :attribute es :min.',
             'max' => 'El valor máximo para :attribute es :max.',
             'decimal' => 'El campo :attribute debe tener máximo 2 decimales.',
@@ -312,7 +309,6 @@ class CompraLoteAddModelModal extends Component
         $this->color = $ultimo?->color ?? ProductoColor::Negro->value;
         $this->version = $ultimo?->version ?? '';
         $this->imei = '';
-        $this->sku = '';
         $this->upc = '';
         $this->bateria_porcentaje = $ultimo?->bateria_porcentaje ?? 0;
         $this->descripcion = '';
@@ -361,7 +357,6 @@ class CompraLoteAddModelModal extends Component
     {
         // La pistola puede dejar espacios o un salto de linea al final.
         $this->imei = trim((string) $this->imei);
-        $this->sku = NormalizaCodigosTrait::normalizarCodigo($this->sku);
         $this->upc = NormalizaCodigosTrait::normalizarCodigo($this->upc);
         $this->sincronizarMontosEnMoneda();
         $this->validate();
@@ -378,7 +373,6 @@ class CompraLoteAddModelModal extends Component
                     'color' => $this->color,
                     'version' => $this->version ?: null,
                     'imei' => $this->imei,
-                    'sku' => $this->sku,
                     'upc' => $this->upc,
                     'bateria_porcentaje' => $this->bateria_porcentaje,
                     'costo_unidad' => $this->costo_unidad,
@@ -418,11 +412,6 @@ class CompraLoteAddModelModal extends Component
         } catch (QueryException $e) {
             if (($e->errorInfo[1] ?? null) === 1062 && str_contains($e->getMessage(), 'imei')) {
                 $this->addError('imei', "El IMEI {$this->imei} ya está registrado. Si acabas de guardarlo, revisa la lista antes de repetir.");
-
-                return null;
-            }
-            if (($e->errorInfo[1] ?? null) === 1062 && str_contains($e->getMessage(), 'sku')) {
-                $this->addError('sku', 'Ese SKU ya lo tiene otro equipo.');
 
                 return null;
             }

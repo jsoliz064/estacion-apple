@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 
 /**
  * El buscador de las pantallas de venta y compra: un solo campo que acepta
- * IMEI, codigo de barras (UPC), SKU o nombre, sobre equipos, repuestos y
+ * IMEI, codigo de barras (UPC) o nombre, sobre equipos, repuestos y
  * accesorios. La pistola USB "teclea" el codigo y manda Enter; la camara del
  * celular escribe en el mismo campo.
  *
@@ -50,7 +50,7 @@ class BuscadorArticulosService
     }
 
     /**
-     * Coincidencia EXACTA y UNICA por codigo (IMEI, UPC o SKU): lo que manda el
+     * Coincidencia EXACTA y UNICA por codigo (IMEI o UPC): lo que manda el
      * lector al terminar con Enter. Si hay cero o mas de una, devuelve null y la
      * pantalla muestra la lista.
      */
@@ -77,12 +77,11 @@ class BuscadorArticulosService
             ->when($soloDisponibles, fn($q) => $q->disponibles(), fn($q) => $q->vigentes())
             ->where(fn($q) => $q
                 ->where('imei', 'like', $patron)
-                ->orWhere('sku', $termino)
                 ->orWhere('upc', $termino))
             // Exacto primero (lector de codigos), luego por sufijo de IMEI: el
             // cliente suele dictar los ultimos digitos.
-            ->orderByRaw('CASE WHEN imei = ? OR sku = ? OR upc = ? THEN 0 WHEN imei LIKE ? THEN 1 ELSE 2 END', [
-                $termino, $termino, $termino, '%' . addcslashes($termino, '%_\\'),
+            ->orderByRaw('CASE WHEN imei = ? OR upc = ? THEN 0 WHEN imei LIKE ? THEN 1 ELSE 2 END', [
+                $termino, $termino, '%' . addcslashes($termino, '%_\\'),
             ])
             ->limit(self::LIMITE)
             ->get()
@@ -90,8 +89,8 @@ class BuscadorArticulosService
                 'tipo' => LineaTipo::Producto->value,
                 'id' => $p->id,
                 'etiqueta' => trim(($p->modelo?->nombre ?? 'Equipo') . ' ' . $p->almacenamiento . ' ' . $p->color),
-                'detalle' => 'IMEI ' . $p->imei . ($p->sku ? ' · SKU ' . $p->sku : ''),
-                'codigos' => array_values(array_filter([$p->imei, $p->sku, $p->upc])),
+                'detalle' => 'IMEI ' . $p->imei . ($p->upc ? ' · ' . $p->upc : ''),
+                'codigos' => array_values(array_filter([$p->imei, $p->upc])),
                 'precio' => (float) $p->precio,
                 'costo' => (float) $p->costo_total,
                 'stock' => 1,
@@ -106,10 +105,9 @@ class BuscadorArticulosService
         return $modelo::query()
             ->with(['stocks' => fn($q) => $q->when($sucursalId, fn($s) => $s->where('sucursal_id', $sucursalId))])
             ->where(fn($q) => $q
-                ->where('sku', $termino)
-                ->orWhere('upc', $termino)
+                ->where('upc', $termino)
                 ->orWhere('nombre', 'like', $patron))
-            ->orderByRaw('CASE WHEN sku = ? OR upc = ? THEN 0 ELSE 1 END', [$termino, $termino])
+            ->orderByRaw('CASE WHEN upc = ? THEN 0 ELSE 1 END', [$termino])
             ->orderBy('nombre')
             ->limit(self::LIMITE)
             ->get()
@@ -117,8 +115,8 @@ class BuscadorArticulosService
                 'tipo' => $tipo->value,
                 'id' => $a->id,
                 'etiqueta' => $a->nombre,
-                'detalle' => trim(($a->sku ? 'SKU ' . $a->sku : '') . ($sucursalId ? ' · Stock ' . $a->stockEn($sucursalId) : ' · Stock ' . $a->cantidad), ' ·'),
-                'codigos' => array_values(array_filter([$a->sku, $a->upc])),
+                'detalle' => trim(($a->upc ? $a->upc : '') . ($sucursalId ? ' · Stock ' . $a->stockEn($sucursalId) : ' · Stock ' . $a->cantidad), ' ·'),
+                'codigos' => array_values(array_filter([$a->upc])),
                 'precio' => (float) $a->precio,
                 'costo' => (float) $a->costo,
                 'stock' => $sucursalId ? $a->stockEn($sucursalId) : (int) $a->cantidad,

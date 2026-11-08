@@ -20,7 +20,7 @@
                     <div>
                         <x-label>Buscar</x-label>
                         <div class="mt-1 flex gap-2" data-escaner data-escaner-principal="1">
-                            <x-input type="text" class="w-full" placeholder="Nombre, SKU o código..."
+                            <x-input type="text" class="w-full" placeholder="Nombre o código de barras..."
                                 wire:model.live.debounce.500ms="search"
                                 x-on:keydown.enter.prevent="$wire.marcarPorCodigo($el.value); $el.value = ''"
                                 autocomplete="off" />
@@ -62,7 +62,7 @@
                             <tr>
                                 <th class="p-2 border-b w-10"></th>
                                 <th class="p-2 border-b text-left">Artículo</th>
-                                <th class="p-2 border-b text-left">SKU</th>
+                                <th class="p-2 border-b text-left">Código</th>
                                 <th class="p-2 border-b text-left">Categoría</th>
                                 <th class="p-2 border-b text-right">Precio</th>
                                 <th class="p-2 border-b text-center">{{ $sucursalId ? 'Stock en ' . $nombreSucursal : 'Stock total' }}</th>
@@ -96,7 +96,7 @@
                                             <span class="text-gray-500">· {{ $a->modelo->nombre }}</span>
                                         @endif
                                     </td>
-                                    <td class="p-2 border">{{ $a->sku ?: '—' }}</td>
+                                    <td class="p-2 border">{{ $a->upc ?: '—' }}</td>
                                     <td class="p-2 border">{{ $a->categoria?->nombre ?? '—' }}</td>
                                     <td class="p-2 border text-right">{{ \App\Support\Dinero::usd((float) $a->precio) }}</td>
                                     <td class="p-2 border text-center">

@@ -59,7 +59,7 @@ class ArticuloTable extends DataTableComponent
 
         $this->setPrimaryKey('id')
             ->setDefaultSort($this->tipoEnum()->tabla() . '.nombre', 'asc')
-            ->setSearchPlaceholder('Buscar por nombre, SKU o código de barras...')
+            ->setSearchPlaceholder('Buscar por nombre o código de barras...')
             ->setEmptyMessage('Todavía no hay ' . mb_strtolower($this->tipoEnum()->plural()) . ' registrados.');
 
         $tabla = $this->tipoEnum()->tabla();
@@ -72,20 +72,11 @@ class ArticuloTable extends DataTableComponent
 
     public function columns(): array
     {
-        $tabla = $this->tipoEnum()->tabla();
         $modelo = $this->tipoEnum()->modelo();
         $vacio = fn($value) => $value !== null && $value !== '' ? e($value) : '<span class="text-gray-400">—</span>';
 
         $columnas = [
             Column::make('Id', 'id')->sortable(),
-            Column::make('SKU', 'sku')
-                ->sortable()
-                ->format($vacio)
-                ->html()
-                // SKU y codigo de barras: el lector "teclea" aqui tambien.
-                ->searchable(fn(Builder $q, $term) => $q
-                    ->orWhere("{$tabla}.sku", 'like', '%' . $term . '%')
-                    ->orWhere("{$tabla}.upc", $term)),
         ];
 
         if ($this->esRepuesto()) {
@@ -93,14 +84,21 @@ class ArticuloTable extends DataTableComponent
                 ->format(fn($value, $row) => $row->getNombreConColor())
                 ->html()
                 ->sortable()
+                // El codigo de barras, exacto: el lector "teclea" aqui tambien.
                 ->searchable(fn(Builder $q, $term) => $q
                     ->orWhere('repuestos.nombre', 'like', '%' . $term . '%')
-                    ->orWhere('repuestos.color', 'like', '%' . $term . '%'));
+                    ->orWhere('repuestos.color', 'like', '%' . $term . '%')
+                    ->orWhere('repuestos.upc', $term));
             $columnas[] = Column::make('Fabricante', 'fabricante')->sortable()->searchable()->format($vacio)->html()->collapseOnTablet();
             $columnas[] = Column::make('Categoría', 'categoria.nombre')->sortable()->searchable();
             $columnas[] = Column::make('Modelo', 'modelo.nombre')->sortable()->searchable();
         } else {
-            $columnas[] = Column::make('Nombre', 'nombre')->sortable()->searchable();
+            // El codigo de barras, exacto: el lector "teclea" aqui tambien.
+            $columnas[] = Column::make('Nombre', 'nombre')
+                ->sortable()
+                ->searchable(fn(Builder $q, $term) => $q
+                    ->orWhere('accesorios.nombre', 'like', '%' . $term . '%')
+                    ->orWhere('accesorios.upc', $term));
             $columnas[] = Column::make('Marca', 'marca')->sortable()->searchable()->format($vacio)->html()->collapseOnTablet();
             $columnas[] = Column::make('Categoría', 'categoria.nombre')->sortable()->searchable();
             $columnas[] = Column::make('Compatible con')

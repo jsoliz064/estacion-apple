@@ -229,8 +229,8 @@
                                     @else
                                         <span class="font-semibold">{{ $a->nombre }}</span>
                                     @endcan
-                                    @if ($a->sku)
-                                        <span class="block text-xs text-gray-500">{{ $a->sku }}</span>
+                                    @if ($a->upc)
+                                        <span class="block text-xs text-gray-500">{{ $a->upc }}</span>
                                     @endif
                                 </td>
                                 <td class="p-2">{{ $a->tipo === \App\Enums\ArticuloTipo::Repuesto ? 'Repuesto' : 'Accesorio' }}</td>

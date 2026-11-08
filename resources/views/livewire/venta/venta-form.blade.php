@@ -50,7 +50,7 @@
 
     {{-- Buscador --}}
     <div class="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-        @include('livewire.partials.buscador-articulos', ['placeholder' => 'Escanee o escriba IMEI, código, SKU o nombre...'])
+        @include('livewire.partials.buscador-articulos', ['placeholder' => 'Escanee o escriba IMEI, código o nombre...'])
         <div class="mt-2">
             <button type="button" wire:click="abrirSelectorEquipos" @disabled($this->sucursalDelDocumento() === null)
                 class="text-sm text-brand-600 hover:underline disabled:opacity-40">
@@ -85,7 +85,7 @@
                             {!! \App\Enums\LineaTipo::badge($linea['tipo']) !!}
                             <span class="text-gray-900 dark:text-gray-100">{{ $linea['descripcion'] }}</span>
                             @if ($linea['codigo'])
-                                <span class="block text-xs text-gray-500 font-mono">{{ $esEquipo ? 'IMEI ' : 'SKU ' }}{{ $linea['codigo'] }}</span>
+                                <span class="block text-xs text-gray-500 font-mono">{{ $esEquipo ? 'IMEI ' : 'Código ' }}{{ $linea['codigo'] }}</span>
                             @endif
                             @if (!$esEquipo)
                                 <span class="block text-xs text-gray-500">Stock aquí: {{ $linea['stock'] }}</span>

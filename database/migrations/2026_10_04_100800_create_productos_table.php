@@ -27,10 +27,9 @@ return new class extends Migration
         Schema::create('productos', function (Blueprint $table) {
             $table->id();
             $table->string('imei', 20);
-            // Codigo libre para buscar rapido lo que no tiene codigo de barras.
-            // Opcional; un vacio se guarda como NULL (NormalizaCodigosTrait),
-            // porque dos '' chocarian en el unique.
-            $table->string('sku', 50)->nullable();
+            // Serial o UPC: el de la caja (lo comparten los del mismo modelo) o
+            // un sticker propio (unico). Un vacio se guarda como NULL
+            // (NormalizaCodigosTrait). No hay SKU: la tienda no lo usa.
             $table->string('upc', 50)->nullable();
             $table->string('almacenamiento');
             $table->enum('version', array_map(fn($c) => $c->value, ProductoVersion::cases()))->nullable();
@@ -81,7 +80,6 @@ return new class extends Migration
             // La garantia de verdad contra el IMEI repetido: la regla unique:
             // valida con un SELECT previo y dos pestanas la pasan las dos.
             $table->unique('imei', 'productos_imei_unico');
-            $table->unique('sku', 'productos_sku_unico');
             $table->index('upc', 'productos_upc_index');
             $table->index('estado', 'productos_estado_index');
             $table->index('tipo_venta', 'productos_tipo_venta_index');

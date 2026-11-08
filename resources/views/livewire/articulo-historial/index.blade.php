@@ -9,7 +9,7 @@
         Historial de {{ $articulo->nombre }}
     </h2>
     <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-6">
-        {{ $articulo->sku ? 'SKU ' . $articulo->sku . ' · ' : '' }}
+        {{ $articulo->upc ? 'Código ' . $articulo->upc . ' · ' : '' }}
         @if ($tipoEnum === \App\Enums\ArticuloTipo::Repuesto)
             {{ $articulo->fabricante ?: 'Sin fabricante' }}
             · {{ $articulo->categoria?->nombre ?? 'Sin categoría' }}

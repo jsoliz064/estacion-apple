@@ -127,6 +127,17 @@
                                 class="w-full mt-1 p-2 border border-gray-300 rounded-lg shadow-sm resize-none bg-gray-50 text-gray-700"></textarea>
                         </div>
 
+                        {{-- Serial o UPC y, justo debajo, el IMEI: se cargan juntos. --}}
+                        <div class="animate-fade-in">
+                            <x-label for="upc" value="Serial o UPC (opcional)" />
+                            <div class="mt-2 flex gap-2" data-escaner>
+                                <x-input wire:model="producto.upc" id="upc" type="text" class="block w-full h-10" autocomplete="off"
+                                    x-on:keydown.enter.prevent="" />
+                                <x-boton-escaner modo="input" />
+                            </div>
+                            <x-input-error for="producto.upc" class="mt-1" />
+                        </div>
+
                         <div class="animate-fade-in">
                             <x-label value="IMEI *" />
                             {{-- .change y no .live: una peticion por digito con la pistola.
@@ -179,24 +190,7 @@
                             </div>
                         </div>
 
-                        <div class="animate-fade-in grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <x-label for="sku" value="SKU (opcional)" />
-                                {{-- Codigo interno, a mano: sin boton de camara (para escanear esta el UPC). --}}
-                                <div class="mt-2">
-                                    <x-input wire:model="producto.sku" id="sku" type="text" class="block w-full h-10" x-on:keydown.enter.prevent="" />
-                                </div>
-                                <x-input-error for="producto.sku" class="mt-1" />
-                            </div>
-                            <div>
-                                <x-label for="upc" value="Código de barras (opcional)" />
-                                <div class="mt-2 flex gap-2" data-escaner>
-                                    <x-input wire:model="producto.upc" id="upc" type="text" class="block w-full h-10" x-on:keydown.enter.prevent="" />
-                                    <x-boton-escaner modo="input" />
-                                </div>
-                                <x-input-error for="producto.upc" class="mt-1" />
-                            </div>
-                        </div>
+
 
                         <div class="animate-fade-in">
                             <x-label :value="$enBorrador ? 'Estado al finalizar la compra' : 'Estado *'" />

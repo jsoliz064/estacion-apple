@@ -12,7 +12,7 @@
                     <div>
                         <x-label>Buscar</x-label>
                         <div class="mt-1 flex gap-2" data-escaner data-escaner-principal="1">
-                            <x-input type="text" class="w-full" placeholder="IMEI, SKU, modelo, color..."
+                            <x-input type="text" class="w-full" placeholder="IMEI, código, modelo, color..."
                                 wire:model.live.debounce.500ms="search"
                                 x-on:keydown.enter.prevent="$wire.marcarPorCodigo($el.value); $el.value = ''"
                                 autocomplete="off" />

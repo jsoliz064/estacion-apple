@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\DB;
  * Un codigo de barras propio (EAN-13 '20...'), impreso como sticker antes de
  * saber a que producto va. Solo lo escribe CodigoBarrasService.
  *
- * A quien se le asigno NO se guarda aqui: es quien lo tenga como upc o sku
- * (un equipo en su UPC, un repuesto o accesorio en su SKU o UPC). duenos() es
- * la unica traduccion de esa pregunta a SQL.
+ * A quien se le asigno NO se guarda aqui: es quien lo tenga como upc (un
+ * equipo, un repuesto o un accesorio). duenos() es la unica traduccion de esa
+ * pregunta a SQL.
  */
 class CodigoBarras extends Model
 {
@@ -27,11 +27,8 @@ class CodigoBarras extends Model
     /** Las columnas donde un codigo queda asignado: [tabla, tipo, columna]. */
     private const RAMAS = [
         ['productos', 'Producto', 'upc'],
-        ['productos', 'Producto', 'sku'],
         ['repuestos', 'Repuesto', 'upc'],
-        ['repuestos', 'Repuesto', 'sku'],
         ['accesorios', 'Accesorio', 'upc'],
-        ['accesorios', 'Accesorio', 'sku'],
     ];
 
     public function lote()
@@ -41,8 +38,8 @@ class CodigoBarras extends Model
 
     /**
      * Filas (tipo, dueno_id, codigo) de todo lo que tiene un codigo cargado,
-     * o solo de $codigos. Un equipo con el mismo codigo en UPC y SKU sale dos
-     * veces: quien cuente duenos, que cuente (tipo, dueno_id) distintos.
+     * o solo de $codigos. Quien cuente duenos, que cuente (tipo, dueno_id)
+     * distintos.
      */
     public static function consultaDuenos(?array $codigos = null): Builder
     {

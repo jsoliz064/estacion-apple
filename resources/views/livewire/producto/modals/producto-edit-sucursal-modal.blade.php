@@ -59,13 +59,13 @@
 
                 @if ($sucursal1 != null && $sucursal2 != null)
                     <div class="mb-4 relative" wire:ignore.self>
-                        <label class="block text-sm font-medium text-gray-700">Buscar IMEI o SKU</label>
-                        {{-- Enter (pistola o camara): un IMEI o SKU exacto se agrega solo y el
+                        <label class="block text-sm font-medium text-gray-700">Buscar IMEI o código</label>
+                        {{-- Enter (pistola o camara): un IMEI o UPC exacto se agrega solo y el
                              campo queda listo para el siguiente. --}}
                         <div class="mt-1 flex gap-2" data-escaner data-escaner-principal="1">
                             <input type="text"
                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm"
-                                placeholder="Escanee o escriba el IMEI o SKU..." wire:model.live.debounce.500ms="searchImei"
+                                placeholder="Escanee o escriba el IMEI o código..." wire:model.live.debounce.500ms="searchImei"
                                 x-on:keydown.enter.prevent="$wire.elegirPorCodigo($el.value); $el.value = ''"
                                 wire:keydown.escape="$set('searchImei', '')" wire:keydown.tab="$set('searchImei', '')"
                                 autocomplete="off" />

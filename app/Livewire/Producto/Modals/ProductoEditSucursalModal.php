@@ -115,7 +115,7 @@ class ProductoEditSucursalModal extends Component
         $producto = Producto::buscarPorImei($termino)->first();
 
         if (!$producto) {
-            return "Ningún IMEI ni SKU coincide con \"{$termino}\".";
+            return "Ningún IMEI ni código coincide con \"{$termino}\".";
         }
 
         if (in_array($producto->id, $idsExistentes)) {
@@ -154,7 +154,7 @@ class ProductoEditSucursalModal extends Component
 
     /**
      * Enter en el buscador: lo que manda la pistola (o la camara) al leer el
-     * IMEI, el SKU o el sticker (UPC) de un equipo. Con una coincidencia exacta
+     * IMEI o el codigo de barras (UPC) de un equipo. Con una coincidencia exacta
      * (unica: el UPC de una caja se repite) lo agrega y deja el campo listo
      * para el siguiente; si no, muestra la lista y el motivo.
      */
@@ -166,11 +166,11 @@ class ProductoEditSucursalModal extends Component
         $producto = $codigo === '' || !$this->puedeBuscar() ? null : $this->unicoPorCodigo(
             $this->baseQuery()
                 ->whereNotIn('id', $idsExistentes)
-                ->where(fn($q) => $q->where('imei', $codigo)->orWhere('sku', $codigo)->orWhere('upc', $codigo))
+                ->where(fn($q) => $q->where('imei', $codigo)->orWhere('upc', $codigo))
                 ->limit(2)
                 ->get(),
             $codigo,
-            ['imei', 'sku', 'upc'],
+            ['imei', 'upc'],
         );
 
         if ($producto) {

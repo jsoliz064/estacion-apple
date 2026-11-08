@@ -46,7 +46,7 @@ class CodigoBarrasService
         $secuencia = (int) CodigoBarras::query()->lockForUpdate()->max('secuencia');
         $codigos = [];
 
-        // Un codigo que alguien ya tecleo a mano como UPC o SKU se salta: el
+        // Un codigo que alguien ya tecleo a mano como UPC se salta: el
         // numero se pierde, pero ningun sticker sale repetido. No deberia pasar
         // nunca (nadie usa el prefijo 20), por eso no hace falta mas que esto.
         while (count($codigos) < $cantidad) {

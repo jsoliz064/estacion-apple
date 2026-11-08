@@ -18,7 +18,7 @@ trait EligePorCodigoTrait
      * @param  iterable  $filas   modelos o arreglos
      * @param  string[]  $campos  los codigos que valen como exactos
      */
-    protected function unicoPorCodigo(iterable $filas, ?string $codigo, array $campos = ['imei', 'sku', 'upc']): mixed
+    protected function unicoPorCodigo(iterable $filas, ?string $codigo, array $campos = ['imei', 'upc']): mixed
     {
         $codigo = trim((string) $codigo);
 

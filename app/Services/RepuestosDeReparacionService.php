@@ -44,7 +44,7 @@ class RepuestosDeReparacionService
     public function elegibles(int $productoId): Collection
     {
         return ProductoReparacionRepuesto::query()
-            ->with(['repuesto:id,nombre,fabricante,precio,sku', 'reparacion:id,producto_id,tipo,created_at'])
+            ->with(['repuesto:id,nombre,fabricante,precio,upc', 'reparacion:id,producto_id,tipo,created_at'])
             ->whereHas('reparacion', fn($query) => $query
                 ->where('producto_id', $productoId)
                 ->where('tipo', ReparacionTipo::Normal->value))

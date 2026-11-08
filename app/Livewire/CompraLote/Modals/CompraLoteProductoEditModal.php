@@ -140,7 +140,7 @@ class CompraLoteProductoEditModal extends Component
         // Exception, asi que el catch de abajo la atrapaba y convertia los
         // errores por campo en un unico addError('general'). El usuario veia
         // "Error: The given data was invalid" sin saber que campo arreglar.
-        $this->producto['sku'] = NormalizaCodigosTrait::normalizarCodigo($this->producto['sku'] ?? null);
+        $this->producto['upc'] = NormalizaCodigosTrait::normalizarCodigo($this->producto['upc'] ?? null);
         $this->sincronizarMontosEnMoneda();
 
         $this->validate([
@@ -150,8 +150,6 @@ class CompraLoteProductoEditModal extends Component
             'producto.bateria_porcentaje' => 'required|numeric|min:0|max:100',
             'producto.costo_unidad' => 'required|numeric|min:0',
             // Un sticker de Codigos de barras se asigna a un solo registro.
-            'producto.sku' => ['nullable', 'string', 'max:50', Rule::unique('productos', 'sku')->ignore($this->producto['id'] ?? null),
-                new CodigoGeneradoLibre('Producto', $this->producto['id'] ?? null)],
             'producto.upc' => ['nullable', 'string', 'max:50', new CodigoGeneradoLibre('Producto', $this->producto['id'] ?? null)],
             'producto.tipo_venta' => ['required', Rule::in(ProductoTipoVenta::values())],
             'producto.precio' => 'required|numeric|min:0',
@@ -173,7 +171,6 @@ class CompraLoteProductoEditModal extends Component
             'producto.sucursal_id' => 'required',
             'producto.estado_grado' => ['required', Rule::in(ProductoGrado::values())],
         ] + $this->reglasMontosEnMoneda(), [
-            'producto.sku.unique' => 'Ese SKU ya lo tiene otro equipo.',
         ], $this->atributosMontosEnMoneda());
 
         $estados = app(EstadoProductoService::class);
@@ -200,7 +197,6 @@ class CompraLoteProductoEditModal extends Component
                 'color' => $this->producto['color'],
                 'version' => $this->producto['version'] ?? null,
                 'bateria_porcentaje' => $this->producto['bateria_porcentaje'],
-                'sku' => $this->producto['sku'],
                 'upc' => $this->producto['upc'] ?? null,
                 // El de un equipo recibido en permuta no cambia: es el pago de la
                 // venta, y queda en USD (la moneda se bloquea en la pantalla).

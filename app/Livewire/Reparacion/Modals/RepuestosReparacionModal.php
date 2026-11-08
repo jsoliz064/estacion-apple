@@ -101,7 +101,7 @@ class RepuestosReparacionModal extends Component
         $this->seleccionados[] = $id;
     }
 
-    /** Enter en el buscador (pistola o camara): un SKU/UPC exacto marca la pieza. */
+    /** Enter en el buscador (pistola o camara): un codigo de barras exacto marca la pieza. */
     public function marcarPorCodigo(?string $codigo = null): void
     {
         $codigo = trim((string) $codigo);
@@ -109,7 +109,7 @@ class RepuestosReparacionModal extends Component
         $this->pagina = 1;
 
         $pagina = $this->consulta();
-        $repuesto = $this->unicoPorCodigo($pagina->getCollection(), $codigo, ['sku', 'upc']);
+        $repuesto = $this->unicoPorCodigo($pagina->getCollection(), $codigo, ['upc']);
 
         if (!$repuesto) {
             if ($codigo !== '' && $pagina->total() === 0) {
@@ -190,9 +190,8 @@ class RepuestosReparacionModal extends Component
             ->when($this->excluidos, fn($q) => $q->whereNotIn('id', $this->excluidos))
             ->when($this->search !== '', function ($q) {
                 $term = '%' . addcslashes($this->search, '%_\\') . '%';
-                // SKU y UPC exactos: es lo que lee la pistola.
+                // El UPC, exacto: es lo que lee la pistola.
                 $q->where(fn($s) => $s->where('nombre', 'like', $term)
-                    ->orWhere('sku', $this->search)
                     ->orWhere('upc', $this->search)
                     ->orWhere('fabricante', 'like', $term));
             })

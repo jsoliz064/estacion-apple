@@ -42,7 +42,7 @@
                         <x-label>Buscar</x-label>
                         {{-- El Enter manda $el.value: el debounce todavia no tiene el codigo de la pistola. --}}
                         <div class="mt-1 flex gap-2" data-escaner data-escaner-principal="1">
-                            <x-input type="text" class="w-full" placeholder="Nombre, SKU o código..."
+                            <x-input type="text" class="w-full" placeholder="Nombre o código de barras..."
                                 wire:model.live.debounce.500ms="search"
                                 x-on:keydown.enter.prevent="$wire.marcarPorCodigo($el.value); $el.value = ''"
                                 autocomplete="off" />
@@ -92,7 +92,7 @@
                                     <td class="p-2 border">
                                         <span class="text-gray-900 dark:text-gray-100">{{ $r->nombre }}</span>
                                         <span class="block text-gray-500">
-                                            {{ collect([$r->modelo?->nombre, $r->fabricante, $r->categoria?->nombre, $r->sku])->filter()->implode(' · ') }}
+                                            {{ collect([$r->modelo?->nombre, $r->fabricante, $r->categoria?->nombre, $r->upc])->filter()->implode(' · ') }}
                                         </span>
                                     </td>
                                     <td class="p-2 border text-right whitespace-nowrap">{{ \App\Support\Dinero::usd((float) $r->costo) }}</td>

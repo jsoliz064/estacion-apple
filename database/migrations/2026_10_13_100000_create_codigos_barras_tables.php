@@ -9,10 +9,10 @@ return new class extends Migration
     /**
      * Codigos de barras propios para pegar en la mercaderia ANTES de saber a
      * que producto van: se imprimen, se pegan, y al cargar el equipo o el
-     * articulo se escanean a su UPC o SKU. Ver CodigoBarrasService.
+     * articulo se escanean a su UPC. Ver CodigoBarrasService.
      *
      * Que un codigo este asignado no se guarda: se deriva de si aparece como
-     * upc o sku en productos, repuestos o accesorios (CodigoBarras::duenos()).
+     * upc en productos, repuestos o accesorios (CodigoBarras::duenos()).
      * Guardarlo seria un segundo escritor que mantener sincronizado.
      */
     public function up(): void

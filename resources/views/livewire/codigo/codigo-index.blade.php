@@ -10,7 +10,7 @@
     <h2 class="text-center text-2xl font-bold text-gray-800 dark:text-white mb-2">Códigos de barras</h2>
     <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-6">
         Stickers con un código único para pegar en la mercadería. Al cargar el equipo (en su UPC) o el
-        artículo (en su SKU o UPC), se escanea el sticker y el código queda asignado.
+        artículo (en su código de barras), se escanea el sticker y el código queda asignado.
     </p>
 
     <div class="flex flex-wrap items-end justify-between gap-3">

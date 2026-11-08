@@ -22,7 +22,7 @@
             </p>
             <p class="text-xs text-gray-500 dark:text-gray-400">
                 Grado {{ \App\Enums\ProductoGrado::labelDe($producto->estado_grado) }} · {{ $producto->tipo_venta }}
-                @if ($producto->sku) · SKU {{ $producto->sku }} @endif
+                @if ($producto->upc) · UPC {{ $producto->upc }} @endif
             </p>
             @if ($producto->estaDadoDeBaja())
                 <p class="mt-2 text-sm font-semibold text-red-600 dark:text-red-400">

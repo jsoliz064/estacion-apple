@@ -58,7 +58,7 @@ class CodigoIndex extends Component
     {
         $lotes = CodigoLote::with('user:id,name')->latest('id')->paginate(15, ['*'], 'lotes');
 
-        // Asignado = aparece como upc o sku de algun equipo o articulo. Se
+        // Asignado = aparece como upc de algun equipo o articulo. Se
         // cuenta por lote en una consulta (no se guarda: ver CodigoBarras).
         $asignados = $lotes->isEmpty() ? collect() : DB::table('codigos_barras as cb')
             ->joinSub(CodigoBarras::consultaDuenos(), 'u', 'u.codigo', '=', 'cb.codigo')

@@ -18,8 +18,7 @@ return new class extends Migration
         Schema::create('repuestos', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
-            // Codigo libre; un vacio se guarda como NULL (NormalizaCodigosTrait).
-            $table->string('sku', 50)->nullable();
+            // Codigo de barras; un vacio se guarda como NULL (NormalizaCodigosTrait).
             $table->string('upc', 50)->nullable();
             $table->string('fabricante')->nullable();
             $table->string('color', 50)->nullable();
@@ -41,7 +40,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('nombre', 'repuestos_nombre_index');
-            $table->unique('sku', 'repuestos_sku_unico');
             $table->index('upc', 'repuestos_upc_index');
         });
 

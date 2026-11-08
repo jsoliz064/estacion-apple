@@ -42,7 +42,7 @@ class ProductoTable extends DataTableComponent
     public function configure(): void
     {
         $this->setPrimaryKey('id')
-            ->setSearchPlaceholder('Buscar por modelo, IMEI, SKU o código de barras...');
+            ->setSearchPlaceholder('Buscar por modelo, IMEI o código de barras...');
 
         // Las columnas con ->label() se excluyen del SELECT que arma el paquete,
         // así que los campos que usan sus callbacks hay que pedirlos aquí.
@@ -77,18 +77,13 @@ class ProductoTable extends DataTableComponent
             Column::make("Version", "version")
                 ->sortable()
                 ->collapseOnTablet(),
+            // IMEI parcial; el UPC, exacto: es lo que lee la pistola en la caja
+            // (y trae a todos los del mismo modelo) o en un sticker propio.
             Column::make("Imei", "imei")
                 ->sortable()
-                ->searchable(),
-            // El SKU es el codigo libre de lo que no trae codigo de barras: se
-            // busca desde la misma caja que el IMEI. El UPC, exacto: es lo que
-            // lee la pistola en la caja (y trae a todos los del mismo modelo).
-            Column::make("SKU", "sku")
-                ->sortable()
                 ->searchable(fn(Builder $q, $term) => $q
-                    ->orWhere('productos.sku', 'like', '%' . $term . '%')
-                    ->orWhere('productos.upc', trim($term)))
-                ->collapseOnTablet(),
+                    ->orWhere('productos.imei', 'like', '%' . $term . '%')
+                    ->orWhere('productos.upc', trim($term))),
             Column::make("Batería %", "bateria_porcentaje")
                 ->sortable()
                 ->format(function ($value) {

@@ -67,7 +67,7 @@ class ProductoSelectorModal extends Component
     }
 
     /**
-     * Enter en el buscador (pistola o camara): un IMEI, SKU o UPC exacto y
+     * Enter en el buscador (pistola o camara): un IMEI o UPC exacto y
      * UNICO marca ese equipo y deja el campo listo para el siguiente. El UPC de
      * una caja es del modelo y lo comparten varios: no elige y deja la lista
      * filtrada para elegir a mano. El de un sticker de Codigos de barras es de
@@ -80,7 +80,7 @@ class ProductoSelectorModal extends Component
         $this->pagina = 1;
 
         $productos = $this->productosQuery();
-        $producto = $this->unicoPorCodigo($productos->getCollection(), $codigo, ['imei', 'sku', 'upc']);
+        $producto = $this->unicoPorCodigo($productos->getCollection(), $codigo, ['imei', 'upc']);
 
         if (!$producto) {
             if ($codigo !== '' && $productos->total() === 0) {
@@ -141,10 +141,9 @@ class ProductoSelectorModal extends Component
 
                 // Un solo cuadro para IMEI, modelo, capacidad, color y
                 // descripcion: en el mostrador no se sabe de antemano por cual
-                // de los cinco se esta buscando. El SKU y el UPC, exactos: es
-                // lo que lee la pistola.
+                // de los cinco se esta buscando. El UPC, exacto: es lo que lee
+                // la pistola.
                 $q->where(fn($sub) => $sub->where('imei', 'like', $term)
-                    ->orWhere('sku', $this->search)
                     ->orWhere('upc', $this->search)
                     ->orWhere('descripcion', 'like', $term)
                     ->orWhere('almacenamiento', 'like', $term)

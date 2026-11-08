@@ -1,5 +1,5 @@
 {{-- Buscador comun de venta y compra (CarritoBuscadorTrait).
-     Un solo campo para IMEI, codigo de barras, SKU o nombre. La pistola USB
+     Un solo campo para IMEI, codigo de barras o nombre. La pistola USB
      "teclea" el codigo y manda Enter: agregarPorCodigo() agrega directo si hay
      una coincidencia exacta. En el celular, la camara (x-boton-escaner) hace lo
      mismo: escribe el codigo y manda Enter.
@@ -21,7 +21,7 @@
             <input type="text" wire:model.live.debounce.400ms="busqueda"
                 x-on:keydown.enter.prevent="$wire.agregarPorCodigo($el.value); $el.value = ''"
                 @disabled(!$habilitado) autocomplete="off" inputmode="search"
-                placeholder="{{ $habilitado ? ($placeholder ?? 'Escanee o escriba IMEI, código, SKU o nombre...') : $this->motivoSinSucursal() }}"
+                placeholder="{{ $habilitado ? ($placeholder ?? 'Escanee o escriba IMEI, código o nombre...') : $this->motivoSinSucursal() }}"
                 class="w-full pl-10 rounded-md shadow-sm border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:ring-brand-500 focus:border-brand-500 disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-800">
         </div>
         <x-boton-escaner :continuo="$escanerContinuo ?? false" :disabled="!$habilitado" />

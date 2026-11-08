@@ -160,12 +160,12 @@ class ReporteInventarioIndex extends Component
             ->orderByRaw('(ss.minimo - ss.cantidad) DESC')
             ->orderBy('s.nombre')
             ->get(['ss.repuesto_id', 'ss.accesorio_id', 'ss.cantidad', 'ss.minimo', 's.nombre as sucursal',
-                DB::raw('COALESCE(r.nombre, a.nombre) as nombre'), DB::raw('COALESCE(r.sku, a.sku) as sku')])
+                DB::raw('COALESCE(r.nombre, a.nombre) as nombre'), DB::raw('COALESCE(r.upc, a.upc) as upc')])
             ->map(fn($f) => (object) [
                 'tipo' => $f->repuesto_id ? ArticuloTipo::Repuesto : ArticuloTipo::Accesorio,
                 'id' => (int) ($f->repuesto_id ?: $f->accesorio_id),
                 'nombre' => $f->nombre,
-                'sku' => $f->sku,
+                'upc' => $f->upc,
                 'sucursal' => $f->sucursal,
                 'cantidad' => (int) $f->cantidad,
                 'minimo' => (int) $f->minimo,

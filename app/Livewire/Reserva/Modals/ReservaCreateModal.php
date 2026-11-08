@@ -20,7 +20,7 @@ use Livewire\Component;
 /**
  * Reservar un equipo para un cliente con una seña (ReservaService::crear).
  * Se abre con el equipo (desde el modal de estado) o sin el (desde la pantalla
- * de reservas), y entonces se busca por IMEI o SKU, tambien con el lector.
+ * de reservas), y entonces se busca por IMEI o UPC, tambien con el lector.
  */
 class ReservaCreateModal extends Component
 {
@@ -71,7 +71,7 @@ class ReservaCreateModal extends Component
             ->buscar((string) $valor, [LineaTipo::Producto], null, true)->all();
     }
 
-    /** Enter en el buscador (pistola o camara): IMEI o SKU exacto lo elige. */
+    /** Enter en el buscador (pistola o camara): IMEI o UPC exacto lo elige. */
     public function elegirEquipoPorCodigo(?string $codigo = null): void
     {
         $codigo = trim((string) $codigo);

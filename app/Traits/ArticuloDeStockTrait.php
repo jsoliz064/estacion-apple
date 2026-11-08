@@ -137,9 +137,9 @@ trait ArticuloDeStockTrait
         return $total;
     }
 
-    /** "Nombre · SKU" para listas y buscadores. */
+    /** "Nombre · codigo de barras" para listas y buscadores. */
     public function etiqueta(): string
     {
-        return $this->nombre . ($this->sku ? ' · ' . $this->sku : '');
+        return $this->nombre . ($this->upc ? ' · ' . $this->upc : '');
     }
 }

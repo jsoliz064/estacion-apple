@@ -115,7 +115,7 @@
                                 <div class="mt-1 flex gap-2" data-escaner data-escaner-principal="1">
                                     <x-input type="text" class="w-full" wire:model.live.debounce.300ms="busqueda"
                                         x-on:keydown.enter.prevent="$wire.elegirPorCodigo($el.value); $el.value = ''"
-                                        placeholder="Escanee o escriba nombre, SKU o código de barras" />
+                                        placeholder="Escanee o escriba nombre o código de barras" />
                                     <x-boton-escaner />
                                 </div>
                                 <x-input-error for="accesorioId"></x-input-error>
@@ -129,8 +129,8 @@
                                                 class="w-full flex justify-between gap-2 py-2 text-left text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
                                                 <span>
                                                     {{ $accesorio->nombre }}
-                                                    @if ($accesorio->sku)
-                                                        <span class="text-xs text-gray-500">· {{ $accesorio->sku }}</span>
+                                                    @if ($accesorio->upc)
+                                                        <span class="text-xs text-gray-500">· {{ $accesorio->upc }}</span>
                                                     @endif
                                                 </span>
                                                 <span class="text-xs text-gray-500">Stock {{ (int) $accesorio->cantidad }} · {{ \App\Support\Dinero::usd((float) $accesorio->costo) }}</span>

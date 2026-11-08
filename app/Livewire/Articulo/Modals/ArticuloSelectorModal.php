@@ -102,7 +102,7 @@ class ArticuloSelectorModal extends Component
     }
 
     /**
-     * Enter en el buscador (pistola o camara): un SKU/UPC exacto del tipo que
+     * Enter en el buscador (pistola o camara): un codigo de barras exacto del tipo que
      * se esta mirando marca la fila, con la misma regla de stock que el clic.
      */
     public function marcarPorCodigo(?string $codigo = null): void
@@ -112,7 +112,7 @@ class ArticuloSelectorModal extends Component
         $this->pagina = 1;
 
         $pagina = $this->consulta();
-        $articulo = $this->unicoPorCodigo($pagina->getCollection(), $codigo, ['sku', 'upc']);
+        $articulo = $this->unicoPorCodigo($pagina->getCollection(), $codigo, ['upc']);
 
         if (!$articulo) {
             if ($codigo !== '' && $pagina->total() === 0) {
@@ -204,7 +204,6 @@ class ArticuloSelectorModal extends Component
             ->when($this->search !== '', function ($q) {
                 $term = '%' . addcslashes($this->search, '%_\\') . '%';
                 $q->where(fn($s) => $s->where('nombre', 'like', $term)
-                    ->orWhere('sku', $this->search)
                     ->orWhere('upc', $this->search));
             })
             ->when($this->filtroCategoria !== '', fn($q) => $q->where($esRepuesto ? 'repuesto_categoria_id' : 'accesorio_categoria_id', $this->filtroCategoria))

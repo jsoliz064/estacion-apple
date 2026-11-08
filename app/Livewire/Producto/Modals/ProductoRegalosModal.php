@@ -71,17 +71,17 @@ class ProductoRegalosModal extends Component
             ?? '');
     }
 
-    /** Enter en el buscador (pistola o camara): un SKU/UPC exacto lo elige. */
+    /** Enter en el buscador (pistola o camara): un codigo de barras exacto lo elige. */
     public function elegirPorCodigo(?string $codigo = null): void
     {
         $codigo = trim((string) $codigo);
         $accesorio = $codigo === '' ? null : $this->unicoPorCodigo(
             Accesorio::query()->where('cantidad', '>', 0)
-                ->where(fn($q) => $q->where('sku', $codigo)->orWhere('upc', $codigo))
+                ->where('upc', $codigo)
                 ->limit(2)
                 ->get(),
             $codigo,
-            ['sku', 'upc'],
+            ['upc'],
         );
 
         if ($accesorio) {
@@ -99,7 +99,7 @@ class ProductoRegalosModal extends Component
     }
 
     /**
-     * Codigo exacto (SKU/UPC) o nombre parcial: el mismo criterio que el
+     * Codigo de barras exacto o nombre parcial: el mismo criterio que el
      * buscador de la venta. Sin texto: los compatibles con el modelo del
      * equipo, que son los que se regalan casi siempre.
      */
@@ -109,7 +109,6 @@ class ProductoRegalosModal extends Component
 
         if ($termino !== '') {
             $query->where(fn($q) => $q->where('nombre', 'like', '%' . addcslashes($termino, '%_\\') . '%')
-                ->orWhere('sku', $termino)
                 ->orWhere('upc', $termino));
         } elseif ($producto) {
             $query->whereHas('modelosCompatibles', fn($q) => $q->where('productos_modelos.id', $producto->producto_modelo_id));
