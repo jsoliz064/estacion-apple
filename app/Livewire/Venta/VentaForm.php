@@ -470,7 +470,7 @@ class VentaForm extends Component
         $this->montoTocado = false;
         $this->permuta = [
             'producto_modelo_id' => '', 'imei' => '', 'almacenamiento' => '128GB', 'color' => '',
-            'estado_grado' => ProductoGrado::Dos->value, 'bateria_porcentaje' => 85, 'valor' => '',
+            'estado_grado' => ProductoGrado::SemiNuevo->value, 'bateria_porcentaje' => 85, 'valor' => '',
         ];
     }
 

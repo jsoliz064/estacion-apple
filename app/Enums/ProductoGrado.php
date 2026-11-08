@@ -5,24 +5,20 @@ namespace App\Enums;
 use Illuminate\Support\Collection;
 
 /**
- * La condicion estetica del equipo. Antes era texto libre y habia equipos con
- * grado "1", "B", "A", "10" y "AB": imposible filtrar. Lista cerrada (docs/02).
+ * La condicion del equipo. Antes era texto libre y habia equipos con grado
+ * "1", "B", "A", "10" y "AB": imposible filtrar. Lista cerrada, la que pidio
+ * la tienda (reemplazo a A+ / Grado 1 / 2 / 3). El orden de los casos es el
+ * de los selects y del reporte de inventario.
  */
 enum ProductoGrado: string
 {
-    case APlus = 'A+';
-    case Uno = '1';
-    case Dos = '2';
-    case Tres = '3';
+    case Nuevo = 'Nuevo';
+    case SemiNuevo = 'Semi Nuevo';
+    case OpenBox = 'Open Box';
 
     public function label(): string
     {
-        return match ($this) {
-            self::APlus => 'A+ (como nuevo)',
-            self::Uno => 'Grado 1',
-            self::Dos => 'Grado 2',
-            self::Tres => 'Grado 3',
-        };
+        return $this->value;
     }
 
     public static function labelDe(?string $grado): string

@@ -5,6 +5,7 @@ namespace App\Livewire\Reporte;
 use App\Enums\ArticuloTipo;
 use App\Enums\BajaMotivo;
 use App\Enums\ProductoEstado;
+use App\Enums\ProductoGrado;
 use App\Models\Sucursal;
 use App\Traits\ReporteFiltrosTrait;
 use App\Traits\ReportePeriodoTrait;
@@ -97,12 +98,17 @@ class ReporteInventarioIndex extends Component
 
     private function porGrado()
     {
+        // En el orden del enum, y los sin grado al final. Los placeholders
+        // salen del enum: una lista escrita a mano quedaba vieja al cambiarlo.
+        $grados = ProductoGrado::values();
+        $field = 'FIELD(estado_grado, ' . implode(', ', array_fill(0, count($grados), '?')) . ')';
+
         return $this->porSucursal(DB::table('productos')
             ->whereNull('dado_de_baja_at')
             ->whereNotIn('estado', ProductoEstado::vendidos()), 'sucursal_id')
             ->groupBy('estado_grado')
             ->selectRaw('estado_grado, COUNT(*) AS cantidad, COALESCE(SUM(costo_total), 0) AS costo')
-            ->orderByRaw("FIELD(estado_grado, 'A+', '1', '2', '3') = 0, FIELD(estado_grado, 'A+', '1', '2', '3')")
+            ->orderByRaw("{$field} = 0, {$field}", [...$grados, ...$grados])
             ->get()
             ->map(fn($f) => (object) [
                 'grado' => $f->estado_grado ?? 'Sin grado',
