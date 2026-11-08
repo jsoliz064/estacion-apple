@@ -54,7 +54,7 @@ class PagoProveedorModal extends Component
     public function openModal($proveedorId, $compraId = null): void
     {
         $this->reset(['montoRecibido', 'moneda', 'metodo_pago_id', 'nota', 'montos', 'compraId']);
-        $this->tipo_cambio = PagoService::ultimoTipoCambio();
+        $this->tipo_cambio = \App\Models\TipoCambio::actual();
         $this->resetErrorBag();
 
         $this->proveedorId = Proveedor::findOrFail($proveedorId)->id;

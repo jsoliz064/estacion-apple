@@ -93,6 +93,7 @@ Todo lo que le pasa a un teléfono, a un artículo, a un cliente, a una venta, a
 | `compras_reclamos` y el estado Reclamo | [ReclamoService](app/Services/ReclamoService.php) |
 | `comisiones` y `comisiones_liquidaciones` | [ComisionService](app/Services/ComisionService.php) |
 | `codigos_lotes` y `codigos_barras` (los stickers) | [CodigoBarrasService](app/Services/CodigoBarrasService.php) |
+| `tipos_cambio` (el tipo de cambio del día) | [TipoCambioService](app/Services/TipoCambioService.php) |
 
 **Ningún servicio abre transacción**: la abre el componente, para que un fallo revierta el stock **y** el documento. Los componentes no escriben esas tablas por su cuenta: si una pantalla necesita algo nuevo, va al servicio.
 

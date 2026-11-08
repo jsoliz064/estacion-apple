@@ -32,7 +32,7 @@ trait FilasDePagoFormTrait
             'moneda' => Moneda::BOB->value,
             'monto' => $monto,
             'monto_moneda' => '',
-            'tipo_cambio' => PagoService::ultimoTipoCambio(),
+            'tipo_cambio' => \App\Models\TipoCambio::actual(),
         ];
     }
 

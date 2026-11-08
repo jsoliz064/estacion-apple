@@ -302,7 +302,7 @@ class CompraLoteAddModelModal extends Component
         // En un lote en dolares se repiten la moneda y el tipo de cambio.
         $this->costo_moneda = $ultimo?->costo_moneda ?? Moneda::BOB->value;
         $this->costo_usd = $ultimo?->costo_moneda_monto ?? 0;
-        $this->tipo_cambio = $ultimo?->costo_tipo_cambio ? round((float) $ultimo->costo_tipo_cambio, 2) : Producto::tipoCambioSugerido();
+        $this->tipo_cambio = \App\Models\TipoCambio::actual();
         $this->precio_cliente = $ultimo?->precio_cliente ?? 0;
         $this->precio_vendedor = $ultimo?->precio_vendedor ?? 0;
         $this->detallesSeleccionados = [];

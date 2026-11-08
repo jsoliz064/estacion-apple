@@ -59,6 +59,10 @@ class PermissionSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'codigo.index']);
         Permission::firstOrCreate(['name' => 'codigo.generar']);
 
+        //TIPO DE CAMBIO
+        // Verlo es libre (esta en la cabecera); cargar el del dia, no.
+        Permission::firstOrCreate(['name' => 'tipo-cambio.actualizar']);
+
         //USUARIOS
         // Ver todo lo que hizo un usuario, leido de la bitacora. Suelto, como el
         // resto: se asigna a mano desde Editar Rol.

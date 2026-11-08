@@ -54,7 +54,7 @@ class CobroModal extends Component
     public function openModal($clienteId, $ventaId = null): void
     {
         $this->reset(['montoRecibido', 'moneda', 'metodo_pago_id', 'nota', 'montos', 'ventaId']);
-        $this->tipo_cambio = PagoService::ultimoTipoCambio();
+        $this->tipo_cambio = \App\Models\TipoCambio::actual();
         $this->resetErrorBag();
 
         $this->clienteId = Cliente::findOrFail($clienteId)->id;

@@ -42,6 +42,7 @@ class PermisosPorModulo
         'rol' => 'Roles',
         'sucursal' => 'Sucursales',
         'tecnico' => 'Técnicos',
+        'tipo-cambio' => 'Tipo de cambio',
         'user' => 'Usuarios',
         'venta' => 'Ventas',
     ];

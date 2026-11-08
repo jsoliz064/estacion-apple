@@ -43,18 +43,6 @@ class Producto extends Model
         });
     }
 
-    /**
-     * El tipo de cambio que se propone para un costo en USD: el del ultimo
-     * equipo cargado en dolares y, si no hay, el de los cobros en USD.
-     */
-    public static function tipoCambioSugerido(): float
-    {
-        $ultimo = self::whereNotNull('costo_tipo_cambio')->latest('id')->value('costo_tipo_cambio');
-
-        // 2 decimales: el de un pago en USD admite 4, y el input del costo no.
-        return round($ultimo ? (float) $ultimo : \App\Services\PagoService::ultimoTipoCambio(), 2);
-    }
-
     /** El costo como se cargo: «USD 300,00 × 6,96» o «Bs 2.088,00». */
     public function costoEnMoneda(): string
     {

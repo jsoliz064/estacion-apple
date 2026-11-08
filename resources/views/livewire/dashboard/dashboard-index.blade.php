@@ -29,6 +29,12 @@
                 {{ $productos_reserva }} reservados · {{ $productos_credito }} a crédito
             </x-tarjeta-dato>
 
+            {{-- Todo se guarda en USD; los Bs de cada pantalla salen de aqui. --}}
+            <x-tarjeta-dato titulo="Tipo de cambio" :valor="'Bs ' . \App\Support\Dinero::tc(\App\Models\TipoCambio::actual())"
+                icono="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4">
+                {{ \App\Models\TipoCambio::actualizadoHoy() ? 'Actualizado hoy' : 'Sin actualizar hoy' }}
+            </x-tarjeta-dato>
+
             @can('cobranza.index')
                 <x-tarjeta-dato titulo="Por cobrar" :valor="'Bs ' . number_format($por_cobrar, 2)"
                     icono="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">

@@ -111,7 +111,7 @@ class CompraLoteProductoEditModal extends Component
 
         if ($key === 'costo_moneda' && $value === Moneda::USD->value) {
             // Pasar a USD propone el tipo de cambio y los dolares del costo actual.
-            $tc = round((float) ($this->producto['costo_tipo_cambio'] ?? 0), 2) ?: Producto::tipoCambioSugerido();
+            $tc = round((float) ($this->producto['costo_tipo_cambio'] ?? 0), 2) ?: \App\Models\TipoCambio::actual();
             $this->producto['costo_tipo_cambio'] = $tc;
             if (!(float) ($this->producto['costo_moneda_monto'] ?? 0)) {
                 $this->producto['costo_moneda_monto'] = round((float) $this->producto['costo_unidad'] / $tc, 2);

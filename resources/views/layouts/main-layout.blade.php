@@ -264,6 +264,9 @@
                 <div class="flex justify-end items-center h-14 bg-brand-300 dark:bg-gray-800 header-right px-4">
                     <ul class="flex items-center space-x-4">
                         <li>
+                            @livewire('tipo-cambio.tipo-cambio-cabecera')
+                        </li>
+                        <li>
                             <button aria-hidden="true" @click="toggleTheme"
                                 class="group p-2 transition-colors duration-200 rounded-full shadow-md bg-white hover:bg-brand-100 dark:bg-gray-50 dark:hover:bg-gray-200 text-gray-900 focus:outline-none">
                                 <svg x-show="isDark" width="18" height="18" class="fill-current text-gray-700"

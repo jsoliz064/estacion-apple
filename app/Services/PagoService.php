@@ -241,12 +241,6 @@ class PagoService
         return $venta;
     }
 
-    /** El ultimo tipo de cambio usado, para proponerlo (6,96 si nunca se cobro en USD). */
-    public static function ultimoTipoCambio(): float
-    {
-        return (float) (VentaPago::where('moneda', Moneda::USD->value)->latest('id')->value('tipo_cambio') ?? 6.96);
-    }
-
     // ------------------------------------------------------------------ apoyo
 
     private function exigirSaldo(Venta $venta, float $suma): void

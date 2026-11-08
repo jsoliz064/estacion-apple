@@ -6,6 +6,7 @@ use App\Enums\ProductoEstado;
 use App\Enums\ProductoTipoVenta;
 use App\Models\Producto;
 use App\Models\Venta;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 /** El tablero de inicio. Todo en Bs, sobre la venta unificada. */
@@ -48,6 +49,8 @@ class DashboardIndex extends Component
         $this->ventas_mes_cant = Venta::whereBetween('created_at', $mes)->count();
     }
 
+    /** La tarjeta del tipo de cambio lee el vigente en cada render. */
+    #[On('tipoCambioActualizado')]
     public function render()
     {
         return view('livewire.dashboard.dashboard-index');
