@@ -39,9 +39,14 @@ class CompraFinalizarModal extends Component
         abort_unless(Auth::user()?->can('compra.finalizar'), 403);
 
         $this->resetErrorBag();
-        $this->compraId = Compra::findOrFail($compraId)->id;
+        $compra = Compra::findOrFail($compraId);
+        $this->compraId = $compra->id;
         $this->montoTocado = false;
-        $this->pagos = [$this->filaPago(MetodoPago::activos()->value('id'))];
+        // Pagada por adelantado: no se ofrece cargar otro pago (el servicio
+        // rechazaria cualquier monto por encima del saldo, que es 0).
+        $this->pagos = $compra->saldoPendiente() > 0
+            ? [$this->filaPago(MetodoPago::activos()->value('id'))]
+            : [];
         // La clave de los pagos: se siembra al abrir, nunca en render().
         $this->nuevaClaveIdempotencia();
         $this->openModal = true;
@@ -108,6 +113,10 @@ class CompraFinalizarModal extends Component
 
         return view('livewire.compra.modals.compra-finalizar-modal', [
             'compra' => $compra,
+            // Sin saldo no hay nada que pagar al recibir. Si aparece saldo con
+            // el modal abierto (otra pantalla cambio la compra), se vuelve a
+            // mostrar la seccion, con su boton para agregar un metodo.
+            'pagada' => $compra && $compra->saldoPendiente() <= 0,
             'equipos' => $compra ? $compra->detalles->whereNotNull('producto_id')->count() : 0,
             'repuestos' => $compra ? (int) $compra->detalles->where('tipo', LineaTipo::Repuesto->value)->sum('cantidad') : 0,
             'accesorios' => $compra ? (int) $compra->detalles->where('tipo', LineaTipo::Accesorio->value)->sum('cantidad') : 0,

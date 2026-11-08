@@ -30,6 +30,15 @@
                     (Inventario, salvo los que cargaste como Fuera o Roto): desde ahí ya se pueden vender.
                 </p>
 
+                @if ($pagada)
+                    <div class="mt-4 flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-900 dark:border-green-800 dark:bg-green-900/30 dark:text-green-100">
+                        <i class="fa-solid fa-circle-check mt-0.5 text-green-600 dark:text-green-300"></i>
+                        <p>
+                            <span class="font-semibold">Pagada por adelantado:</span>
+                            {{ \App\Support\Dinero::usd((float) $compra->pagado) }}. No queda nada por pagar al proveedor.
+                        </p>
+                    </div>
+                @else
                 <div class="mt-4">
                     <div class="flex items-center justify-between">
                         <h3 class="font-semibold text-gray-800 dark:text-gray-100">Pagado al recibir</h3>
@@ -53,6 +62,7 @@
                     </p>
                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Pon 0 si no se pagó nada: todo queda en cuentas por pagar.</p>
                 </div>
+                @endif
 
                 <x-input-error for="detalles" class="mt-2" />
             </x-slot>
