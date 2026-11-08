@@ -45,7 +45,8 @@ class PermutaService
             'producto_modelo_id' => 'required|integer|exists:productos_modelos,id',
             'imei' => 'required|string|max:20|unique:productos,imei',
             'almacenamiento' => 'required|string|max:20',
-            'color' => 'required|string',
+            // De la tabla de colores: un nombre fuera de ella no entra.
+            'color' => 'required|string|exists:colores,nombre',
             'estado_grado' => ['required', Rule::in(ProductoGrado::values())],
             'bateria_porcentaje' => 'required|integer|min:1|max:100',
             'valor' => 'required|numeric|min:0.01',

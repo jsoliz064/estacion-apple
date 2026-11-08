@@ -3,7 +3,6 @@
 namespace App\Livewire\Catalogo;
 
 use App\Enums\ProductoAlmacenamiento;
-use App\Enums\ProductoColor;
 use App\Enums\ProductoEstado;
 use App\Models\Producto;
 use App\Models\ProductoModelo;

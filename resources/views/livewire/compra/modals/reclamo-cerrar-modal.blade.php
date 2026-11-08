@@ -51,7 +51,7 @@
                             <select wire:model="color" class="mt-1 block w-full h-10 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm">
                                 <option value="">El mismo ({{ $reclamo->producto?->color }})</option>
                                 @foreach ($colores as $c)
-                                    <option value="{{ $c->value }}">{{ $c->value }}</option>
+                                    <option value="{{ $c->nombre }}">{{ $c->nombre }}</option>
                                 @endforeach
                             </select>
                         </div>

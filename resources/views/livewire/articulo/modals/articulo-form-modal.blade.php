@@ -47,14 +47,6 @@
                                 <x-input-error for="articulo.repuesto_categoria_id"></x-input-error>
                             </div>
                         </div>
-
-                        <div class="m-2">
-                            <x-label>Color (opcional):</x-label>
-                            <x-color-picker name-model="articulo.color" hex-model="articulo.color_hex"
-                                :nombre="$articulo['color'] ?? null" :hex="$articulo['color_hex'] ?? null" />
-                            <x-input-error for="articulo.color"></x-input-error>
-                            <x-input-error for="articulo.color_hex"></x-input-error>
-                        </div>
                     </div>
                 @else
                     <div wire:key="campos-de-accesorio">

@@ -260,7 +260,7 @@
                         <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                             <div>
                                 <x-label value="Modelo" />
-                                <select wire:model="permuta.producto_modelo_id" class="mt-1 block w-full h-10 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm">
+                                <select wire:model.live="permuta.producto_modelo_id" class="mt-1 block w-full h-10 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm">
                                     <option value="">Modelo...</option>
                                     @foreach ($modelosPermuta as $m)
                                         <option value="{{ $m->id }}">{{ $m->nombre }}</option>
@@ -282,7 +282,7 @@
                                 <select wire:model="permuta.color" class="mt-1 block w-full h-10 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm">
                                     <option value="">Color...</option>
                                     @foreach ($colores as $c)
-                                        <option value="{{ $c->value }}">{{ $c->value }}</option>
+                                        <option value="{{ $c->nombre }}">{{ $c->nombre }}</option>
                                     @endforeach
                                 </select>
                                 <x-input-error for="permuta.color" />

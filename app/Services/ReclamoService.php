@@ -140,7 +140,8 @@ class ReclamoService
         $v = Validator::make($datos, [
             'imei' => 'required|string|max:20|unique:productos,imei',
             'bateria_porcentaje' => 'required|integer|min:1|max:100',
-            'color' => 'nullable|string',
+            // Vacio = el del fallado; si no, uno de la tabla de colores.
+            'color' => 'nullable|string|exists:colores,nombre',
         ], [
             'imei.required' => 'Escribe el IMEI del equipo de reemplazo.',
             'imei.unique' => 'Ese IMEI ya está registrado en el sistema.',

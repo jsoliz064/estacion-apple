@@ -24,6 +24,15 @@ class ProductoModelo extends Model
         return $this->hasMany(ProductoModeloAlmacenamiento::class, 'producto_modelo_id');
     }
 
+    /**
+     * Los colores marcados para este modelo. Sin ninguno, el alta ofrece todos
+     * los activos (Color::paraModelo).
+     */
+    public function colores()
+    {
+        return $this->belongsToMany(Color::class, 'productos_modelos_colores', 'producto_modelo_id', 'color_id');
+    }
+
     /** Los accesorios marcados como compatibles con este modelo. */
     public function accesoriosCompatibles()
     {

@@ -58,38 +58,4 @@ class Repuesto extends Model
     {
         return $this->belongsTo(RepuestoCategoria::class, 'repuesto_categoria_id');
     }
-
-    /**
-     * Circulo de color para la datatable. Estilo inline obligatorio: no hay
-     * safelist en tailwind.config.js.
-     */
-    public function getDivColor(): string
-    {
-        $style = $this->color_hex
-            ? "background-color: {$this->color_hex};"
-            : 'background-color: transparent;';
-
-        return '<div class="w-6 h-6 rounded-full border border-gray-300 mx-auto" style="' . $style . '" title="' . e($this->color ?? 'Sin color') . '"></div>';
-    }
-
-    /**
-     * Nombre y color en una sola celda: punto pintado + nombre del color entre
-     * parentesis. Sin color se devuelve solo el nombre.
-     */
-    public function getNombreConColor(): string
-    {
-        $nombre = e($this->nombre);
-
-        if (!$this->color && !$this->color_hex) {
-            return $nombre;
-        }
-
-        $hex = $this->color_hex ?: 'transparent';
-        $etiqueta = $this->color ?: $this->color_hex;
-
-        return '<span class="inline-flex items-center gap-1.5">'
-            . '<span class="inline-block w-3 h-3 rounded-full border border-gray-300 shrink-0" style="background-color: ' . e($hex) . ';"></span>'
-            . '<span>' . $nombre . ' <span class="text-gray-500 dark:text-gray-400">(' . e($etiqueta) . ')</span></span>'
-            . '</span>';
-    }
 }

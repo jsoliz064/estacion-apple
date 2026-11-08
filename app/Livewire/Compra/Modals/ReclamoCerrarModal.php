@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Compra\Modals;
 
-use App\Enums\ProductoColor;
 use App\Enums\ReclamoResolucion;
+use App\Models\Color;
 use App\Models\CompraReclamo;
 use App\Services\ReclamoService;
 use Illuminate\Support\Facades\Auth;
@@ -76,9 +76,12 @@ class ReclamoCerrarModal extends Component
 
     public function render()
     {
+        $reclamo = $this->openModal && $this->reclamoId ? CompraReclamo::with(['producto.modelo', 'compra.proveedor'])->find($this->reclamoId) : null;
+
         return view('livewire.compra.modals.reclamo-cerrar-modal', [
-            'reclamo' => $this->openModal && $this->reclamoId ? CompraReclamo::with(['producto.modelo', 'compra.proveedor'])->find($this->reclamoId) : null,
-            'colores' => ProductoColor::cases(),
+            'reclamo' => $reclamo,
+            // El reemplazo es del mismo modelo que el fallado.
+            'colores' => $reclamo ? Color::paraModelo($reclamo->producto?->producto_modelo_id) : collect(),
         ]);
     }
 }

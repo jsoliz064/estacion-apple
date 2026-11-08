@@ -80,6 +80,11 @@ class ProductoModeloTable extends DataTableComponent
         $this->dispatch('openProductoModeloAlmacenamientoModal', $id);
     }
 
+    public function openProductoModeloColoresModal($id)
+    {
+        $this->dispatch('openProductoModeloColoresModal', $id);
+    }
+
     public function openProductoModeloDestroyModal($id)
     {
         $this->dispatch('openProductoModeloDestroyModal', $id);

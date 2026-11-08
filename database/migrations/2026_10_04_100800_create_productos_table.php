@@ -2,7 +2,6 @@
 
 use App\Enums\BajaMotivo;
 use App\Enums\Moneda;
-use App\Enums\ProductoColor;
 use App\Enums\ProductoEstado;
 use App\Enums\ProductoGrado;
 use App\Enums\ProductoTipoVenta;
@@ -15,7 +14,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Un equipo concreto, identificado por IMEI. Todo en Bs.
+     * Un equipo concreto, identificado por IMEI. Todo en USD.
      *
      * No tiene `compra_id`: que compra lo trajo lo dice su linea en
      * compras_detalles (UNIQUE producto_id), y tener el dato en dos sitios era
@@ -33,7 +32,9 @@ return new class extends Migration
             $table->string('upc', 50)->nullable();
             $table->string('almacenamiento');
             $table->enum('version', array_map(fn($c) => $c->value, ProductoVersion::cases()))->nullable();
-            $table->enum('color', array_map(fn($c) => $c->value, ProductoColor::cases()));
+            // El nombre del color, de la tabla `colores` (Color::paraModelo):
+            // texto y no FK, como lo que se pinta y se agrupa por el.
+            $table->string('color', 50);
             $table->integer('bateria_porcentaje');
             $table->string('descripcion')->nullable();
             $table->text('detalles')->nullable();

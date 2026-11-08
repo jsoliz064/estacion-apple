@@ -3,11 +3,11 @@
 namespace App\Livewire\CompraLote\Modals;
 
 use App\Enums\Moneda;
-use App\Enums\ProductoColor;
 use App\Enums\ProductoEstado;
 use App\Enums\ProductoGrado;
 use App\Enums\ProductoTipoVenta;
 use App\Enums\ProductoVersion;
+use App\Models\Color;
 use App\Models\Producto;
 use App\Models\ProductoImagen;
 use App\Models\Sucursal;
@@ -34,7 +34,8 @@ class CompraLoteProductoEditModal extends Component
     public $selectedModel;
 
     public $descripcion;
-    public $colores = [];
+    /** El color guardado: se sigue ofreciendo aunque se haya desactivado. */
+    public ?string $colorOriginal = null;
     public $sucursales = [];
 
     /**
@@ -61,12 +62,17 @@ class CompraLoteProductoEditModal extends Component
                 array_column($this->fotosGuardadas, 'url'),
                 array_map(fn($foto) => $foto->temporaryUrl(), $this->fotos),
             ),
+            'colores' => $this->openModal ? $this->coloresOfrecidos() : collect(),
         ]);
     }
 
-    public function mount()
+    /**
+     * Los del modelo, mas el que ya tiene el equipo: editar un equipo viejo no
+     * debe obligar a cambiarle un color que despues se desactivo.
+     */
+    private function coloresOfrecidos()
     {
-        $this->colores = ProductoColor::cases();
+        return Color::paraModelo($this->producto['producto_modelo_id'] ?? null, $this->colorOriginal);
     }
 
     #[On('openCompraLoteProductoEditModal')]
@@ -75,6 +81,7 @@ class CompraLoteProductoEditModal extends Component
         $producto = Producto::with(['modelo', 'modelo.almacenamientos', 'imagenes',])->find($id);
         $this->producto = $producto->toArray();
         $this->producto['nombre'] = $producto->modelo->nombre;
+        $this->colorOriginal = $producto->color;
         // La columna guarda 4 decimales ("6.9600"): en pantalla, sin los ceros.
         if ($this->producto['tipo_cambio'] !== null) {
             $this->producto['tipo_cambio'] = (float) $this->producto['tipo_cambio'];
@@ -145,7 +152,7 @@ class CompraLoteProductoEditModal extends Component
 
         $this->validate([
             'producto.almacenamiento' => 'required',
-            'producto.color' => 'required',
+            'producto.color' => ['required', Rule::in($this->coloresOfrecidos()->pluck('nombre')->all())],
             'producto.version' => 'nullable',
             'producto.bateria_porcentaje' => 'required|numeric|min:0|max:100',
             'producto.costo_unidad' => 'required|numeric|min:0',

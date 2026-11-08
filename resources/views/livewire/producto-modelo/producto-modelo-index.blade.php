@@ -12,4 +12,5 @@
     @livewire('producto-modelo.modals.producto-modelo-edit-modal')
     @livewire('producto-modelo.modals.producto-modelo-destroy-modal')
     @livewire('producto-modelo.modals.producto-modelo-almacenamiento-modal')
+    @livewire('producto-modelo.modals.producto-modelo-colores-modal')
 </div>

@@ -3,11 +3,11 @@
 namespace App\Livewire\CompraLote\Modals;
 
 use App\Enums\Moneda;
-use App\Enums\ProductoColor;
 use App\Enums\ProductoEstado;
 use App\Enums\ProductoGrado;
 use App\Enums\ProductoTipoVenta;
 use App\Models\Bitacora;
+use App\Models\Color;
 use App\Models\Compra;
 use App\Models\Producto;
 use App\Models\ProductoModelo;
@@ -65,7 +65,6 @@ class CompraLoteAddModelModal extends Component
     public $tecnico_selected;
     public $tecnicos = [];
     public $sucursales = [];
-    public $colores = [];
 
     /**
      * Las fotos llegan de la camara como archivos (subirFoto() en app.js, el
@@ -108,7 +107,9 @@ class CompraLoteAddModelModal extends Component
     {
         return [
             'almacenamiento' => 'required',
-            'color' => 'required',
+            // Los colores que se ofrecen para el modelo (Color::paraModelo):
+            // la misma lista que pinta el formulario.
+            'color' => ['required', Rule::in($this->coloresOfrecidos()->pluck('nombre')->all())],
             'version' => 'nullable',
             'imei' => 'required|string|min:1|max:20|unique:productos,imei',
             // Un sticker de Codigos de barras se asigna a un solo registro.
@@ -167,9 +168,14 @@ class CompraLoteAddModelModal extends Component
     public function mount($compra_lote)
     {
         $this->compra = $compra_lote;
-        $this->colores = ProductoColor::cases();
         $this->tecnicos = Tecnicos::all();
         $this->sucursales = Sucursal::activas()->orderBy('nombre')->get();
+    }
+
+    /** Los colores del modelo elegido (o todos los activos si no tiene marcados). */
+    private function coloresOfrecidos()
+    {
+        return Color::paraModelo($this->selectedModel?->id);
     }
 
     /**
@@ -196,6 +202,9 @@ class CompraLoteAddModelModal extends Component
             'estadosAlta' => collect(ProductoEstado::cases())
                 ->filter(fn($e) => in_array($e->value, $permitidos, true)),
             'enBorrador' => Compra::whereKey($this->compra->id)->value('finalizada_at') === null,
+            // En render(): Livewire no rehidrata colecciones de modelos, y asi
+            // un color creado o marcado con el modal abierto ya aparece.
+            'colores' => $this->openModal ? $this->coloresOfrecidos() : collect(),
             // URLs de vista previa de Livewire: el carrusel ya no recibe base64.
             'vistaFotos' => array_map(fn($foto) => $foto->temporaryUrl(), $this->fotos),
         ]);
@@ -306,7 +315,11 @@ class CompraLoteAddModelModal extends Component
         $this->detallesText = '';
         $this->estado_grado = $ultimo?->estado_grado ?? ProductoGrado::SemiNuevo->value;
         $this->tipo_venta = $ultimo?->tipo_venta ?? ProductoTipoVenta::Venta->value;
-        $this->color = $ultimo?->color ?? ProductoColor::Negro->value;
+        // El del ultimo equipo si este modelo lo ofrece; si no, el primero.
+        $ofrecidos = $this->coloresOfrecidos()->pluck('nombre');
+        $this->color = $ultimo?->color && $ofrecidos->contains($ultimo->color)
+            ? $ultimo->color
+            : $ofrecidos->first();
         $this->version = $ultimo?->version ?? '';
         $this->imei = '';
         $this->upc = '';

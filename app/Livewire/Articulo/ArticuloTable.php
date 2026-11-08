@@ -62,12 +62,7 @@ class ArticuloTable extends DataTableComponent
             ->setSearchPlaceholder('Buscar por nombre o código de barras...')
             ->setEmptyMessage('Todavía no hay ' . mb_strtolower($this->tipoEnum()->plural()) . ' registrados.');
 
-        $tabla = $this->tipoEnum()->tabla();
-        $extra = ["{$tabla}.upc"];
-        if ($this->esRepuesto()) {
-            $extra = array_merge($extra, ['repuestos.color', 'repuestos.color_hex']);
-        }
-        $this->setAdditionalSelects($extra);
+        $this->setAdditionalSelects([$this->tipoEnum()->tabla() . '.upc']);
     }
 
     public function columns(): array
@@ -81,13 +76,10 @@ class ArticuloTable extends DataTableComponent
 
         if ($this->esRepuesto()) {
             $columnas[] = Column::make('Nombre', 'nombre')
-                ->format(fn($value, $row) => $row->getNombreConColor())
-                ->html()
                 ->sortable()
                 // El codigo de barras, exacto: el lector "teclea" aqui tambien.
                 ->searchable(fn(Builder $q, $term) => $q
                     ->orWhere('repuestos.nombre', 'like', '%' . $term . '%')
-                    ->orWhere('repuestos.color', 'like', '%' . $term . '%')
                     ->orWhere('repuestos.upc', $term));
             $columnas[] = Column::make('Fabricante', 'fabricante')->sortable()->searchable()->format($vacio)->html()->collapseOnTablet();
             $columnas[] = Column::make('Categoría', 'categoria.nombre')->sortable()->searchable();

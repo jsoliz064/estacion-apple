@@ -8,6 +8,7 @@ use App\Http\Controllers\ComisionController;
 use App\Http\Controllers\CompraController;
 use App\Http\Controllers\CuentaPagarController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ColorController;
 use App\Http\Controllers\MetodoPagoController;
 use App\Http\Controllers\ProductoCategoriaController;
 use App\Http\Controllers\ProductoController;
@@ -159,6 +160,9 @@ Route::middleware([
         Route::get('modelos', [ProductoModeloController::class, 'index'])
             ->middleware('can:producto-modelo.index')
             ->name('productos.modelos');
+        Route::get('colores', [ColorController::class, 'index'])
+            ->middleware('can:producto-color.index')
+            ->name('productos.colores');
         // whereNumber: {id} capturaria cualquier ruta literal que se agregue
         // despues bajo el prefijo.
         Route::get('{id}/historial', [ProductoController::class, 'productoHistorial'])

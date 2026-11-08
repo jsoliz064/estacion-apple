@@ -5,10 +5,10 @@ namespace App\Livewire\Venta;
 use App\Enums\LineaTipo;
 use App\Enums\Moneda;
 use App\Enums\ProductoAlmacenamiento;
-use App\Enums\ProductoColor;
 use App\Enums\ProductoEstado;
 use App\Enums\ProductoGrado;
 use App\Models\Cliente;
+use App\Models\Color;
 use App\Models\MetodoPago;
 use App\Models\Producto;
 use App\Models\ProductoRegalo;
@@ -629,7 +629,8 @@ class VentaForm extends Component
             'equiposVenta' => $this->equiposEnLaVenta(),
             'modelosPermuta' => $this->conPermuta ? ProductoModelo::orderBy('nombre')->get(['id', 'nombre']) : collect(),
             'almacenamientos' => ProductoAlmacenamiento::cases(),
-            'colores' => ProductoColor::cases(),
+            // Los del modelo recibido (Color::paraModelo); cambian al elegirlo.
+            'colores' => $this->conPermuta ? Color::paraModelo(((int) ($this->permuta['producto_modelo_id'] ?? 0)) ?: null) : collect(),
             'grados' => ProductoGrado::cases(),
         ]);
     }

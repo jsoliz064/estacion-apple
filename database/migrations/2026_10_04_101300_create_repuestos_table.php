@@ -21,8 +21,6 @@ return new class extends Migration
             // Codigo de barras; un vacio se guarda como NULL (NormalizaCodigosTrait).
             $table->string('upc', 50)->nullable();
             $table->string('fabricante')->nullable();
-            $table->string('color', 50)->nullable();
-            $table->string('color_hex', 10)->nullable();
             // En USD. En pantalla se rotula "Costo (código)" (pedido del cliente).
             $table->decimal('costo', 10, 2)->default(0);
             $table->decimal('precio', 10, 2)->default(0);

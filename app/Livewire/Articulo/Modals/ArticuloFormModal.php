@@ -21,7 +21,7 @@ use Livewire\Component;
  * Crear y editar un repuesto o un accesorio. Un solo modal para las dos
  * acciones y los dos tipos: los campos comunes (nombre, codigo de barras,
  * costo, precio, stock por sucursal) son los mismos, y cada tipo agrega los
- * suyos (repuesto: fabricante, modelo, categoria de pieza, color; accesorio:
+ * suyos (repuesto: fabricante, modelo, categoria de pieza; accesorio:
  * marca, categoria de accesorio, modelos compatibles).
  *
  * El tipo lo fija quien lo declara (#[Locked]); la pantalla de compra lo
@@ -77,9 +77,6 @@ class ArticuloFormModal extends Component
                 'articulo.fabricante' => 'nullable|string|max:255',
                 'articulo.producto_modelo_id' => 'required|integer|exists:productos_modelos,id',
                 'articulo.repuesto_categoria_id' => 'nullable|integer|exists:repuestos_categorias,id',
-                'articulo.color' => ['nullable', 'string', 'max:50'],
-                // Sintaxis de array: una regex no puede ir en un string con |.
-                'articulo.color_hex' => ['nullable', 'string', 'regex:/^#[A-Fa-f0-9]{6}$/'],
             ];
         } else {
             $reglas += [
@@ -100,7 +97,6 @@ class ArticuloFormModal extends Component
             'articulo.costo.required' => 'Debe ingresar el costo',
             'articulo.precio.required' => 'Debe ingresar el precio',
             'articulo.producto_modelo_id.required' => 'Debe seleccionar el modelo al que corresponde el repuesto',
-            'articulo.color_hex.regex' => 'El color debe ser un hexadecimal válido (ej: #1F2937).',
             'stockSucursales.*.required' => 'Indique la cantidad de cada sucursal.',
             'stockSucursales.*.min' => 'El stock de una sucursal no puede ser negativo.',
             'minimosSucursales.*.min' => 'El mínimo no puede ser negativo.',
@@ -170,7 +166,7 @@ class ArticuloFormModal extends Component
         $this->validate($this->rules(), $this->messages(), $this->atributosMontosEnMoneda());
 
         $campos = $this->esRepuesto()
-            ? ['nombre', 'upc', 'costo', 'precio', 'fabricante', 'producto_modelo_id', 'repuesto_categoria_id', 'color', 'color_hex']
+            ? ['nombre', 'upc', 'costo', 'precio', 'fabricante', 'producto_modelo_id', 'repuesto_categoria_id']
             : ['nombre', 'upc', 'costo', 'precio', 'marca', 'accesorio_categoria_id'];
 
         $datos = collect($campos)->mapWithKeys(fn($c) => [$c => ($this->articulo[$c] ?? null) === '' ? null : ($this->articulo[$c] ?? null)])->all()

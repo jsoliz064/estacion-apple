@@ -71,6 +71,12 @@ class RoleSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'producto-modelo.edit'])->syncRoles([$role1]);
         Permission::firstOrCreate(['name' => 'producto-modelo.delete'])->syncRoles([$role1]);
         Permission::firstOrCreate(['name' => 'producto-modelo.almacenamiento'])->syncRoles([$role1]);
+        Permission::firstOrCreate(['name' => 'producto-modelo.colores'])->syncRoles([$role1]);
+        //PRODUCTOS COLORES
+        Permission::firstOrCreate(['name' => 'producto-color.index'])->syncRoles([$role1, $role2]);
+        Permission::firstOrCreate(['name' => 'producto-color.create'])->syncRoles([$role1]);
+        Permission::firstOrCreate(['name' => 'producto-color.edit'])->syncRoles([$role1]);
+        Permission::firstOrCreate(['name' => 'producto-color.delete'])->syncRoles([$role1]);
         //PRODUCTOS
         Permission::firstOrCreate(['name' => 'producto.index'])->syncRoles([$role1, $role2, $role3]);
         Permission::firstOrCreate(['name' => 'producto.create'])->syncRoles([$role1]);

@@ -556,6 +556,18 @@
                                         </a>
                                     </li>
                                 @endcan
+                                @can('producto-color.index')
+                                    <li>
+                                        <a href="{{ route('productos.colores') }}"
+                                            class="relative flex items-center h-10 pl-6 pr-6 text-sm hover:bg-brand-300 dark:hover:bg-gray-700 transition-colors duration-150 group">
+                                            <span class="inline-flex justify-center items-center ml-4">
+                                                <i
+                                                    class="fa-solid fa-palette text-lg w-5 h-5 flex items-center justify-center"></i>
+                                            </span>
+                                            <span class="ml-2 tracking-wide truncate">Colores</span>
+                                        </a>
+                                    </li>
+                                @endcan
                                 @can('producto-categoria.index')
                                     <li>
                                         <a href="{{ route('productos.categorias') }}"
