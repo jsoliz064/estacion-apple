@@ -13,7 +13,7 @@
         </div>
         <div class="bg-gray-100 dark:bg-gray-900 p-5 rounded-2xl shadow border border-gray-200 dark:border-gray-700">
             <h3 class="text-sm font-medium text-gray-600 dark:text-gray-400">Señas recibidas (activas)</h3>
-            <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">Bs {{ number_format((float) $resumen->senas, 2) }}</p>
+            <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{{ \App\Support\Dinero::usd((float) $resumen->senas) }}</p>
         </div>
     </div>
 

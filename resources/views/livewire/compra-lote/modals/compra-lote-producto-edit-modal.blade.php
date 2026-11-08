@@ -31,7 +31,7 @@
                                     @foreach ($selectedModel->almacenamientos as $storage)
                                         <option value="{{ $storage->almacenamiento }}"
                                             @if ($producto['almacenamiento'] == $storage->almacenamiento) selected @endif>
-                                            {{ $storage->almacenamiento }} - Bs {{ number_format($storage->precio, 2) }}
+                                            {{ $storage->almacenamiento }} - {{ \App\Support\Dinero::usd($storage->precio) }}
                                         </option>
                                     @endforeach
                                 @else

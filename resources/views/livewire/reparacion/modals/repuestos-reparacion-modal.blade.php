@@ -95,7 +95,7 @@
                                             {{ collect([$r->modelo?->nombre, $r->fabricante, $r->categoria?->nombre, $r->sku])->filter()->implode(' · ') }}
                                         </span>
                                     </td>
-                                    <td class="p-2 border text-right whitespace-nowrap">Bs {{ number_format((float) $r->costo, 2) }}</td>
+                                    <td class="p-2 border text-right whitespace-nowrap">{{ \App\Support\Dinero::usd((float) $r->costo) }}</td>
                                     <td class="p-2 border text-center">
                                         @if ($stock === null)
                                             <span class="text-gray-400">—</span>

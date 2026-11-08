@@ -36,7 +36,7 @@ class ProductoHistorialIndex extends Component
     }
 
     /**
-     * Cifras de referencia de las reparaciones de este producto, todas en Bs.
+     * Cifras de referencia de las reparaciones de este producto, todas en USD.
      *
      * Van aqui y no en la tabla a proposito: son FIJAS, no se mueven con los
      * filtros de la pestana. El pie de la tabla dice "esto es lo que estoy

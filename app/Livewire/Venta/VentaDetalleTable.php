@@ -10,6 +10,7 @@ use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
+use App\Support\Dinero;
 
 /** Las lineas de una venta: equipos, repuestos, accesorios y cobros de taller. */
 class VentaDetalleTable extends DataTableComponent
@@ -47,12 +48,12 @@ class VentaDetalleTable extends DataTableComponent
                 ->html(),
             Column::make('Cant.', 'cantidad'),
             Column::make('Precio', 'precio')
-                ->format(fn($v) => 'Bs ' . number_format((float) $v, 2)),
+                ->format(fn($v) => Dinero::usd((float) $v)),
             Column::make('Desc.', 'descuento')
-                ->format(fn($v) => 'Bs ' . number_format((float) $v, 2))
+                ->format(fn($v) => Dinero::usd((float) $v))
                 ->collapseOnTablet(),
             Column::make('Subtotal', 'subtotal')
-                ->format(fn($v) => 'Bs ' . number_format((float) $v, 2)),
+                ->format(fn($v) => Dinero::usd((float) $v)),
             Column::make('Garantía', 'garantia_fecha_exp')
                 ->format(fn($v, $row) => $v ? $row->garantia_meses . ' m · vence ' . Carbon::parse($v)->format('d/m/Y') : '—')
                 ->collapseOnTablet(),

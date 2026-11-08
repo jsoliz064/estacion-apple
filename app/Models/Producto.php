@@ -192,7 +192,7 @@ class Producto extends Model
     }
 
     /**
-     * costo_total = costo_unidad + costo_regalos + costo_reparacion, en Bs.
+     * costo_total = costo_unidad + costo_regalos + costo_reparacion, en USD.
      * Las dos ultimas son cacheados que solo escribe este metodo.
      */
     public function recalcularCosto()

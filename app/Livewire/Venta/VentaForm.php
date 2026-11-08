@@ -29,10 +29,11 @@ use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use App\Support\Dinero;
 
 /**
  * Registrar o editar una venta: equipos, repuestos y accesorios en el mismo
- * documento, en Bs. Lo escribe VentaService.
+ * documento, en USD. Lo escribe VentaService.
  *
  * Un solo buscador (IMEI, codigo de barras, SKU o nombre) y el catalogo. Los
  * equipos llevan garantia y, si tuvieron reparaciones, se les pueden cobrar las
@@ -505,7 +506,7 @@ class VentaForm extends Component
         return round($this->totales()['total'] - $this->cobradoPrevisto(), 2);
     }
 
-    /** El unico pago (en Bs) sigue a lo que falta mientras nadie lo toque. */
+    /** El unico pago (en USD) sigue a lo que falta mientras nadie lo toque. */
     private function seguirTotal(): void
     {
         if (!$this->esEdicion()) {
@@ -601,7 +602,7 @@ class VentaForm extends Component
         }
 
         toastr()->success($venta->aCredito()
-            ? 'Venta registrada a crédito: saldo Bs ' . number_format($venta->saldoPendiente(), 2)
+            ? 'Venta registrada a crédito: saldo ' . Dinero::usd($venta->saldoPendiente())
             : 'Venta registrada exitosamente');
 
         return redirect()->route('ventas.detalles', $venta->id);

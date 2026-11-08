@@ -23,11 +23,11 @@
         <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-xl">
                 <p class="text-sm text-gray-600 dark:text-gray-400">Ganado del {{ $periodoTexto }}</p>
-                <p class="text-xl font-semibold text-gray-900 dark:text-white">Bs {{ number_format($ganadoPeriodo, 2) }}</p>
+                <p class="text-xl font-semibold text-gray-900 dark:text-white">{{ \App\Support\Dinero::usd($ganadoPeriodo) }}</p>
             </div>
             <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-xl">
                 <p class="text-sm text-gray-600 dark:text-gray-400">Pagado del {{ $periodoTexto }}</p>
-                <p class="text-xl font-semibold text-gray-900 dark:text-white">Bs {{ number_format($pagadoPeriodo, 2) }}</p>
+                <p class="text-xl font-semibold text-gray-900 dark:text-white">{{ \App\Support\Dinero::usd($pagadoPeriodo) }}</p>
             </div>
         </div>
     </div>

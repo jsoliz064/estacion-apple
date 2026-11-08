@@ -45,7 +45,7 @@
                 </div>
 
                 <p class="m-2 text-right text-lg font-semibold text-gray-800 dark:text-gray-100">
-                    Total pagado: Bs {{ number_format((float) $liquidacion->total, 2) }}
+                    Total pagado: {{ \App\Support\Dinero::usd((float) $liquidacion->total) }}
                 </p>
 
                 @if ($confirmarAnular)

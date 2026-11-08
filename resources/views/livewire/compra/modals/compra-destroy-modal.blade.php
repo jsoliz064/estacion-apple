@@ -9,7 +9,7 @@
                 <hr>
                 <p class="m-2 text-sm text-gray-700 dark:text-gray-300">
                     Proveedor: <strong>{{ $compra->proveedor?->nombre }}</strong> · Fecha {{ $compra->fecha->format('d/m/Y') }}
-                    · Total Bs {{ number_format((float) $compra->total, 2) }}
+                    · Total {{ \App\Support\Dinero::usd((float) $compra->total) }}
                 </p>
 
                 @if ($borrador)

@@ -3,7 +3,9 @@
      simple: dompdf no entiende flex ni grid. DejaVu Sans por las tildes y la ñ.
      Comprobante interno, sin datos fiscales, igual que la nota. --}}
 @php
-    $bs = fn($n) => number_format((float) $n, 2, ',', '.');
+    // Montos en USD, con el mismo formato que Dinero (y que $pago->descripcion()):
+    // con el formato boliviano (1.234,50) el recibo mezclaba dos en la misma hoja.
+    $usd = fn($n) => number_format((float) $n, 2);
     $lineaNombre = fn($d) => $d->producto_id
         ? trim(($d->producto?->modelo?->nombre ?? 'Equipo') . ' ' . ($d->producto?->almacenamiento ?? '') . ' ' . ($d->producto?->color ?? ''))
         : ($d->articulo()?->nombre ?? 'Artículo');
@@ -80,9 +82,9 @@
             <tr>
                 <th style="width: 8%;" class="centro">Cant.</th>
                 <th>Descripción</th>
-                <th style="width: 14%;" class="der">Precio Bs</th>
-                <th style="width: 12%;" class="der">Desc. Bs</th>
-                <th style="width: 15%;" class="der">Subtotal Bs</th>
+                <th style="width: 14%;" class="der">Precio USD</th>
+                <th style="width: 12%;" class="der">Desc. USD</th>
+                <th style="width: 15%;" class="der">Subtotal USD</th>
             </tr>
         </thead>
         <tbody>
@@ -96,17 +98,17 @@
                             <div class="chico gris">Garantía {{ $d->garantia_meses }} mes(es), hasta el {{ $d->garantia_fecha_exp?->format('d/m/Y') }}</div>
                         @endif
                     </td>
-                    <td class="der">{{ $bs($d->precio) }}</td>
-                    <td class="der">{{ (float) $d->descuento > 0 ? $bs($d->descuento) : '' }}</td>
-                    <td class="der">{{ $bs($d->subtotal) }}</td>
+                    <td class="der">{{ $usd($d->precio) }}</td>
+                    <td class="der">{{ (float) $d->descuento > 0 ? $usd($d->descuento) : '' }}</td>
+                    <td class="der">{{ $usd($d->subtotal) }}</td>
                 </tr>
                 @foreach ($venta->detalles->where('producto_asociado_id', $d->producto_id) as $a)
                     <tr>
                         <td class="centro">{{ $a->cantidad }}</td>
                         <td class="sangria">+ {{ $lineaNombre($a) }}{{ $a->esRegalo() ? ' (regalo)' : '' }}</td>
-                        <td class="der">{{ $bs($a->precio) }}</td>
-                        <td class="der">{{ (float) $a->descuento > 0 ? $bs($a->descuento) : '' }}</td>
-                        <td class="der">{{ $bs($a->subtotal) }}</td>
+                        <td class="der">{{ $usd($a->precio) }}</td>
+                        <td class="der">{{ (float) $a->descuento > 0 ? $usd($a->descuento) : '' }}</td>
+                        <td class="der">{{ $usd($a->subtotal) }}</td>
                     </tr>
                 @endforeach
             @endforeach
@@ -114,9 +116,9 @@
                 <tr>
                     <td class="centro">{{ $d->cantidad }}</td>
                     <td>{{ $lineaNombre($d) }}{{ $d->esCobro() ? ' (taller)' : '' }}</td>
-                    <td class="der">{{ $bs($d->precio) }}</td>
-                    <td class="der">{{ (float) $d->descuento > 0 ? $bs($d->descuento) : '' }}</td>
-                    <td class="der">{{ $bs($d->subtotal) }}</td>
+                    <td class="der">{{ $usd($d->precio) }}</td>
+                    <td class="der">{{ (float) $d->descuento > 0 ? $usd($d->descuento) : '' }}</td>
+                    <td class="der">{{ $usd($d->subtotal) }}</td>
                 </tr>
             @endforeach
         </tbody>
@@ -132,7 +134,7 @@
                         @foreach ($venta->pagos as $pago)
                             <tr>
                                 <td>{{ $pago->descripcion() }}</td>
-                                <td class="der">{{ $bs($pago->monto) }}</td>
+                                <td class="der">{{ $usd($pago->monto) }}</td>
                             </tr>
                         @endforeach
                     </table>
@@ -140,16 +142,18 @@
             </td>
             <td style="width: 45%; vertical-align: top;">
                 <table class="totales">
-                    <tr><td>Subtotal</td><td class="der">{{ $bs($venta->subtotal) }}</td></tr>
+                    <tr><td>Subtotal</td><td class="der">{{ $usd($venta->subtotal) }}</td></tr>
                     @if ((float) $venta->descuento > 0)
-                        <tr><td>Descuento</td><td class="der">-{{ $bs($venta->descuento) }}</td></tr>
+                        <tr><td>Descuento</td><td class="der">-{{ $usd($venta->descuento) }}</td></tr>
                     @endif
                     @if ((float) $venta->mano_obra > 0)
-                        <tr><td>Mano de obra</td><td class="der">{{ $bs($venta->mano_obra) }}</td></tr>
+                        <tr><td>Mano de obra</td><td class="der">{{ $usd($venta->mano_obra) }}</td></tr>
                     @endif
-                    <tr class="total"><td>TOTAL Bs</td><td class="der">{{ $bs($venta->total) }}</td></tr>
+                    <tr class="total"><td>TOTAL USD</td><td class="der">{{ $usd($venta->total) }}</td></tr>
+                    {{-- Al tipo de cambio que congelo la venta, no al de hoy. --}}
+                    <tr class="chico gris"><td>Equivalente</td><td class="der">{{ \App\Support\Dinero::bs($venta->total, $venta->tipo_cambio) }} (TC {{ \App\Support\Dinero::tc($venta->tipo_cambio) }})</td></tr>
                     @if ($venta->aCredito())
-                        <tr><td><strong>Saldo pendiente</strong></td><td class="der"><strong>{{ $bs($venta->saldoPendiente()) }}</strong></td></tr>
+                        <tr><td><strong>Saldo pendiente</strong></td><td class="der"><strong>{{ $usd($venta->saldoPendiente()) }}</strong></td></tr>
                     @endif
                 </table>
             </td>

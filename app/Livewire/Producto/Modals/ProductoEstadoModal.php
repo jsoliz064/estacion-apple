@@ -26,7 +26,7 @@ use Livewire\Component;
 
 /**
  * Cambiar el estado de un equipo a mano: Inventario, Reparacion (con tecnico y
- * piezas), Fuera (salio del local), Roto. Todo en Bs. Reserva la escribe
+ * piezas), Fuera (salio del local), Roto. Todo en USD. Reserva la escribe
  * solo ReservaService: aqui se ve, se concreta o se cancela.
  *
  * NO vende: la venta se hace en la pantalla de ventas (el boton "Vender" lleva
@@ -176,7 +176,7 @@ class ProductoEstadoModal extends Component
         return redirect()->route('ventas.crear', ['producto' => $this->producto->id]);
     }
 
-    // REPARACION (en Bs)
+    // REPARACION (en USD)
 
     public function initialReparacion()
     {
@@ -225,7 +225,7 @@ class ProductoEstadoModal extends Component
         $this->calcularTotalReparacion();
     }
 
-    /** Todo en Bs: costo_total = mano de obra del tecnico + repuestos. */
+    /** Todo en USD: costo_total = mano de obra del tecnico + repuestos. */
     public function calcularTotalReparacion()
     {
         $this->reparacion['costo_total'] = round(

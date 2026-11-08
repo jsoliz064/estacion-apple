@@ -7,7 +7,7 @@
                 <p class="m-2 text-sm text-gray-700 dark:text-gray-300">
                     {{ trim(($reserva->producto?->modelo?->nombre ?? 'Equipo') . ' ' . $reserva->producto?->almacenamiento) }}
                     (IMEI {{ $reserva->producto?->imei }}) reservado para <strong>{{ $reserva->cliente?->nombre }}</strong>
-                    con una seña de <strong>Bs {{ number_format((float) $reserva->sena, 2) }}</strong> en {{ $reserva->metodo?->nombre }}.
+                    con una seña de <strong>{{ \App\Support\Dinero::usd((float) $reserva->sena) }}</strong> en {{ $reserva->metodo?->nombre }}.
                 </p>
                 <p class="m-2 text-sm text-gray-700 dark:text-gray-300">El equipo vuelve al inventario. ¿Qué pasa con la seña?</p>
                 <div class="m-2 space-y-2">

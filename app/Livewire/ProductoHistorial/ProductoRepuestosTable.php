@@ -5,6 +5,7 @@ namespace App\Livewire\ProductoHistorial;
 use App\Models\Producto;
 use App\Models\ProductoReparacionRepuesto;
 use App\Models\VentaDetalle;
+use App\Support\Dinero;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
@@ -145,14 +146,14 @@ class ProductoRepuestosTable extends DataTableComponent
             Column::make('Cantidad', 'cantidad')
                 ->sortable()
                 ->footer(fn($rows) => (string) $this->getTotales()->total_cantidad),
-            Column::make('Costo Unit. (Bs)', 'costo')
+            Column::make('Costo Unit. (USD)', 'costo')
                 ->sortable()
-                ->format(fn($value) => 'Bs. ' . number_format((float) $value, 2))
+                ->format(fn($value) => Dinero::usd((float) $value))
                 ->collapseOnTablet(),
-            Column::make('Subtotal (Bs)', 'subtotal_costo')
+            Column::make('Subtotal (USD)', 'subtotal_costo')
                 ->sortable()
-                ->format(fn($value) => 'Bs. ' . number_format((float) $value, 2))
-                ->footer(fn($rows) => 'Bs. ' . number_format((float) $this->getTotales()->total_costo, 2)),
+                ->format(fn($value) => Dinero::usd((float) $value))
+                ->footer(fn($rows) => Dinero::usd((float) $this->getTotales()->total_costo)),
         ];
     }
 }

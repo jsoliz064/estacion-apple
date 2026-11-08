@@ -52,7 +52,7 @@ class VentaIndex extends Component
     }
 
     /**
-     * Totales del periodo filtrado, en Bs. La ganancia es total - costo_total
+     * Totales del periodo filtrado, en USD. La ganancia es total - costo_total
      * de cada venta (mano de obra incluida en los dos, asi que se cancela).
      */
     public function calculateTotals()

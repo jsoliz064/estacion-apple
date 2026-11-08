@@ -10,6 +10,7 @@ use Rappasoft\LaravelLivewireTables\Views\Column;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 use Livewire\Attributes\On;
 use Illuminate\Database\Eloquent\Builder;
+use App\Support\Dinero;
 
 class VentaTable extends DataTableComponent
 {
@@ -67,15 +68,15 @@ class VentaTable extends DataTableComponent
                 ->collapseOnTablet(),
             Column::make('Descuento', 'descuento')
                 ->sortable()
-                ->format(fn($value) => 'Bs ' . number_format((float) $value, 2))
+                ->format(fn($value) => Dinero::usd((float) $value))
                 ->collapseOnTablet(),
             Column::make('Total', 'total')
                 ->sortable()
-                ->format(fn($value) => 'Bs ' . number_format((float) $value, 2)),
+                ->format(fn($value) => Dinero::usd((float) $value)),
             Column::make('Saldo', 'saldo')
                 ->sortable()
                 ->format(fn($value) => (float) $value > 0
-                    ? '<span class="font-semibold text-amber-700 dark:text-amber-300">Bs ' . number_format((float) $value, 2) . '</span>'
+                    ? '<span class="font-semibold text-amber-700 dark:text-amber-300">' . Dinero::usd((float) $value) . '</span>'
                     : '<span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">Pagada</span>')
                 ->html(),
             Column::make('Vendedor', 'user.name')

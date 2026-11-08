@@ -6,6 +6,7 @@ use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use App\Models\Proveedor;
 use Livewire\Attributes\On;
+use App\Support\Dinero;
 
 
 class ProveedorTable extends DataTableComponent
@@ -28,7 +29,7 @@ class ProveedorTable extends DataTableComponent
             // Lo que se le debe (cuentas por pagar), en una subconsulta.
             Column::make("Se le debe")
                 ->label(fn($row) => (float) $row->deuda > 0
-                    ? '<span class="font-semibold text-amber-700 dark:text-amber-300">Bs ' . number_format((float) $row->deuda, 2) . '</span>'
+                    ? '<span class="font-semibold text-amber-700 dark:text-amber-300">' . Dinero::usd((float) $row->deuda) . '</span>'
                     : '<span class="text-gray-400">—</span>')
                 ->html(),
             Column::make('Acciones', 'id')

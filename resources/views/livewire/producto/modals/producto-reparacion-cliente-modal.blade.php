@@ -99,20 +99,20 @@
 
                 <div class="m-2 grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
                     <div>
-                        <x-label>Mano de obra del técnico (Bs):</x-label>
+                        <x-label>Mano de obra del técnico (USD):</x-label>
                         <x-input type="number" wire:model.lazy="reparacion.costo" class="w-full"
                             onfocus="this.select()"></x-input>
                         <x-input-error for="reparacion.costo"></x-input-error>
                     </div>
 
                     <div>
-                        <x-label>Costo Repuestos (Bs):</x-label>
+                        <x-label>Costo Repuestos (USD):</x-label>
                         <x-input type="number" wire:model.lazy="reparacion.costo_repuestos" class="w-full"
                             onfocus="this.select()"></x-input>
                         <x-input-error for="reparacion.costo_repuestos"></x-input-error>
                     </div>
                     <div>
-                        <x-label>Total reparación (Bs):</x-label>
+                        <x-label>Total reparación (USD):</x-label>
                         <x-input type="number" :value="$reparacion['costo_total'] ?? 0" class="w-full" disabled="true"></x-input>
                     </div>
                 </div>
@@ -131,20 +131,20 @@
                     @endphp
                     <div class="m-2 grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
                         <div>
-                            <x-label>Cobrado al Cliente (Bs):</x-label>
+                            <x-label>Cobrado al Cliente (USD):</x-label>
                             <x-input type="number" wire:model.lazy="reparacion.cobro_cliente" class="w-full"
                                 onfocus="this.select()"></x-input>
                             <x-input-error for="reparacion.cobro_cliente"></x-input-error>
                         </div>
 
                         <div>
-                            <x-label>Ganancia del Trabajo (Bs):</x-label>
-                            <x-input type="text" value="{{ $hayCobro ? number_format($ganancia, 2) : '—' }}"
+                            <x-label>Ganancia del Trabajo:</x-label>
+                            <x-input type="text" value="{{ $hayCobro ? \App\Support\Dinero::usd($ganancia) :'—' }}"
                                 class="w-full" disabled="true"></x-input>
                             @if ($hayCobro)
                                 <p class="mt-1 text-xs {{ $ganancia >= 0 ? 'text-green-600' : 'text-red-600' }}">
-                                    Cobro ({{ number_format($cobro, 2) }}) menos el costo del trabajo
-                                    ({{ number_format($reparacion['costo_total'] ?? 0, 2) }}).
+                                    Cobro ({{ \App\Support\Dinero::usd($cobro) }}) menos el costo del trabajo
+                                    ({{ \App\Support\Dinero::usd($reparacion['costo_total'] ?? 0) }}).
                                 </p>
                             @else
                                 <p class="mt-1 text-xs text-gray-500">

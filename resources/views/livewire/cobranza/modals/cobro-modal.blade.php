@@ -9,7 +9,7 @@
                     <p class="m-2 text-sm text-gray-600 dark:text-gray-300">Este cliente no tiene ventas por cobrar.</p>
                 @else
                     <p class="m-2 text-sm text-gray-600 dark:text-gray-300">
-                        Deuda total: <strong>Bs {{ number_format($ventas->sum(fn($v) => $v->saldoPendiente()), 2) }}</strong>
+                        Deuda total: <strong>{{ \App\Support\Dinero::ambos($ventas->sum(fn($v) => $v->saldoPendiente())) }}</strong>
                     </p>
 
                     <div class="m-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -52,7 +52,7 @@
                                 <tr>
                                     <th class="p-2 text-left">Venta</th>
                                     <th class="p-2 text-right">Saldo</th>
-                                    <th class="p-2 text-right w-36">Cobra Bs</th>
+                                    <th class="p-2 text-right w-36">Cobra USD</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -60,7 +60,7 @@
                                     <tr class="border-t border-gray-200 dark:border-gray-700" wire:key="cobro-venta-{{ $venta->id }}">
                                         <td class="p-2">
                                             #{{ $venta->id }}
-                                            <span class="block text-xs text-gray-500">{{ $venta->created_at->format('d/m/Y') }} · total Bs {{ number_format((float) $venta->total, 2) }}</span>
+                                            <span class="block text-xs text-gray-500">{{ $venta->created_at->format('d/m/Y') }} · total {{ \App\Support\Dinero::usd((float) $venta->total) }}</span>
                                         </td>
                                         <td class="p-2 text-right whitespace-nowrap">{{ number_format($venta->saldoPendiente(), 2) }}</td>
                                         <td class="p-2">
@@ -82,7 +82,7 @@
                     </div>
 
                     <p class="m-2 text-right text-lg font-semibold text-gray-800 dark:text-gray-100">
-                        A cobrar: Bs {{ number_format($this->totalACobrar(), 2) }}
+                        A cobrar: {{ \App\Support\Dinero::usd($this->totalACobrar()) }}
                     </p>
                 @endif
             </x-slot>

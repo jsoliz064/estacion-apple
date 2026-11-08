@@ -32,8 +32,8 @@
                                     <th class="p-2 border-b text-left">Repuesto</th>
                                     <th class="p-2 border-b text-center">Reparación</th>
                                     <th class="p-2 border-b text-center">Cant.</th>
-                                    <th class="p-2 border-b text-center">Precio (Bs)</th>
-                                    <th class="p-2 border-b text-right">Subtotal (Bs)</th>
+                                    <th class="p-2 border-b text-center">Precio (USD)</th>
+                                    <th class="p-2 border-b text-right">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-300">
@@ -69,7 +69,7 @@
                                             <x-input-error for="precios.{{ $linea->id }}" class="mt-1" />
                                         </td>
                                         <td class="p-2 border text-right">
-                                            {{ number_format($precio * $linea->cantidad, 2) }}
+                                            {{ \App\Support\Dinero::usd($precio * $linea->cantidad) }}
                                         </td>
                                     </tr>
                                 @endforeach
@@ -82,7 +82,7 @@
                             <span class="font-semibold">{{ count($seleccionados) }}</span> seleccionado(s)
                         </span>
                         <span class="text-gray-800 dark:text-gray-200">
-                            Total a cobrar: <span class="font-semibold">Bs {{ number_format($totalSeleccionado, 2) }}</span>
+                            Total a cobrar: <span class="font-semibold">{{ \App\Support\Dinero::usd($totalSeleccionado) }}</span>
                         </span>
                     </div>
                 @endif

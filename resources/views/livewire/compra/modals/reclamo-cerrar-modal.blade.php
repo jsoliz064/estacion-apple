@@ -7,7 +7,7 @@
                 <p class="m-2 text-sm text-gray-700 dark:text-gray-300">
                     {{ trim(($reclamo->producto?->modelo?->nombre ?? 'Equipo') . ' ' . $reclamo->producto?->almacenamiento . ' ' . $reclamo->producto?->color) }}
                     · IMEI <span class="font-mono">{{ $reclamo->producto?->imei }}</span>
-                    · costo Bs {{ number_format((float) $reclamo->producto?->costo_unidad, 2) }}
+                    · costo {{ \App\Support\Dinero::usd((float) $reclamo->producto?->costo_unidad) }}
                     <span class="block text-xs text-gray-500">«{{ $reclamo->motivo }}» · {{ $reclamo->compra?->proveedor?->nombre }} · desde el {{ $reclamo->created_at->format('d/m/Y') }}</span>
                 </p>
 

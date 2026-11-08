@@ -17,6 +17,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use App\Support\Dinero;
 
 /**
  * Cobrar a un cliente: lista sus ventas con saldo y se escribe cuanto va a
@@ -201,7 +202,7 @@ class CobroModal extends Component
             throw $e;
         }
 
-        toastr()->success('Cobro registrado: Bs ' . number_format($this->totalACobrar(), 2) . '.');
+        toastr()->success('Cobro registrado: ' . Dinero::usd($this->totalACobrar()) . '.');
         $this->despues();
     }
 

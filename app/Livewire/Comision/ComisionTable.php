@@ -14,6 +14,7 @@ use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
+use App\Support\Dinero;
 
 /**
  * El detalle de las comisiones: es tambien el reporte de comisiones del periodo
@@ -165,7 +166,7 @@ class ComisionTable extends DataTableComponent
 
     public function columns(): array
     {
-        $bs = fn($value) => 'Bs ' . number_format((float) $value, 2);
+        $usd = fn($value) => Dinero::usd((float) $value);
 
         return [
             Column::make('Fecha', 'ganada_at')
@@ -186,7 +187,7 @@ class ComisionTable extends DataTableComponent
 
             Column::make('Base', 'base')
                 ->sortable()
-                ->format($bs)
+                ->format($usd)
                 ->collapseOnTablet(),
 
             Column::make('%', 'porcentaje')
@@ -195,9 +196,9 @@ class ComisionTable extends DataTableComponent
 
             Column::make('Comisión', 'monto')
                 ->sortable()
-                ->format(fn($value) => '<span class="font-semibold">Bs ' . number_format((float) $value, 2) . '</span>')
+                ->format(fn($value) => '<span class="font-semibold">' . Dinero::usd((float) $value) . '</span>')
                 ->html()
-                ->footer(fn($rows) => 'Bs ' . number_format((float) $this->getTotales()->monto, 2)),
+                ->footer(fn($rows) => Dinero::usd((float) $this->getTotales()->monto)),
 
             Column::make('Estado')
                 ->label(fn($row) => $row->estado()->badge()

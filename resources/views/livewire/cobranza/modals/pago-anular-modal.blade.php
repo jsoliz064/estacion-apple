@@ -5,7 +5,7 @@
             <x-slot name="content">
                 <hr>
                 <p class="m-2 text-sm text-gray-700 dark:text-gray-300">
-                    Se anula el pago de <strong>Bs {{ number_format((float) $pago->monto, 2) }}</strong>
+                    Se anula el pago de <strong>{{ \App\Support\Dinero::usd((float) $pago->monto) }}</strong>
                     en {{ $pago->metodo?->nombre }} del {{ $pago->fecha->format('d/m/Y H:i') }}
                     (venta #{{ $pago->venta_id }}{{ $pago->user ? ', recibido por ' . $pago->user->name : '' }}).
                 </p>

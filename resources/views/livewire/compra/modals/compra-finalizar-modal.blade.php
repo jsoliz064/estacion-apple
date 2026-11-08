@@ -21,7 +21,7 @@
                     </div>
                     <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-700">
                         <p class="text-xs text-gray-500 dark:text-gray-300">Total</p>
-                        <p class="font-semibold text-gray-900 dark:text-gray-100">Bs {{ number_format((float) $compra->total, 2) }}</p>
+                        <p class="font-semibold text-gray-900 dark:text-gray-100">{{ \App\Support\Dinero::usd((float) $compra->total) }}</p>
                     </div>
                 </div>
 
@@ -38,17 +38,17 @@
                         </button>
                     </div>
                     @if ((float) $compra->pagado > 0)
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Ya hay Bs {{ number_format((float) $compra->pagado, 2) }} pagados por adelantado.</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Ya hay {{ \App\Support\Dinero::usd((float) $compra->pagado) }} pagados por adelantado.</p>
                     @endif
                     @include('livewire.partials.filas-pago')
                     <x-input-error for="pagos" class="mt-1" />
                     @php($saldo = $this->saldoPrevisto())
                     <p class="mt-3 text-sm text-gray-700 dark:text-gray-200">
-                        Pagado ahora: <strong>Bs {{ number_format($this->sumaFilas(), 2) }}</strong>
+                        Pagado ahora: <strong>{{ \App\Support\Dinero::usd($this->sumaFilas()) }}</strong>
                         @if ($saldo > 0)
-                            · <span class="font-semibold text-amber-700 dark:text-amber-300">Queda debiendo Bs {{ number_format($saldo, 2) }}</span>
+                            · <span class="font-semibold text-amber-700 dark:text-amber-300">Queda debiendo {{ \App\Support\Dinero::usd($saldo) }}</span>
                         @elseif ($saldo < 0)
-                            · <span class="font-semibold text-red-600">Se paga Bs {{ number_format(-$saldo, 2) }} de más</span>
+                            · <span class="font-semibold text-red-600">Se paga {{ \App\Support\Dinero::usd(-$saldo) }} de más</span>
                         @endif
                     </p>
                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Pon 0 si no se pagó nada: todo queda en cuentas por pagar.</p>

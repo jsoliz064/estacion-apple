@@ -15,8 +15,8 @@
                             {{ $producto->modelo?->nombre }} {{ $producto->almacenamiento }} · IMEI {{ $producto->imei }}
                         </p>
                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                            Regalos: <span class="font-semibold">Bs {{ number_format((float) $producto->costo_regalos, 2) }}</span>
-                            · Costo total: <span class="font-semibold">Bs {{ number_format((float) $producto->costo_total, 2) }}</span>
+                            Regalos: <span class="font-semibold">{{ \App\Support\Dinero::usd((float) $producto->costo_regalos) }}</span>
+                            · Costo total: <span class="font-semibold">{{ \App\Support\Dinero::usd((float) $producto->costo_total) }}</span>
                         </p>
                     </div>
 
@@ -49,7 +49,7 @@
                                     <tr wire:key="regalo-{{ $regalo->id }}" class="border-b border-gray-100 dark:border-gray-800 text-gray-800 dark:text-gray-200">
                                         <td class="py-2 pr-2">{{ $regalo->accesorio?->nombre }}</td>
                                         <td class="py-2 pr-2">{{ $regalo->sucursal?->nombre }}</td>
-                                        <td class="py-2 pr-2 text-right">Bs {{ number_format((float) $regalo->costo, 2) }}</td>
+                                        <td class="py-2 pr-2 text-right">{{ \App\Support\Dinero::usd((float) $regalo->costo) }}</td>
                                         <td class="py-2 pr-2">
                                             @if ($editable)
                                                 <div class="flex items-center gap-1">
@@ -61,7 +61,7 @@
                                                 {{ (int) $regalo->cantidad }}
                                             @endif
                                         </td>
-                                        <td class="py-2 text-right">Bs {{ number_format((float) $regalo->subtotal_costo, 2) }}</td>
+                                        <td class="py-2 text-right">{{ \App\Support\Dinero::usd((float) $regalo->subtotal_costo) }}</td>
                                         @if ($editable)
                                             <td class="py-2 pl-2 text-right">
                                                 <button type="button" wire:click="quitar({{ $regalo->id }})" wire:loading.attr="disabled"
@@ -87,7 +87,7 @@
                             @if ($elegido)
                                 <div class="mt-2 flex flex-wrap items-center justify-between gap-2">
                                     <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                        {{ $elegido->nombre }} · Bs {{ number_format((float) $elegido->costo, 2) }}
+                                        {{ $elegido->nombre }} · {{ \App\Support\Dinero::usd((float) $elegido->costo) }}
                                     </p>
                                     <button type="button" wire:click="$set('accesorioId', null)" class="text-xs text-gray-500 hover:underline">Cambiar</button>
                                 </div>
@@ -133,7 +133,7 @@
                                                         <span class="text-xs text-gray-500">· {{ $accesorio->sku }}</span>
                                                     @endif
                                                 </span>
-                                                <span class="text-xs text-gray-500">Stock {{ (int) $accesorio->cantidad }} · Bs {{ number_format((float) $accesorio->costo, 2) }}</span>
+                                                <span class="text-xs text-gray-500">Stock {{ (int) $accesorio->cantidad }} · {{ \App\Support\Dinero::usd((float) $accesorio->costo) }}</span>
                                             </button>
                                         </li>
                                     @empty

@@ -6,7 +6,7 @@
         #{{ $producto->imei }}</h2>
 
     @php
-        $bs = fn($v) => 'Bs ' . number_format((float) $v, 2);
+        $usd = fn($v) => \App\Support\Dinero::usd($v);
         $compra = $producto->compraDetalle?->compra;
         $lineaVenta = $producto->ventaDetalle;
     @endphp
@@ -47,14 +47,14 @@
                     @endcan
                 </p>
                 <p class="text-sm text-gray-600 dark:text-gray-300">{{ $compra->proveedor?->nombre }} · {{ $compra->fecha?->format('d/m/Y') }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">Costo de la línea: {{ $bs($producto->compraDetalle->costo) }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Costo de la línea: {{ $usd($producto->compraDetalle->costo) }}</p>
             @elseif ($producto->permuta)
                 {{-- No vino de una compra: lo entrego un cliente como parte de pago. --}}
                 <p class="mt-1 font-semibold text-gray-900 dark:text-gray-100">
                     Recibido en permuta ·
                     <a href="{{ route('ventas.detalles', $producto->permuta->venta_id) }}" class="underline hover:text-brand-700">Venta #{{ $producto->permuta->venta_id }}</a>
                 </p>
-                <p class="text-sm text-gray-600 dark:text-gray-300">{{ $producto->permuta->fecha->format('d/m/Y') }} · valor reconocido {{ $bs($producto->permuta->monto) }}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-300">{{ $producto->permuta->fecha->format('d/m/Y') }} · valor reconocido {{ $usd($producto->permuta->monto) }}</p>
             @else
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Sin compra registrada.</p>
             @endif
@@ -62,14 +62,14 @@
 
         <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow border border-gray-200 dark:border-gray-700">
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Costo</h3>
-            <p class="mt-1 font-semibold text-gray-900 dark:text-gray-100">{{ $bs($producto->costo_total) }}</p>
+            <p class="mt-1 font-semibold text-gray-900 dark:text-gray-100">{{ $usd($producto->costo_total) }}</p>
             <p class="text-xs text-gray-500 dark:text-gray-400">
-                Unidad {{ $bs($producto->costo_unidad) }} · Regalos {{ $bs($producto->costo_regalos) }} · Reparaciones {{ $bs($producto->costo_reparacion) }}
+                Unidad {{ $usd($producto->costo_unidad) }} · Regalos {{ $usd($producto->costo_regalos) }} · Reparaciones {{ $usd($producto->costo_reparacion) }}
             </p>
             @if ($producto->regalos->isNotEmpty())
                 <ul class="mt-2 text-xs text-gray-600 dark:text-gray-300">
                     @foreach ($producto->regalos as $regalo)
-                        <li>{{ (int) $regalo->cantidad }} × {{ $regalo->accesorio?->nombre }} ({{ $bs($regalo->subtotal_costo) }})</li>
+                        <li>{{ (int) $regalo->cantidad }} × {{ $regalo->accesorio?->nombre }} ({{ $usd($regalo->subtotal_costo) }})</li>
                     @endforeach
                 </ul>
             @endif
@@ -86,7 +86,7 @@
                     @endcan
                 </p>
                 <p class="text-sm text-gray-600 dark:text-gray-300">
-                    {{ $bs($lineaVenta->subtotal) }} · {{ $lineaVenta->created_at?->format('d/m/Y') }}
+                    {{ $usd($lineaVenta->subtotal) }} · {{ $lineaVenta->created_at?->format('d/m/Y') }}
                 </p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
                     {{ $lineaVenta->venta?->nombreCliente() ?: 'Sin cliente' }} · {{ $lineaVenta->venta?->user?->name }}
@@ -201,9 +201,9 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
                 <div
                     class="bg-brand-100 dark:bg-brand-800 p-6 rounded-2xl shadow-lg border border-brand-200 dark:border-brand-700">
-                    <h3 class="text-sm font-medium text-brand-700 dark:text-brand-300 truncate">Total gastado (Bs)</h3>
+                    <h3 class="text-sm font-medium text-brand-700 dark:text-brand-300 truncate">Total gastado (USD)</h3>
                     <p class="mt-1 text-2xl font-semibold tracking-tight text-brand-900 dark:text-brand-100">
-                        Bs. {{ number_format((float) $resumenReparaciones->total, 2) }}
+                        {{ \App\Support\Dinero::usd((float) $resumenReparaciones->total) }}
                     </p>
                     <p class="mt-1 text-xs text-brand-600 dark:text-brand-300">Mano de obra + repuestos, todas las
                         reparaciones</p>
@@ -211,10 +211,10 @@
 
                 <div
                     class="bg-amber-100 dark:bg-amber-800 p-6 rounded-2xl shadow-lg border border-amber-200 dark:border-amber-700">
-                    <h3 class="text-sm font-medium text-amber-700 dark:text-amber-300 truncate">Costo del teléfono (Bs)
+                    <h3 class="text-sm font-medium text-amber-700 dark:text-amber-300 truncate">Costo del teléfono (USD)
                     </h3>
                     <p class="mt-1 text-2xl font-semibold tracking-tight text-amber-900 dark:text-amber-100">
-                        Bs. {{ number_format((float) $resumenReparaciones->inventario, 2) }}
+                        {{ \App\Support\Dinero::usd((float) $resumenReparaciones->inventario) }}
                     </p>
                     <p class="mt-1 text-xs text-amber-600 dark:text-amber-300">Sin el trabajo externo, que lo paga el
                         cliente</p>
@@ -233,10 +233,10 @@
 
                 <div
                     class="bg-green-100 dark:bg-green-800 p-6 rounded-2xl shadow-lg border border-green-200 dark:border-green-700">
-                    <h3 class="text-sm font-medium text-green-700 dark:text-green-300 truncate">Cobrado al cliente (Bs)
+                    <h3 class="text-sm font-medium text-green-700 dark:text-green-300 truncate">Cobrado al cliente (USD)
                     </h3>
                     <p class="mt-1 text-2xl font-semibold tracking-tight text-green-900 dark:text-green-100">
-                        Bs. {{ number_format((float) $resumenReparaciones->cobrado_externo, 2) }}
+                        {{ \App\Support\Dinero::usd((float) $resumenReparaciones->cobrado_externo) }}
                     </p>
                     <p class="mt-1 text-xs text-green-600 dark:text-green-300">Solo del trabajo externo</p>
                 </div>
@@ -248,9 +248,9 @@
                     class="mb-6 p-4 rounded-2xl border border-yellow-300 bg-yellow-50 text-yellow-900 dark:border-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-100">
                     <p class="text-sm">
                         <span class="font-semibold">El costo de reparación guardado en el producto
-                            (Bs. {{ number_format((float) $producto->costo_reparacion, 2) }}) no coincide con la suma de
+                            ({{ \App\Support\Dinero::usd((float) $producto->costo_reparacion) }}) no coincide con la suma de
                             estas reparaciones
-                            (Bs. {{ number_format((float) $resumenReparaciones->inventario, 2) }}).</span>
+                            ({{ \App\Support\Dinero::usd((float) $resumenReparaciones->inventario) }}).</span>
                         El campo del producto solo se recalcula desde ciertos caminos, así que puede haber quedado viejo.
                         La cifra de arriba es la suma real de lo registrado.
                     </p>

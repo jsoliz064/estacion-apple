@@ -98,7 +98,7 @@
                                     </td>
                                     <td class="p-2 border">{{ $a->sku ?: '—' }}</td>
                                     <td class="p-2 border">{{ $a->categoria?->nombre ?? '—' }}</td>
-                                    <td class="p-2 border text-right">Bs {{ number_format((float) $a->precio, 2) }}</td>
+                                    <td class="p-2 border text-right">{{ \App\Support\Dinero::usd((float) $a->precio) }}</td>
                                     <td class="p-2 border text-center">
                                         @if ($stock <= 0)
                                             <span class="text-red-600 font-bold">0</span>

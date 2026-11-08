@@ -9,7 +9,7 @@ use App\Models\Venta;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-/** El tablero de inicio. Todo en Bs, sobre la venta unificada. */
+/** El tablero de inicio. Todo en USD, sobre la venta unificada. */
 class DashboardIndex extends Component
 {
     public $ventas_dia = 0;

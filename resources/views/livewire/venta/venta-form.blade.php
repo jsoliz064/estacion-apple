@@ -11,7 +11,7 @@
         <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-900/40 dark:text-amber-100">
             <i class="fa-solid fa-bookmark"></i>
             Venta de la <strong>reserva #{{ $reservaId }}</strong> de {{ $venta['cliente'] }}:
-            la seña de Bs {{ number_format((float) ($sena['monto'] ?? 0), 2) }} ({{ $sena['metodo'] ?? '' }}) se descuenta del total.
+            la seña de {{ \App\Support\Dinero::usd((float) ($sena['monto'] ?? 0)) }} ({{ $sena['metodo'] ?? '' }}) se descuenta del total.
         </div>
         <x-input-error for="reserva" class="mb-2" />
     @endif
@@ -42,7 +42,7 @@
             {{-- Avisa, no bloquea (docs/04): venderle a quien ya debe es decision del vendedor. --}}
             @if ($deudaCliente > 0)
                 <p class="mt-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
-                    <i class="fa-solid fa-triangle-exclamation"></i> Ya debe Bs {{ number_format($deudaCliente, 2) }} de otras ventas.
+                    <i class="fa-solid fa-triangle-exclamation"></i> Ya debe {{ \App\Support\Dinero::usd($deudaCliente) }} de otras ventas.
                 </p>
             @endif
         </div>
@@ -69,8 +69,8 @@
             <div class="hidden md:grid md:grid-cols-[minmax(0,1fr)_5rem_8rem_7rem_5rem_7rem_2rem] gap-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-t-md">
                 <div class="p-2 text-left">Detalle</div>
                 <div class="p-2 text-right">Cant.</div>
-                <div class="p-2 text-right">Precio Bs</div>
-                <div class="p-2 text-right">Desc. Bs</div>
+                <div class="p-2 text-right">Precio USD</div>
+                <div class="p-2 text-right">Desc. USD</div>
                 <div class="p-2 text-right">Garantía</div>
                 <div class="p-2 text-right">Subtotal</div>
                 <div class="p-2"></div>
@@ -118,11 +118,11 @@
                             </label>
                         @endif
                         <label class="block md:p-2">
-                            <span class="md:hidden text-xs text-gray-500">Precio Bs</span>
+                            <span class="md:hidden text-xs text-gray-500">Precio USD</span>
                             <x-input type="number" min="0" step="0.01" inputmode="decimal" class="w-full text-right" wire:model.live.debounce.400ms="lineas.{{ $index }}.precio" onfocus="this.select()" />
                         </label>
                         <label class="block md:p-2">
-                            <span class="md:hidden text-xs text-gray-500">Desc. Bs</span>
+                            <span class="md:hidden text-xs text-gray-500">Desc. USD</span>
                             <x-input type="number" min="0" step="0.01" inputmode="decimal" class="w-full text-right" wire:model.live.debounce.400ms="lineas.{{ $index }}.descuento" onfocus="this.select()" />
                         </label>
                         @if ($esEquipo)
@@ -134,7 +134,7 @@
                             <div class="hidden md:block md:p-2 text-right text-gray-400">—</div>
                         @endif
                         <div class="col-span-2 flex items-center justify-between md:col-span-1 md:block md:p-2 md:text-right whitespace-nowrap">
-                            <span class="md:hidden text-xs text-gray-500">Subtotal Bs</span>
+                            <span class="md:hidden text-xs text-gray-500">Subtotal USD</span>
                             <span class="font-semibold md:font-normal">{{ number_format($this->subtotalLinea($linea), 2) }}</span>
                         </div>
                         <div class="absolute right-1 top-1 md:static md:p-2 md:text-center">
@@ -156,7 +156,7 @@
                                 <div class="hidden md:block md:p-2 text-right text-gray-500">0.00</div>
                                 <div class="hidden md:block"></div>
                                 <div class="hidden md:block"></div>
-                                <div class="text-right md:p-2 whitespace-nowrap"><span class="md:hidden text-xs text-gray-500">Subtotal Bs </span>0.00</div>
+                                <div class="text-right md:p-2 whitespace-nowrap"><span class="md:hidden text-xs text-gray-500">Subtotal USD </span>0.00</div>
                                 <div class="hidden md:block"></div>
                             </div>
                         @endforeach
@@ -170,7 +170,7 @@
                             <span class="block text-xs text-gray-500">Cobro de taller (ya registrado). Se anula desde el detalle de la venta.</span>
                         </div>
                         <div class="col-span-2 flex justify-between md:col-span-1 md:block md:p-2 md:text-right">
-                            <span class="md:hidden text-xs text-gray-500">Subtotal Bs</span>
+                            <span class="md:hidden text-xs text-gray-500">Subtotal USD</span>
                             <span>{{ number_format($cobro['subtotal'], 2) }}</span>
                         </div>
                         <div class="hidden md:block"></div>
@@ -186,25 +186,27 @@
         @php($t = $this->totales())
         <div class="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-                <x-label value="Subtotal Bs" />
+                <x-label value="Subtotal USD" />
                 <p class="mt-2 text-lg font-semibold">{{ number_format($t['subtotal'], 2) }}</p>
                 @if ($this->totalCobrosNuevos() > 0)
-                    <p class="text-xs text-green-700 dark:text-green-300">Incluye Bs {{ number_format($this->totalCobrosNuevos(), 2) }} de repuestos de taller</p>
+                    <p class="text-xs text-green-700 dark:text-green-300">Incluye {{ \App\Support\Dinero::usd($this->totalCobrosNuevos()) }} de repuestos de taller</p>
                 @endif
             </div>
             <div>
-                <x-label value="Descuento Bs" />
+                <x-label value="Descuento USD" />
                 <x-input type="number" min="0" step="0.01" inputmode="decimal" class="mt-1 w-full" wire:model.live.debounce.400ms="venta.descuento" onfocus="this.select()" />
                 <x-input-error for="venta.descuento" />
             </div>
             <div>
-                <x-label value="Mano de obra Bs" />
+                <x-label value="Mano de obra USD" />
                 <x-input type="number" min="0" step="0.01" inputmode="decimal" class="mt-1 w-full" wire:model.live.debounce.400ms="venta.mano_obra" onfocus="this.select()" />
                 <x-input-error for="venta.mano_obra" />
             </div>
             <div>
-                <x-label value="Total Bs" />
-                <p class="mt-2 text-2xl font-bold text-brand-700 dark:text-brand-300">{{ number_format($t['total'], 2) }}</p>
+                <x-label value="Total USD" />
+                {{-- El equivalente en Bs, al tipo de cambio de hoy, solo al crear: la
+                     venta editada ya tiene el suyo congelado. --}}
+                <p class="mt-2 text-2xl font-bold text-brand-700 dark:text-brand-300"><x-monto :valor="$t['total']" :sinBs="$this->esEdicion()" /></p>
             </div>
         </div>
 
@@ -226,7 +228,7 @@
                     @forelse ($pagosExistentes as $pago)
                         <li class="py-1 flex justify-between" wire:key="pago-existente-{{ $loop->index }}">
                             <span class="text-gray-600 dark:text-gray-300">{{ $pago['fecha'] }} · {{ $pago['metodo'] }}</span>
-                            <span>Bs {{ number_format($pago['monto'], 2) }}</span>
+                            <span>{{ \App\Support\Dinero::usd($pago['monto']) }}</span>
                         </li>
                     @empty
                         <li class="py-1 text-gray-500">Sin pagos registrados.</li>
@@ -238,7 +240,7 @@
                 @if (!empty($sena))
                     <div class="mt-2 flex justify-between rounded-md bg-amber-50 px-3 py-2 text-sm dark:bg-amber-900/30">
                         <span>Seña de la reserva #{{ $reservaId }} · {{ $sena['metodo'] ?? '' }}</span>
-                        <span class="font-semibold">Bs {{ number_format((float) $sena['monto'], 2) }}</span>
+                        <span class="font-semibold">{{ \App\Support\Dinero::usd((float) $sena['monto']) }}</span>
                     </div>
                 @endif
 
@@ -309,7 +311,7 @@
                                 <x-input-error for="permuta.bateria_porcentaje" />
                             </div>
                             <div class="sm:col-span-2">
-                                <x-label value="Valor que se le reconoce (Bs)" />
+                                <x-label value="Valor que se le reconoce (USD)" />
                                 <x-input type="number" min="0" step="0.01" class="mt-1 w-full" wire:model.live.debounce.400ms="permuta.valor" onfocus="this.select()" />
                                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Entra al inventario con este valor como costo, para ponerle precio y revenderlo.</p>
                                 <x-input-error for="permuta.valor" />
@@ -321,16 +323,16 @@
             <x-input-error for="pagos" class="mt-1" />
 
             <div class="mt-3 flex flex-wrap justify-between gap-2 text-sm">
-                <span>Cobrado: <strong>Bs {{ number_format($this->cobradoPrevisto(), 2) }}</strong></span>
+                <span>Cobrado: <strong>{{ \App\Support\Dinero::usd($this->cobradoPrevisto()) }}</strong></span>
                 @if ($saldo > 0)
                     <span class="font-semibold text-amber-700 dark:text-amber-300">
-                        <i class="fa-solid fa-hand-holding-dollar"></i> Queda a crédito: Bs {{ number_format($saldo, 2) }}
+                        <i class="fa-solid fa-hand-holding-dollar"></i> Queda a crédito: {{ \App\Support\Dinero::usd($saldo) }}
                         @if (empty($venta['cliente_id']))
                             · elige el cliente
                         @endif
                     </span>
                 @elseif ($saldo < 0)
-                    <span class="font-semibold text-red-600">Se cobra Bs {{ number_format(-$saldo, 2) }} de más</span>
+                    <span class="font-semibold text-red-600">Se cobra {{ \App\Support\Dinero::usd(-$saldo) }} de más</span>
                 @else
                     <span class="font-semibold text-green-700 dark:text-green-300">Pagada</span>
                 @endif

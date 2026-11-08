@@ -24,7 +24,7 @@
                         <td class="p-2">{{ $l->beneficiarioNombre() }}</td>
                         <td class="p-2 whitespace-nowrap">{{ $l->desde->format('d/m/Y') }} – {{ $l->hasta->format('d/m/Y') }}</td>
                         <td class="p-2 text-right">{{ $l->cantidad }}</td>
-                        <td class="p-2 text-right font-semibold">Bs {{ number_format((float) $l->total, 2) }}</td>
+                        <td class="p-2 text-right font-semibold">{{ \App\Support\Dinero::usd((float) $l->total) }}</td>
                         <td class="p-2">{{ $l->pagadoPor?->name ?? '—' }}</td>
                         <td class="p-2 text-right">
                             <button type="button" wire:click="verLiquidacion({{ $l->id }})"

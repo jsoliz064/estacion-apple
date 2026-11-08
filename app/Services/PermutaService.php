@@ -12,6 +12,7 @@ use App\Models\Venta;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use App\Support\Dinero;
 
 /**
  * La permuta: el cliente entrega un equipo como parte de pago (docs/03).
@@ -87,7 +88,7 @@ class PermutaService
         ]);
         $producto->anotar(
             ProductoEstado::Inventario->value,
-            "Recibido en permuta en la venta #{$venta->id} por Bs " . number_format($valor, 2),
+            "Recibido en permuta en la venta #{$venta->id} por " . Dinero::usd($valor),
             ['venta_id' => $venta->id],
         );
         $producto->save();

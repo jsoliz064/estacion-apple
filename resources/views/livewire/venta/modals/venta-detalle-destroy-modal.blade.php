@@ -7,7 +7,7 @@
                 <hr>
                 <p class="m-2 text-sm text-gray-800 dark:text-gray-200">
                     {!! \App\Enums\LineaTipo::badge($linea->tipo) !!} {{ $linea->descripcion() }}
-                    · {{ $linea->cantidad }} × Bs {{ number_format((float) $linea->precio, 2) }}
+                    · {{ $linea->cantidad }} × {{ \App\Support\Dinero::usd((float) $linea->precio) }}
                 </p>
                 <p class="m-2 text-sm text-gray-600 dark:text-gray-300">
                     @if ($linea->producto_id)

@@ -17,7 +17,7 @@
             'bg-gray-100 dark:bg-gray-900 border-gray-200 dark:border-gray-700' => $deuda <= 0,
         ])>
             <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Se le debe</h3>
-            <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">Bs {{ number_format($deuda, 2) }}</p>
+            <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white"><x-monto :valor="$deuda" /></p>
         </div>
         <div class="bg-brand-100 dark:bg-brand-900 p-5 rounded-2xl shadow-lg border border-brand-200 dark:border-brand-700">
             <h3 class="text-sm font-medium text-brand-700 dark:text-brand-300">Compras</h3>
@@ -25,7 +25,7 @@
         </div>
         <div class="bg-green-100 dark:bg-green-900 p-5 rounded-2xl shadow-lg border border-green-200 dark:border-green-700">
             <h3 class="text-sm font-medium text-green-700 dark:text-green-300">Total comprado</h3>
-            <p class="mt-1 text-2xl font-semibold text-green-900 dark:text-green-100">Bs {{ number_format($totalComprado, 2) }}</p>
+            <p class="mt-1 text-2xl font-semibold text-green-900 dark:text-green-100"><x-monto :valor="$totalComprado" /></p>
         </div>
         <div @class([
             'p-5 rounded-2xl shadow-lg border',

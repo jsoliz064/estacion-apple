@@ -9,12 +9,13 @@ use App\Models\MetodoPago;
 use App\Models\User;
 use App\Services\Concerns\FilasDePago;
 use Illuminate\Validation\ValidationException;
+use App\Support\Dinero;
 
 /**
  * El UNICO escritor de compras_pagos, de compras.pagado y de compras.pagada_at:
  * las cuentas por pagar al proveedor (docs/06). Es el espejo de PagoService,
- * del otro lado del mostrador, con las mismas filas de pago (FilasDePago: Bs o
- * USD con su tipo de cambio).
+ * del otro lado del mostrador, con las mismas filas de pago (FilasDePago: USD o
+ * Bs con su tipo de cambio).
  *
  * A diferencia de la venta, el saldo de una compra no mueve ningun equipo: una
  * compra a credito es solo una deuda con el proveedor.
@@ -45,8 +46,8 @@ class PagoProveedorService
 
         if ($suma > $saldo) {
             throw ValidationException::withMessages([
-                'pagos' => 'El pago de Bs ' . number_format($suma, 2) . ' supera el saldo de la compra #' . $compra->id
-                    . ' (Bs ' . number_format($saldo, 2) . ').',
+                'pagos' => 'El pago de ' . Dinero::usd($suma) . ' supera el saldo de la compra #' . $compra->id
+                    . ' (' . Dinero::usd($saldo) . ').',
             ]);
         }
 
@@ -81,7 +82,7 @@ class PagoProveedorService
         $compra->anotar(
             BitacoraEvento::Pago->value,
             ($alRecibir ? 'Pagado al recibir: ' : 'Pago al proveedor: ') . implode(' + ', $frases)
-                . '. ' . ($restante > 0 ? 'Saldo Bs ' . number_format($restante, 2) . '.' : 'Compra pagada.'),
+                . '. ' . ($restante > 0 ? 'Saldo ' . Dinero::usd($restante) . '.' : 'Compra pagada.'),
             ['compra_id' => $compra->id],
         );
 
@@ -118,8 +119,8 @@ class PagoProveedorService
 
         if ($pagado > $total) {
             throw ValidationException::withMessages([
-                'pagos' => "La compra #{$compra->id} quedaría con Bs " . number_format($pagado, 2)
-                    . ' pagados sobre un total de Bs ' . number_format($total, 2) . '. Anula un pago antes.',
+                'pagos' => "La compra #{$compra->id} quedaría con " . Dinero::usd($pagado)
+                    . ' pagados sobre un total de ' . Dinero::usd($total) . '. Anula un pago antes.',
             ]);
         }
 

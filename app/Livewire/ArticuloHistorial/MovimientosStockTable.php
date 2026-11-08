@@ -6,6 +6,7 @@ use App\Enums\ArticuloTipo;
 use App\Enums\MovimientoStockTipo;
 use App\Models\MovimientoStock;
 use App\Models\Sucursal;
+use App\Support\Dinero;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Locked;
@@ -253,29 +254,27 @@ class MovimientosStockTable extends DataTableComponent
 
             Column::make('Costo Unit.', 'costo')
                 ->sortable()
-                ->format(fn($value) => 'Bs ' . number_format((float) $value, 2))
+                ->format(fn($value) => Dinero::usd((float) $value))
                 ->collapseOnTablet(),
 
             Column::make('Costo Total', 'subtotal_costo')
                 ->sortable()
-                ->format(fn($value) => 'Bs ' . number_format((float) $value, 2))
+                ->format(fn($value) => Dinero::usd((float) $value))
                 ->html()
-                ->footer(fn($rows) => '<span class="text-green-600 dark:text-green-400">+Bs '
-                    . number_format((float) $this->getTotales()->costo_entrada, 2) . '</span><br>'
-                    . '<span class="text-red-600 dark:text-red-400">−Bs '
-                    . number_format((float) $this->getTotales()->costo_salida, 2) . '</span>'),
+                ->footer(fn($rows) => '<span class="text-green-600 dark:text-green-400">+' . Dinero::usd((float) $this->getTotales()->costo_entrada) . '</span><br>'
+                    . '<span class="text-red-600 dark:text-red-400">−' . Dinero::usd((float) $this->getTotales()->costo_salida) . '</span>'),
 
             // NULL en compras y reparaciones: productos_reparaciones_repuestos
             // no guarda precio de venta, solo costo.
             Column::make('Precio Unit.', 'precio')
                 ->sortable()
-                ->format(fn($value) => is_null($value) ? '—' : 'Bs ' . number_format((float) $value, 2))
+                ->format(fn($value) => is_null($value) ? '—' : Dinero::usd((float) $value))
                 ->collapseOnTablet(),
 
             Column::make('Total Venta', 'total_venta')
                 ->sortable()
-                ->format(fn($value) => is_null($value) ? '—' : 'Bs ' . number_format((float) $value, 2))
-                ->footer(fn($rows) => 'Bs ' . number_format((float) $this->getTotales()->total_venta, 2)),
+                ->format(fn($value) => is_null($value) ? '—' : Dinero::usd((float) $value))
+                ->footer(fn($rows) => Dinero::usd((float) $this->getTotales()->total_venta)),
 
             // NULL en reparaciones: productos_reparaciones no tiene user_id.
             Column::make('Usuario', 'usuario')

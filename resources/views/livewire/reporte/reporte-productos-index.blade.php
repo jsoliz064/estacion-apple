@@ -3,7 +3,7 @@
     @include('livewire.reporte.partials.nav', ['actual' => 'reportes.productos'])
     @include('livewire.reporte.partials.filtros')
 
-    @php $bs = fn($v) => number_format((float) $v, 2); @endphp
+    @php $usd = fn($v) => number_format((float) $v, 2); @endphp
 
     {{-- Por modelo --}}
     <div class="mb-6 bg-white dark:bg-gray-800 shadow rounded-lg p-4">
@@ -38,9 +38,9 @@
                             <tr class="border-t border-gray-200 dark:border-gray-700" wire:key="rp-mod-{{ $loop->index }}-{{ md5($f->modelo) }}">
                                 <td class="p-2 font-semibold">{{ $f->modelo }}</td>
                                 <td class="p-2 text-right">{{ $f->unidades }}</td>
-                                <td class="p-2 text-right">{{ $bs($f->ingreso) }}</td>
-                                <td class="p-2 text-right">{{ $bs($f->costo) }}</td>
-                                <td class="p-2 text-right font-semibold">{{ $bs($f->ganancia) }}</td>
+                                <td class="p-2 text-right">{{ $usd($f->ingreso) }}</td>
+                                <td class="p-2 text-right">{{ $usd($f->costo) }}</td>
+                                <td class="p-2 text-right font-semibold">{{ $usd($f->ganancia) }}</td>
                                 <td class="p-2 text-right">{{ number_format($f->margen, 1) }} %</td>
                                 <td class="p-2 text-right">{{ $f->dias ?? '—' }}</td>
                                 <td @class(['p-2 text-right', 'text-red-600 font-semibold' => $f->en_stock === 0])>{{ $f->en_stock }}</td>
@@ -55,9 +55,9 @@
                         <tr>
                             <td class="p-2">TOTAL</td>
                             <td class="p-2 text-right">{{ $modelos->sum('unidades') }}</td>
-                            <td class="p-2 text-right">{{ $bs($ti) }}</td>
-                            <td class="p-2 text-right">{{ $bs($tc) }}</td>
-                            <td class="p-2 text-right">{{ $bs($ti - $tc) }}</td>
+                            <td class="p-2 text-right">{{ $usd($ti) }}</td>
+                            <td class="p-2 text-right">{{ $usd($tc) }}</td>
+                            <td class="p-2 text-right">{{ $usd($ti - $tc) }}</td>
                             <td class="p-2 text-right">{{ $ti > 0 ? number_format(($ti - $tc) / $ti * 100, 1) : '0.0' }} %</td>
                             <td class="p-2"></td>
                             <td class="p-2 text-right">{{ $modelos->sum('en_stock') }}</td>
@@ -66,7 +66,7 @@
                 </table>
             </div>
             <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                Montos en Bs, con el descuento de cada venta repartido entre sus líneas. Días en venderse: desde la fecha de la compra (o el alta, si vino en permuta) hasta la venta.
+                Montos en USD, con el descuento de cada venta repartido entre sus líneas. Días en venderse: desde la fecha de la compra (o el alta, si vino en permuta) hasta la venta.
             </p>
         @endif
     </div>
@@ -75,7 +75,7 @@
     <div class="mb-6 bg-white dark:bg-gray-800 shadow rounded-lg p-4">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
             <h3 class="font-semibold text-gray-800 dark:text-gray-100">
-                Equipos parados: {{ (int) $totalParados->cantidad }} · Bs {{ $bs($totalParados->costo) }} al costo
+                Equipos parados: {{ (int) $totalParados->cantidad }} · {{ \App\Support\Dinero::usd($totalParados->costo) }} al costo
             </h3>
             <label class="text-sm text-gray-600 dark:text-gray-300">
                 Sin venderse hace
@@ -116,8 +116,8 @@
                                 <td class="p-2">{{ $p->estado_grado ?? '—' }}</td>
                                 <td class="p-2">{{ $p->sucursal ?? '—' }}</td>
                                 <td class="p-2 text-right font-semibold">{{ $p->dias }}</td>
-                                <td class="p-2 text-right">{{ $bs($p->costo_total) }}</td>
-                                <td class="p-2 text-right">{{ $bs($p->precio) }}</td>
+                                <td class="p-2 text-right">{{ $usd($p->costo_total) }}</td>
+                                <td class="p-2 text-right">{{ $usd($p->precio) }}</td>
                             </tr>
                         @endforeach
                     </tbody>

@@ -16,7 +16,7 @@
                 <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
                     <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Costo Total de Inventario</h3>
                     <p class="mt-1 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
-                        Bs {{ number_format($totalInventario, 2) }}
+                        {{ \App\Support\Dinero::usd($totalInventario) }}
                     </p>
                 </div>
 
@@ -24,7 +24,7 @@
                     class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
                     <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Inventario a precio de venta</h3>
                     <p class="mt-1 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
-                        Bs {{ number_format($totalInventarioVendido, 2) }}
+                        {{ \App\Support\Dinero::usd($totalInventarioVendido) }}
                     </p>
                 </div>
 

@@ -15,7 +15,7 @@
 
                 <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
                     <h3 class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">Total vendido</h3>
-                    <p class="mt-1 text-xl sm:text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">Bs {{ number_format($totalVenta, 2) }}</p>
+                    <p class="mt-1 text-xl sm:text-2xl font-semibold tracking-tight text-gray-900 dark:text-white"><x-monto :valor="$totalVenta" /></p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
                     <h3 class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">Ventas</h3>
@@ -31,7 +31,7 @@
                 </div>
                 <div class="col-span-2 lg:col-span-1 bg-green-100 dark:bg-green-800 p-4 sm:p-6 rounded-2xl shadow-lg border border-green-200 dark:border-green-700">
                     <h3 class="text-xs sm:text-sm font-medium text-green-700 dark:text-green-300">Ganancia</h3>
-                    <p class="mt-1 text-xl sm:text-2xl font-semibold tracking-tight text-green-900 dark:text-green-100">Bs {{ number_format($totalGanancia, 2) }}</p>
+                    <p class="mt-1 text-xl sm:text-2xl font-semibold tracking-tight text-green-900 dark:text-green-100"><x-monto :valor="$totalGanancia" /></p>
                 </div>
             </div>
         </x-collapse-card>

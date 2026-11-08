@@ -6,6 +6,7 @@ use App\Enums\ReparacionTipo;
 use App\Models\Producto;
 use App\Models\ProductoReparacion;
 use App\Models\ProductoReparacionRepuesto;
+use App\Support\Dinero;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
@@ -21,12 +22,12 @@ use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
  * edicion, terminada, garantia), y "Repuestos" lista una fila por pieza sin la
  * mano de obra. Aqui la unidad es la reparacion, con su total al pie.
  *
- * UNIDADES: todo en Bs. costo (mano de obra del tecnico) + costo_repuestos =
+ * UNIDADES: todo en USD. costo (mano de obra del tecnico) + costo_repuestos =
  * costo_total. cobro_cliente solo tiene valor cuando tipo = Externo.
  *
  * Antes habia ademas un total en USD dividido por una tasa de cambio que se
  * envenenaba solo (un `?? 1` sin lote, un campo editable con min:0); al pasar
- * todo a Bs se fue la columna T/C con el.
+ * todo a Bs se fue la columna T/C con el. Hoy todo se guarda en USD y sigue sin hacer falta.
  */
 class ProductoReparacionesTable extends DataTableComponent
 {
@@ -256,7 +257,7 @@ class ProductoReparacionesTable extends DataTableComponent
             // "inv." a proposito: cuenta solo los repuestos DE INVENTARIO. Los
             // del tecnico van en los textarea de texto libre y su importe puede
             // estar cargado a mano en costo_repuestos, asi que un "0" con
-            // Repuestos (Bs) > 0 es legitimo y no un dato corrupto.
+            // Repuestos (USD) > 0 es legitimo y no un dato corrupto.
             Column::make('Repuestos inv. (u.)')
                 ->label(fn($row) => (int) ($row->unidades_repuestos ?? 0))
                 // isSortable() es hasField() && $sortable, y una label no tiene
@@ -268,35 +269,35 @@ class ProductoReparacionesTable extends DataTableComponent
                     ->orderBy('unidades_repuestos', $direction))
                 ->footer(fn($rows) => (string) $this->getTotales()->unidades),
 
-            Column::make('Mano de obra (Bs)', 'costo')
+            Column::make('Mano de obra (USD)', 'costo')
                 ->sortable()
-                ->format(fn($value) => 'Bs. ' . number_format((float) $value, 2))
-                ->footer(fn($rows) => 'Bs. ' . number_format((float) $this->getTotales()->mano_obra, 2)),
+                ->format(fn($value) => Dinero::usd((float) $value))
+                ->footer(fn($rows) => Dinero::usd((float) $this->getTotales()->mano_obra)),
 
             // Valor guardado, sin recalcular: mismo criterio que el bloque de
             // detalle ("no se recalcula nada"). ProductoEstadoModal lo
             // sobrescribe desde las lineas de inventario, pero tambien es
             // editable a mano en los modales de reparacion.
-            Column::make('Repuestos (Bs)', 'costo_repuestos')
+            Column::make('Repuestos (USD)', 'costo_repuestos')
                 ->sortable()
-                ->format(fn($value) => 'Bs. ' . number_format((float) $value, 2))
-                ->footer(fn($rows) => 'Bs. ' . number_format((float) $this->getTotales()->repuestos, 2)),
+                ->format(fn($value) => Dinero::usd((float) $value))
+                ->footer(fn($rows) => Dinero::usd((float) $this->getTotales()->repuestos)),
 
             // SIN collapse*: la celda del pie hereda el `hidden lg:table-cell`
             // de la columna (td/plain.blade.php) y la fila de totales no tiene
             // boton para desplegarse, asi que el total desapareceria por debajo
             // de lg. Es el numero por el que se abre esta pestana.
-            Column::make('Total (Bs)', 'costo_total')
+            Column::make('Total (USD)', 'costo_total')
                 ->sortable()
-                ->format(fn($value) => 'Bs. ' . number_format((float) $value, 2))
-                ->footer(fn($rows) => 'Bs. ' . number_format((float) $this->getTotales()->total, 2)),
+                ->format(fn($value) => Dinero::usd((float) $value))
+                ->footer(fn($rows) => Dinero::usd((float) $this->getTotales()->total)),
 
             // Sin total al pie: mezclar un cobro al cliente con las columnas de
             // costo en la misma fila de totales invita a sumarlos.
-            Column::make('Cobro cliente (Bs)', 'cobro_cliente')
+            Column::make('Cobro cliente (USD)', 'cobro_cliente')
                 ->sortable()
                 ->format(fn($value) => (float) $value > 0
-                    ? 'Bs. ' . number_format((float) $value, 2)
+                    ? Dinero::usd((float) $value)
                     : '—')
                 ->collapseOnTablet(),
 

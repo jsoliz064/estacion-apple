@@ -12,6 +12,7 @@ use App\Models\Producto;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use App\Support\Dinero;
 
 /**
  * El UNICO escritor de compras_reclamos y el unico que pone o saca un equipo
@@ -99,7 +100,7 @@ class ReclamoService
                 break;
 
             case ReclamoResolucion::Descuento:
-                $this->devolver($compra, $fallado, 'el proveedor descontó Bs ' . number_format((float) $fallado->costo_unidad, 2));
+                $this->devolver($compra, $fallado, 'el proveedor descontó ' . Dinero::usd((float) $fallado->costo_unidad));
                 break;
 
             case ReclamoResolucion::Aceptado:

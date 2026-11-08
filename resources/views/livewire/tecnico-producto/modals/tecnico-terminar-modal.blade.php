@@ -33,7 +33,7 @@
                                         <th class="px-4 py-2 text-left border-b dark:border-gray-600">ID</th>
                                         <th class="px-4 py-2 text-left border-b dark:border-gray-600">Producto</th>
                                         <th class="px-4 py-2 text-left border-b dark:border-gray-600">Estado</th>
-                                        <th class="px-4 py-2 text-right border-b dark:border-gray-600">Costo (Bs)</th>
+                                        <th class="px-4 py-2 text-right border-b dark:border-gray-600">Costo (USD)</th>
                                         <th class="px-4 py-2 text-center border-b dark:border-gray-600">Seleccionar</th>
                                     </tr>
                                 </thead>
@@ -52,7 +52,7 @@
                                                 </span>
                                             </td>
                                             <td class="px-4 py-2 border-b dark:border-gray-600 text-right">
-                                                {{ number_format($reparacion->costo, 2, ',', '.') }}</td>
+                                                {{ \App\Support\Dinero::usd($reparacion->costo) }}</td>
                                             <td class="px-4 py-2 border-b dark:border-gray-600 text-center">
                                                 <button wire:click="toggleReparacion({{ $reparacion->id }})"
                                                     wire:key="checkbox-{{ $reparacion->id }}"

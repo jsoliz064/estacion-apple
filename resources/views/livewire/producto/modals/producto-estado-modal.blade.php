@@ -29,7 +29,7 @@
                         @if ($lineaVenta)
                             <p class="mt-1">
                                 {{ $lineaVenta->venta->nombreCliente() ?? 'Sin cliente' }} · {{ $lineaVenta->created_at->format('d/m/Y') }}
-                                · Bs {{ number_format((float) $lineaVenta->subtotal, 2) }}
+                                · {{ \App\Support\Dinero::usd((float) $lineaVenta->subtotal) }}
                                 @if ($lineaVenta->garantia_fecha_exp)
                                     · garantía hasta {{ $lineaVenta->garantia_fecha_exp->format('d/m/Y') }}
                                 @endif
@@ -60,7 +60,7 @@
                         @if ($reserva)
                             <p class="font-semibold">Reservado para {{ $reserva->cliente?->nombre }}</p>
                             <p class="mt-1">
-                                Seña Bs {{ number_format((float) $reserva->sena, 2) }} en {{ $reserva->metodo?->nombre }}
+                                Seña {{ \App\Support\Dinero::usd((float) $reserva->sena) }} en {{ $reserva->metodo?->nombre }}
                                 · desde el {{ $reserva->created_at->format('d/m/Y') }}
                                 @if ($reserva->nota) · {{ $reserva->nota }} @endif
                             </p>
@@ -171,17 +171,17 @@
 
                         <div class="m-2 grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
                             <div>
-                                <x-label>Mano de obra del técnico (Bs):</x-label>
+                                <x-label>Mano de obra del técnico (USD):</x-label>
                                 <x-input type="number" wire:model.lazy="reparacion.costo" class="w-full" onfocus="this.select()"></x-input>
                                 <x-input-error for="reparacion.costo"></x-input-error>
                             </div>
                             <div>
-                                <x-label>Repuestos (Bs):</x-label>
+                                <x-label>Repuestos (USD):</x-label>
                                 <x-input type="number" wire:model.lazy="reparacion.costo_repuestos" class="w-full" onfocus="this.select()"></x-input>
                                 <x-input-error for="reparacion.costo_repuestos"></x-input-error>
                             </div>
                             <div>
-                                <x-label>Total reparación (Bs):</x-label>
+                                <x-label>Total reparación (USD):</x-label>
                                 <x-input type="number" :value="$reparacion['costo_total'] ?? 0" class="w-full" disabled="true"></x-input>
                             </div>
                         </div>

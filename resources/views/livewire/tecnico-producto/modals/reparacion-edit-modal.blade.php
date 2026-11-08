@@ -53,26 +53,26 @@
 
                 <div class="m-2 grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
                     <div>
-                        <x-label>Mano de obra del técnico (Bs):</x-label>
+                        <x-label>Mano de obra del técnico (USD):</x-label>
                         <x-input type="number" wire:model.lazy="reparacion.costo" class="w-full"
                             onfocus="this.select()"></x-input>
                         <x-input-error for="reparacion.costo"></x-input-error>
                         @php $comisionLiquidada = $reparacionModel?->comision()->whereNotNull('liquidacion_id')->first(); @endphp
                         @if ($comisionLiquidada)
                             <p class="mt-1 text-xs text-amber-700 dark:text-amber-300">
-                                Su comisión (Bs {{ number_format((float) $comisionLiquidada->monto, 2) }}) ya se pagó en la liquidación #{{ $comisionLiquidada->liquidacion_id }}: cambiar la mano de obra no la cambia.
+                                Su comisión ({{ \App\Support\Dinero::usd((float) $comisionLiquidada->monto) }}) ya se pagó en la liquidación #{{ $comisionLiquidada->liquidacion_id }}: cambiar la mano de obra no la cambia.
                             </p>
                         @endif
                     </div>
 
                     <div>
-                        <x-label>Costo Repuestos (Bs):</x-label>
+                        <x-label>Costo Repuestos (USD):</x-label>
                         <x-input type="number" wire:model.lazy="reparacion.costo_repuestos" class="w-full"
                             onfocus="this.select()"></x-input>
                         <x-input-error for="reparacion.costo_repuestos"></x-input-error>
                     </div>
                     <div>
-                        <x-label>Total reparación (Bs):</x-label>
+                        <x-label>Total reparación (USD):</x-label>
                         <x-input type="number" :value="$reparacion['costo_total'] ?? 0" class="w-full" disabled="true"></x-input>
                     </div>
                 </div>

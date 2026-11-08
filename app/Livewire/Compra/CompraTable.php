@@ -11,6 +11,7 @@ use Livewire\Attributes\On;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
+use App\Support\Dinero;
 
 /** El listado de compras: una por documento, con equipos y articulos juntos. */
 class CompraTable extends DataTableComponent
@@ -65,11 +66,11 @@ class CompraTable extends DataTableComponent
                 ->setCustomSlug('articulos'),
             Column::make('Total', 'total')
                 ->sortable()
-                ->format(fn($value) => 'Bs ' . number_format((float) $value, 2)),
+                ->format(fn($value) => Dinero::usd((float) $value)),
             Column::make('Saldo', 'saldo')
                 ->sortable()
                 ->format(fn($value) => (float) $value > 0
-                    ? '<span class="font-semibold text-amber-700 dark:text-amber-300">Bs ' . number_format((float) $value, 2) . '</span>'
+                    ? '<span class="font-semibold text-amber-700 dark:text-amber-300">' . Dinero::usd((float) $value) . '</span>'
                     : '<span class="text-gray-400">—</span>')
                 ->html(),
             Column::make('Estado')

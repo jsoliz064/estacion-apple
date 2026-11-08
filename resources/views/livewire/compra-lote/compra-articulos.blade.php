@@ -32,7 +32,7 @@
                 <tr>
                     <th class="p-2 text-left">Artículo</th>
                     <th class="p-2 text-right w-24">Cantidad</th>
-                    <th class="p-2 text-right w-32">Costo unit. Bs</th>
+                    <th class="p-2 text-right w-32">Costo unit. USD</th>
                     <th class="p-2 text-right w-28">Subtotal</th>
                     @if ($puedeEditar)
                         <th class="p-2 w-10"></th>
@@ -85,7 +85,7 @@
                         <td class="p-2">Total de artículos</td>
                         <td class="p-2 text-right">{{ $detalles->sum('cantidad') }}</td>
                         <td></td>
-                        <td class="p-2 text-right">Bs {{ number_format((float) $detalles->sum('subtotal'), 2) }}</td>
+                        <td class="p-2 text-right">{{ \App\Support\Dinero::usd((float) $detalles->sum('subtotal')) }}</td>
                         @if ($puedeEditar)
                             <td></td>
                         @endif

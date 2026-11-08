@@ -122,7 +122,7 @@
                 <div class="grid grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-6">
                     <div class="{{ $claseTarjeta }}">
                         <h3 class="{{ $claseEtiqueta }}">Ingreso total</h3>
-                        <p class="{{ $claseValor }}">Bs {{ number_format($general['ingreso'], 2) }}</p>
+                        <p class="{{ $claseValor }}"><x-monto :valor="$general['ingreso']" /></p>
                         <p class="mt-1 text-xs {{ $claseTendencia($general['tendenciaIngreso']) }}">
                             {{ $general['tendenciaIngreso'] >= 0 ? '↑' : '↓' }} {{ abs($general['tendenciaIngreso']) }}% vs período anterior
                         </p>
@@ -130,7 +130,7 @@
 
                     <div class="{{ $claseTarjeta }}">
                         <h3 class="{{ $claseEtiqueta }}">Inversión total</h3>
-                        <p class="{{ $claseValor }}">Bs {{ number_format($general['inversion'], 2) }}</p>
+                        <p class="{{ $claseValor }}"><x-monto :valor="$general['inversion']" /></p>
                         <p class="mt-1 text-xs {{ $claseTendencia($general['tendenciaInversion']) }}">
                             {{ $general['tendenciaInversion'] >= 0 ? '↑' : '↓' }} {{ abs($general['tendenciaInversion']) }}% vs período anterior
                         </p>
@@ -139,7 +139,7 @@
                     <div class="bg-green-100 dark:bg-green-800 p-4 sm:p-6 rounded-2xl shadow-lg border border-green-200 dark:border-green-700">
                         <h3 class="text-xs sm:text-sm font-medium text-green-700 dark:text-green-300">Ganancia total</h3>
                         <p class="mt-1 text-xl sm:text-2xl font-semibold tracking-tight text-green-900 dark:text-green-100">
-                            Bs {{ number_format($general['ganancia'], 2) }}
+                            <x-monto :valor="$general['ganancia']" />
                         </p>
                         <p class="mt-1 text-xs {{ $general['tendenciaGanancia'] >= 0 ? 'text-green-700 dark:text-green-300' : 'text-red-600 dark:text-red-400' }}">
                             {{ $general['tendenciaGanancia'] >= 0 ? '↑' : '↓' }} {{ abs($general['tendenciaGanancia']) }}% vs período anterior
@@ -150,7 +150,7 @@
                         <h3 class="{{ $claseEtiqueta }}">Margen global</h3>
                         <p class="{{ $claseValor }}">{{ number_format($general['margen'], 1) }} %</p>
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            Ticket Bs {{ number_format($general['ticket'], 2) }}
+                            Ticket {{ \App\Support\Dinero::usd($general['ticket']) }}
                         </p>
                     </div>
 
@@ -158,14 +158,14 @@
                     <div class="bg-red-50 dark:bg-red-900/40 p-4 sm:p-6 rounded-2xl shadow-lg border border-red-200 dark:border-red-800">
                         <h3 class="text-xs sm:text-sm font-medium text-red-700 dark:text-red-300">Pérdidas</h3>
                         <p class="mt-1 text-xl sm:text-2xl font-semibold tracking-tight text-red-900 dark:text-red-100">
-                            Bs {{ number_format($general['perdidas'], 2) }}
+                            <x-monto :valor="$general['perdidas']" />
                         </p>
                         <p class="mt-1 text-xs text-red-700 dark:text-red-300">Bajas a su costo</p>
                     </div>
 
                     <div class="{{ $claseTarjeta }}">
                         <h3 class="{{ $claseEtiqueta }}">Mano de obra</h3>
-                        <p class="{{ $claseValor }}">Bs {{ number_format($general['manoObra'], 2) }}</p>
+                        <p class="{{ $claseValor }}"><x-monto :valor="$general['manoObra']" /></p>
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                             No pertenece a ninguna línea
                         </p>
@@ -178,7 +178,7 @@
                     @foreach ($general['desglose'] as $linea)
                         <span class="whitespace-nowrap">
                             <span class="font-medium text-gray-700 dark:text-gray-300">{{ $linea['etiqueta'] }}</span>
-                            Bs {{ number_format($linea['monto'], 2) }}
+                            {{ \App\Support\Dinero::usd($linea['monto']) }}
                         </span>{{ !$loop->last ? ' · ' : '' }}
                     @endforeach
                 </p>
@@ -221,7 +221,7 @@
                 <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-6 mb-6">
                     <div class="{{ $claseTarjeta }}">
                         <h4 class="{{ $claseEtiqueta }}">Ingreso</h4>
-                        <p class="{{ $claseValor }}">Bs {{ number_format($resumen['ingreso'], 2) }}</p>
+                        <p class="{{ $claseValor }}">{{ \App\Support\Dinero::usd($resumen['ingreso']) }}</p>
                         <p class="mt-1 text-xs {{ $claseTendencia($resumen['tendenciaIngreso']) }}">
                             {{ $resumen['tendenciaIngreso'] >= 0 ? '↑' : '↓' }} {{ abs($resumen['tendenciaIngreso']) }}%
                         </p>
@@ -236,7 +236,7 @@
                     <div class="bg-green-100 dark:bg-green-800 p-4 sm:p-6 rounded-2xl shadow-lg border border-green-200 dark:border-green-700">
                         <h4 class="text-xs sm:text-sm font-medium text-green-700 dark:text-green-300">Ganancia</h4>
                         <p class="mt-1 text-xl sm:text-2xl font-semibold tracking-tight text-green-900 dark:text-green-100">
-                            Bs {{ number_format($resumen['ganancia'], 2) }}
+                            {{ \App\Support\Dinero::usd($resumen['ganancia']) }}
                         </p>
                         <p class="mt-1 text-xs {{ $resumen['tendenciaGanancia'] >= 0 ? 'text-green-700 dark:text-green-300' : 'text-red-600 dark:text-red-400' }}">
                             {{ $resumen['tendenciaGanancia'] >= 0 ? '↑' : '↓' }} {{ abs($resumen['tendenciaGanancia']) }}%
@@ -248,7 +248,7 @@
                     </div>
                     <div class="{{ $claseTarjeta }}">
                         <h4 class="{{ $claseEtiqueta }}">Ticket promedio</h4>
-                        <p class="{{ $claseValor }}">Bs {{ number_format($resumen['ticket'], 2) }}</p>
+                        <p class="{{ $claseValor }}">{{ \App\Support\Dinero::usd($resumen['ticket']) }}</p>
                     </div>
                 </div>
 
@@ -259,7 +259,7 @@
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6">
                     <div class="{{ $claseTarjeta }}">
                         <h4 class="{{ $claseEtiqueta }}">Inversión</h4>
-                        <p class="{{ $claseValor }}">Bs {{ number_format($resumen['inversion'], 2) }}</p>
+                        <p class="{{ $claseValor }}">{{ \App\Support\Dinero::usd($resumen['inversion']) }}</p>
                         <p class="mt-1 text-xs {{ $claseTendencia($resumen['tendenciaInversion']) }}">
                             {{ $resumen['tendenciaInversion'] >= 0 ? '↑' : '↓' }} {{ abs($resumen['tendenciaInversion']) }}%
                         </p>
@@ -270,11 +270,11 @@
                     </div>
                     <div class="{{ $claseTarjeta }}">
                         <h4 class="{{ $claseEtiqueta }}">Costo promedio por unidad</h4>
-                        <p class="{{ $claseValor }}">Bs {{ number_format($resumen['costoPromedio'], 2) }}</p>
+                        <p class="{{ $claseValor }}">{{ \App\Support\Dinero::usd($resumen['costoPromedio']) }}</p>
                     </div>
                     <div class="{{ $claseTarjeta }}">
                         <h4 class="{{ $claseEtiqueta }}">Pérdidas (bajas)</h4>
-                        <p class="{{ $claseValor }} {{ $resumen['perdidas'] > 0 ? 'text-red-700 dark:text-red-300' : '' }}">Bs {{ number_format($resumen['perdidas'], 2) }}</p>
+                        <p class="{{ $claseValor }} {{ $resumen['perdidas'] > 0 ? 'text-red-700 dark:text-red-300' : '' }}">{{ \App\Support\Dinero::usd($resumen['perdidas']) }}</p>
                     </div>
                 </div>
 
@@ -285,7 +285,7 @@
                         @foreach ($resumen['porTipoVenta'] as $fila)
                             <span class="whitespace-nowrap">
                                 <span class="font-medium text-gray-700 dark:text-gray-300">{{ $fila->tipo_venta }}</span>
-                                {{ $fila->unidades }} u · Bs {{ number_format((float) $fila->monto, 2) }}
+                                {{ $fila->unidades }} u · {{ \App\Support\Dinero::usd((float) $fila->monto) }}
                             </span>{{ !$loop->last ? ' · ' : '' }}
                         @endforeach
                     </p>
@@ -300,7 +300,7 @@
                                 {{ $resumen['mejorVendedor']->nombre }}
                             </p>
                             <p class="text-sm text-gray-500 dark:text-gray-400">
-                                Bs {{ number_format($resumen['mejorVendedor']->monto, 2) }}
+                                {{ \App\Support\Dinero::usd($resumen['mejorVendedor']->monto) }}
                             </p>
                         @else
                             <p class="mt-1 text-sm text-gray-400">Sin datos en el período</p>
@@ -314,7 +314,7 @@
                                 {{ $resumen['mejorSucursal']->nombre }}
                             </p>
                             <p class="text-sm text-gray-500 dark:text-gray-400">
-                                Bs {{ number_format($resumen['mejorSucursal']->monto, 2) }}
+                                {{ \App\Support\Dinero::usd($resumen['mejorSucursal']->monto) }}
                             </p>
                         @else
                             <p class="mt-1 text-sm text-gray-400">Sin datos en el período</p>
@@ -329,7 +329,7 @@
                                     {{ $articulo->nombre }}
                                 </span>
                                 <span class="shrink-0 ml-2 text-gray-600 dark:text-gray-300">
-                                    {{ $articulo->unidades }} u · Bs {{ number_format($articulo->monto, 2) }}
+                                    {{ $articulo->unidades }} u · {{ \App\Support\Dinero::usd($articulo->monto) }}
                                 </span>
                             </div>
                         @empty
@@ -365,13 +365,13 @@
                                         {{ $fila->period_key }}
                                     </td>
                                     <td class="px-4 py-3 text-right">{{ number_format($fila->unidades, 0) }}</td>
-                                    <td class="px-4 py-3 text-right">Bs {{ number_format($fila->ingreso, 2) }}</td>
-                                    <td class="px-4 py-3 text-right">Bs {{ number_format($fila->costo, 2) }}</td>
+                                    <td class="px-4 py-3 text-right">{{ \App\Support\Dinero::usd($fila->ingreso) }}</td>
+                                    <td class="px-4 py-3 text-right">{{ \App\Support\Dinero::usd($fila->costo) }}</td>
                                     <td class="px-4 py-3 text-right {{ $fila->ganancia >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
-                                        Bs {{ number_format($fila->ganancia, 2) }}
+                                        {{ \App\Support\Dinero::usd($fila->ganancia) }}
                                     </td>
                                     <td class="px-4 py-3 text-right">{{ number_format($fila->comp_unidades, 0) }}</td>
-                                    <td class="px-4 py-3 text-right">Bs {{ number_format($fila->inversion, 2) }}</td>
+                                    <td class="px-4 py-3 text-right">{{ \App\Support\Dinero::usd($fila->inversion) }}</td>
                                 </tr>
                             @empty
                                 <tr>
@@ -471,7 +471,7 @@
                                 ticks: {
                                     callback: function(value) {
                                         if (currentMetric === 'totales') {
-                                            return 'Bs ' + value.toLocaleString('es-BO', {
+                                            return 'USD ' + value.toLocaleString('es-BO', {
                                                 minimumFractionDigits: 2,
                                                 maximumFractionDigits: 2
                                             });
@@ -556,7 +556,7 @@
                                         }
                                         if (context.parsed.y !== null) {
                                             if (currentMetric === 'totales') {
-                                                label += 'Bs ' + context.parsed.y.toLocaleString('es-BO', {
+                                                label += 'USD ' + context.parsed.y.toLocaleString('es-BO', {
                                                     minimumFractionDigits: 2,
                                                     maximumFractionDigits: 2
                                                 });

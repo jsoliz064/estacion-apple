@@ -17,6 +17,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use App\Support\Dinero;
 
 /**
  * Pagarle a un proveedor (cuentas por pagar): lista sus compras con saldo y se
@@ -204,7 +205,7 @@ class PagoProveedorModal extends Component
             throw $e;
         }
 
-        toastr()->success('Pago al proveedor registrado: Bs ' . number_format($this->totalACobrar(), 2) . '.');
+        toastr()->success('Pago al proveedor registrado: ' . Dinero::usd($this->totalACobrar()) . '.');
         $this->despues();
     }
 

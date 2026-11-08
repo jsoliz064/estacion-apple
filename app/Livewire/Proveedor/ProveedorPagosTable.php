@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\On;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
+use App\Support\Dinero;
 
 /** Los pagos hechos a un proveedor. */
 class ProveedorPagosTable extends DataTableComponent
@@ -50,7 +51,7 @@ class ProveedorPagosTable extends DataTableComponent
                 ->format(fn($v) => '<a href="' . route('compras.detalle', $v) . '" class="text-brand-600 hover:underline dark:text-brand-400">#' . (int) $v . '</a>')
                 ->html(),
             Column::make('Método')->label(fn($row) => e($row->descripcion())),
-            Column::make('Monto', 'monto')->sortable()->format(fn($v) => 'Bs ' . number_format((float) $v, 2)),
+            Column::make('Monto', 'monto')->sortable()->format(fn($v) => Dinero::usd((float) $v)),
             Column::make('Registró', 'user.name')->format(fn($v) => $v ?: '—')->collapseOnTablet(),
             Column::make('')
                 ->label(fn($row) => auth()->user()->can('pago-proveedor.anular')

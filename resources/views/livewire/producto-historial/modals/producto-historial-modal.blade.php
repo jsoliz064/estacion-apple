@@ -84,19 +84,19 @@
                         </div>
 
                         <div>
-                            <x-label>Subtotal (Bs):</x-label>
+                            <x-label>Subtotal (USD):</x-label>
                             <x-input type="text" value="{{ number_format($venta->subtotal, 2) }}" class="w-full"
                                 disabled />
                         </div>
 
                         <div>
-                            <x-label>Descuento (Bs):</x-label>
+                            <x-label>Descuento (USD):</x-label>
                             <x-input type="text" value="{{ number_format($venta->descuento, 2) }}" class="w-full"
                                 disabled />
                         </div>
 
                         <div>
-                            <x-label>Total (Bs):</x-label>
+                            <x-label>Total (USD):</x-label>
                             <x-input type="text" value="{{ number_format($venta->total, 2) }}" class="w-full"
                                 disabled />
                         </div>
@@ -124,13 +124,13 @@
                                         <tr class="hover:bg-gray-50">
                                             <td class="px-4 py-2 border-b">{{ $detalle->descripcion() }}</td>
                                             <td class="px-4 py-2 border-b">{{ (int) $detalle->cantidad }}</td>
-                                            <td class="px-4 py-2 border-b">{{ number_format($detalle->costo, 2) }}
+                                            <td class="px-4 py-2 border-b">{{ \App\Support\Dinero::usd($detalle->costo) }}
                                             </td>
-                                            <td class="px-4 py-2 border-b">{{ number_format($detalle->precio, 2) }}
+                                            <td class="px-4 py-2 border-b">{{ \App\Support\Dinero::usd($detalle->precio) }}
                                             </td>
-                                            <td class="px-4 py-2 border-b">{{ number_format($detalle->descuento, 2) }}
+                                            <td class="px-4 py-2 border-b">{{ \App\Support\Dinero::usd($detalle->descuento) }}
                                             </td>
-                                            <td class="px-4 py-2 border-b">{{ number_format($detalle->subtotal, 2) }}
+                                            <td class="px-4 py-2 border-b">{{ \App\Support\Dinero::usd($detalle->subtotal) }}
                                             </td>
                                             <td class="px-4 py-2 border-b">{{ $detalle->garantia_meses }}</td>
                                             <td class="px-4 py-2 border-b">{{ $detalle->garantia_fecha_exp ? \Carbon\Carbon::parse($detalle->garantia_fecha_exp)->format('d/m/Y') : '' }}</td>

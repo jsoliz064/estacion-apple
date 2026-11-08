@@ -3,6 +3,7 @@
 namespace App\Livewire\Articulo;
 
 use App\Enums\ArticuloTipo;
+use App\Support\Dinero;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -115,11 +116,11 @@ class ArticuloTable extends DataTableComponent
             // Rotulo pedido por el cliente: el costo se lee como "codigo".
             Column::make('Costo (código)', 'costo')
                 ->sortable()
-                ->format(fn($v) => 'Bs ' . number_format((float) $v, 2))
+                ->format(fn($v) => Dinero::usd((float) $v))
                 ->collapseOnTablet(),
             Column::make('Precio', 'precio')
                 ->sortable()
-                ->format(fn($v) => 'Bs ' . number_format((float) $v, 2)),
+                ->format(fn($v) => Dinero::usd((float) $v)),
             Column::make('Cantidad', 'cantidad')
                 // Rojo si alguna sucursal llego a su minimo (el desglose dice cual).
                 ->format(fn($value, $row) => $row->estaPorAgotarse()

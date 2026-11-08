@@ -3,7 +3,7 @@
     @include('livewire.reporte.partials.nav', ['actual' => 'reportes.vendedores'])
     @include('livewire.reporte.partials.filtros')
 
-    @php $bs = fn($v) => number_format((float) $v, 2); @endphp
+    @php $usd = fn($v) => number_format((float) $v, 2); @endphp
 
     <div class="mb-6 bg-white dark:bg-gray-800 shadow rounded-lg p-4">
         <h3 class="font-semibold text-gray-800 dark:text-gray-100 mb-2">Por vendedor</h3>
@@ -34,14 +34,14 @@
                             ])>
                                 <td class="p-2 font-semibold text-brand-700 dark:text-brand-300">{{ $f->nombre }}</td>
                                 <td class="p-2 text-right">{{ $f->ventas }}</td>
-                                <td class="p-2 text-right">{{ $bs($f->monto) }}</td>
-                                <td class="p-2 text-right">{{ $bs($f->ganancia) }}</td>
+                                <td class="p-2 text-right">{{ $usd($f->monto) }}</td>
+                                <td class="p-2 text-right">{{ $usd($f->ganancia) }}</td>
                                 <td class="p-2 text-right">{{ number_format($f->margen, 1) }} %</td>
-                                <td class="p-2 text-right">{{ $bs($f->ticket) }}</td>
-                                <td class="p-2 text-right font-semibold">{{ $bs($f->comision) }}</td>
-                                <td class="p-2 text-right">{{ $bs($f->pendiente) }}</td>
-                                <td class="p-2 text-right">{{ $bs($f->por_pagar) }}</td>
-                                <td class="p-2 text-right">{{ $bs($f->pagada) }}</td>
+                                <td class="p-2 text-right">{{ $usd($f->ticket) }}</td>
+                                <td class="p-2 text-right font-semibold">{{ $usd($f->comision) }}</td>
+                                <td class="p-2 text-right">{{ $usd($f->pendiente) }}</td>
+                                <td class="p-2 text-right">{{ $usd($f->por_pagar) }}</td>
+                                <td class="p-2 text-right">{{ $usd($f->pagada) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -49,20 +49,20 @@
                         <tr>
                             <td class="p-2">TOTAL</td>
                             <td class="p-2 text-right">{{ $total->ventas }}</td>
-                            <td class="p-2 text-right">{{ $bs($total->monto) }}</td>
-                            <td class="p-2 text-right">{{ $bs($total->ganancia) }}</td>
+                            <td class="p-2 text-right">{{ $usd($total->monto) }}</td>
+                            <td class="p-2 text-right">{{ $usd($total->ganancia) }}</td>
                             <td class="p-2 text-right">{{ $total->monto > 0 ? number_format($total->ganancia / $total->monto * 100, 1) : '0.0' }} %</td>
-                            <td class="p-2 text-right">{{ $total->ventas > 0 ? $bs($total->monto / $total->ventas) : $bs(0) }}</td>
-                            <td class="p-2 text-right">{{ $bs($total->comision) }}</td>
-                            <td class="p-2 text-right">{{ $bs($total->pendiente) }}</td>
-                            <td class="p-2 text-right">{{ $bs($total->por_pagar) }}</td>
-                            <td class="p-2 text-right">{{ $bs($total->pagada) }}</td>
+                            <td class="p-2 text-right">{{ $total->ventas > 0 ? $usd($total->monto / $total->ventas) : $usd(0) }}</td>
+                            <td class="p-2 text-right">{{ $usd($total->comision) }}</td>
+                            <td class="p-2 text-right">{{ $usd($total->pendiente) }}</td>
+                            <td class="p-2 text-right">{{ $usd($total->por_pagar) }}</td>
+                            <td class="p-2 text-right">{{ $usd($total->pagada) }}</td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
             <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                Montos en Bs. El monto incluye la mano de obra; la ganancia no (suma al total y al costo). Toca un vendedor para ver sus ventas.
+                Montos en USD. El monto incluye la mano de obra; la ganancia no (suma al total y al costo). Toca un vendedor para ver sus ventas.
             </p>
         @endif
     </div>
@@ -106,13 +106,13 @@
                                         #{{ $v->id }}
                                     @endcan
                                     @if ((float) $v->saldo > 0)
-                                        <span class="text-xs text-amber-700">· saldo {{ $bs($v->saldo) }}</span>
+                                        <span class="text-xs text-amber-700">· saldo {{ $usd($v->saldo) }}</span>
                                     @endif
                                 </td>
                                 <td class="p-2">{{ $v->cliente_nombre ?? ($v->cliente ?: '—') }}</td>
-                                <td class="p-2 text-right">{{ $bs($v->total) }}</td>
-                                <td class="p-2 text-right">{{ $bs($v->total - $v->costo_total) }}</td>
-                                <td class="p-2 text-right">{{ $v->comision !== null ? $bs($v->comision) : '—' }}</td>
+                                <td class="p-2 text-right">{{ $usd($v->total) }}</td>
+                                <td class="p-2 text-right">{{ $usd($v->total - $v->costo_total) }}</td>
+                                <td class="p-2 text-right">{{ $v->comision !== null ? $usd($v->comision) : '—' }}</td>
                                 <td class="p-2">{!! $estado?->badge() !!}</td>
                             </tr>
                         @endforeach

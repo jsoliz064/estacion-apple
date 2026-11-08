@@ -18,7 +18,7 @@
                 <thead>
                     <tr class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
                         <th class="p-2 border border-gray-300 dark:border-gray-600">Repuesto</th>
-                        <th class="p-2 border border-gray-300 dark:border-gray-600">Costo</th>
+                        <th class="p-2 border border-gray-300 dark:border-gray-600">Costo (USD)</th>
                         <th class="p-2 border border-gray-300 dark:border-gray-600">Cant.</th>
                         <th class="p-2 border border-gray-300 dark:border-gray-600">Subtotal</th>
                         <th class="p-2 border border-gray-300 dark:border-gray-600">Acción</th>
@@ -47,7 +47,7 @@
                                     onfocus="this.select()" />
                             </td>
                             <td class="p-2 border border-gray-300 dark:border-gray-600 text-right">
-                                {{ number_format($detalle['subtotal_costo'] ?? 0, 2) }}
+                                {{ \App\Support\Dinero::usd($detalle['subtotal_costo'] ?? 0) }}
                             </td>
                             <td class="p-2 border border-gray-300 dark:border-gray-600 text-center">
                                 <button type="button" wire:click="eliminarRepuesto({{ $index }})"

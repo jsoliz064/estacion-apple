@@ -42,13 +42,13 @@
             <span class="font-semibold text-gray-900 dark:text-white">{{ $linea?->cantidad ?? '—' }}</span>
         </div>
         <div>
-            <span class="block text-xs text-green-700 dark:text-green-300">Precio (Bs)</span>
+            <span class="block text-xs text-green-700 dark:text-green-300">Precio (USD)</span>
             <span class="font-semibold text-gray-900 dark:text-white">
                 {{ $linea ? number_format((float) $linea->precio, 2) : '—' }}
             </span>
         </div>
         <div>
-            <span class="block text-xs text-green-700 dark:text-green-300">Subtotal (Bs)</span>
+            <span class="block text-xs text-green-700 dark:text-green-300">Subtotal (USD)</span>
             <span class="font-semibold text-gray-900 dark:text-white">
                 {{ $linea ? number_format((float) $linea->subtotal, 2) : '—' }}
             </span>

@@ -6,6 +6,7 @@ use App\Enums\ComisionEstado;
 use App\Enums\ReparacionTipo;
 use App\Models\ProductoReparacion;
 use App\Models\Tecnicos;
+use App\Support\Dinero;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use Livewire\Attributes\On;
@@ -60,7 +61,7 @@ class TecnicoProductoTable extends DataTableComponent
                     if (!$comision) {
                         return '<span class="text-gray-400">—</span>';
                     }
-                    return 'Bs. ' . number_format((float) $comision->monto, 2) . ' ' . $comision->estado()->badge();
+                    return Dinero::usd((float) $comision->monto) . ' ' . $comision->estado()->badge();
                 })
                 ->html(),
             Column::make("Garantia Tecnico", "garantia_tecnico")
@@ -93,7 +94,7 @@ class TecnicoProductoTable extends DataTableComponent
             Column::make("Costo Reparacion", "costo")
                 ->sortable()
                 ->format(function ($value) {
-                    return 'Bs. ' . number_format($value, 2);
+                    return Dinero::usd($value);
                 }),
 
         ];
@@ -103,7 +104,7 @@ class TecnicoProductoTable extends DataTableComponent
             Column::make("Costo Total", "costo_total")
                 ->sortable()
                 ->format(function ($value) {
-                    return 'Bs. ' . number_format($value, 2);
+                    return Dinero::usd($value);
                 }),
         );
 

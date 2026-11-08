@@ -29,7 +29,7 @@
 
                 @if ($anteriores && (int) $anteriores->cantidad > 0)
                     <div class="m-2 p-3 rounded-md bg-amber-50 dark:bg-amber-900/40 text-sm text-amber-800 dark:text-amber-200 flex flex-wrap items-center justify-between gap-2">
-                        <span>Hay {{ (int) $anteriores->cantidad }} comisión(es) ganada(s) antes del período y sin pagar: Bs {{ number_format((float) $anteriores->monto, 2) }}.</span>
+                        <span>Hay {{ (int) $anteriores->cantidad }} comisión(es) ganada(s) antes del período y sin pagar: {{ \App\Support\Dinero::usd((float) $anteriores->monto) }}.</span>
                         <button type="button" wire:click="incluirAnteriores"
                             class="px-2 py-1 rounded-md bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700">Incluirlas</button>
                     </div>
@@ -79,7 +79,7 @@
                 </div>
 
                 <p class="m-2 text-right text-lg font-semibold text-gray-800 dark:text-gray-100">
-                    Total a pagar: Bs {{ number_format($total, 2) }}
+                    Total a pagar: {{ \App\Support\Dinero::usd($total) }}
                 </p>
             </x-slot>
 

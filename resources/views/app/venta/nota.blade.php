@@ -3,7 +3,9 @@
      (el papel de 80 mm tiene unos 4 mm de margen fisico por lado). Comprobante
      interno: sin datos fiscales (decision del usuario). --}}
 @php
-    $bs = fn($n) => number_format((float) $n, 2, ',', '.');
+    // Montos en USD, con el mismo formato que Dinero (y que $pago->descripcion()):
+    // con el formato boliviano (1.234,50) la nota mezclaba dos en la misma hoja.
+    $usd = fn($n) => number_format((float) $n, 2);
     $lineaNombre = fn($d) => $d->producto_id
         ? trim(($d->producto?->modelo?->nombre ?? 'Equipo') . ' ' . ($d->producto?->almacenamiento ?? '') . ' ' . ($d->producto?->color ?? ''))
         : ($d->articulo()?->nombre ?? 'Artículo');
@@ -65,39 +67,41 @@
         {{-- Cada equipo con su IMEI y, debajo, lo que se vendio con el. --}}
         @foreach ($equipos as $d)
             <div>{{ $lineaNombre($d) }}</div>
-            <div class="fila chico"><span>IMEI {{ $d->producto?->imei }}</span><span>{{ $bs($d->subtotal) }}</span></div>
+            <div class="fila chico"><span>IMEI {{ $d->producto?->imei }}</span><span>{{ $usd($d->subtotal) }}</span></div>
             @foreach ($venta->detalles->where('producto_asociado_id', $d->producto_id) as $a)
                 <div class="fila sangria chico">
                     <span>+ {{ $a->cantidad > 1 ? $a->cantidad . ' x ' : '' }}{{ $lineaNombre($a) }}{{ $a->esRegalo() ? ' (regalo)' : '' }}</span>
-                    <span>{{ $bs($a->subtotal) }}</span>
+                    <span>{{ $usd($a->subtotal) }}</span>
                 </div>
             @endforeach
         @endforeach
         @foreach ($sueltos as $d)
             <div class="fila">
                 <span>{{ $d->cantidad > 1 ? $d->cantidad . ' x ' : '' }}{{ $lineaNombre($d) }}{{ $d->esCobro() ? ' (taller)' : '' }}</span>
-                <span>{{ $bs($d->subtotal) }}</span>
+                <span>{{ $usd($d->subtotal) }}</span>
             </div>
         @endforeach
 
         <hr>
-        <div class="fila"><span>Subtotal</span><span>{{ $bs($venta->subtotal) }}</span></div>
+        <div class="fila"><span>Subtotal</span><span>{{ $usd($venta->subtotal) }}</span></div>
         @if ((float) $venta->descuento > 0)
-            <div class="fila"><span>Descuento</span><span>-{{ $bs($venta->descuento) }}</span></div>
+            <div class="fila"><span>Descuento</span><span>-{{ $usd($venta->descuento) }}</span></div>
         @endif
         @if ((float) $venta->mano_obra > 0)
-            <div class="fila"><span>Mano de obra</span><span>{{ $bs($venta->mano_obra) }}</span></div>
+            <div class="fila"><span>Mano de obra</span><span>{{ $usd($venta->mano_obra) }}</span></div>
         @endif
-        <div class="fila total"><span>TOTAL Bs</span><span>{{ $bs($venta->total) }}</span></div>
+        <div class="fila total"><span>TOTAL USD</span><span>{{ $usd($venta->total) }}</span></div>
+        {{-- Al tipo de cambio que congelo la venta, no al de hoy. --}}
+        <div class="fila chico"><span>Equivalente</span><span>{{ \App\Support\Dinero::bs($venta->total, $venta->tipo_cambio) }} (TC {{ \App\Support\Dinero::tc($venta->tipo_cambio) }})</span></div>
 
         @if ($venta->pagos->isNotEmpty())
             <hr>
             @foreach ($venta->pagos as $pago)
-                <div class="fila chico"><span>{{ $pago->descripcion() }}</span><span>{{ $bs($pago->monto) }}</span></div>
+                <div class="fila chico"><span>{{ $pago->descripcion() }}</span><span>{{ $usd($pago->monto) }}</span></div>
             @endforeach
         @endif
         @if ($venta->aCredito())
-            <div class="fila"><strong>Saldo pendiente</strong><strong>{{ $bs($venta->saldoPendiente()) }}</strong></div>
+            <div class="fila"><strong>Saldo pendiente</strong><strong>{{ $usd($venta->saldoPendiente()) }}</strong></div>
         @endif
 
         @php($garantias = $equipos->filter(fn($d) => $d->garantia_meses))

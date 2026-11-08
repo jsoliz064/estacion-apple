@@ -12,6 +12,7 @@ use App\Models\Producto;
 use App\Models\ProductoImagen;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
+use App\Support\Dinero;
 
 /**
  * El UNICO escritor de compras_detalles.
@@ -210,7 +211,7 @@ class CompraService
 
         $compra->anotar(
             BitacoraEvento::Finalizada->value,
-            "Compra finalizada: {$equipos->count()} equipos y {$unidades} unidades de artículos, Bs " . number_format((float) $compra->total, 2),
+            "Compra finalizada: {$equipos->count()} equipos y {$unidades} unidades de artículos, " . Dinero::usd((float) $compra->total),
         );
         $compra->finalizada_at = now();
         $compra->save();

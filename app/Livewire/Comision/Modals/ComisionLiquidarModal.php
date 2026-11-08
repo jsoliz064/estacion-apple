@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use App\Support\Dinero;
 
 /**
  * La liquidacion (docs/05): se elige la persona y el periodo, se ve lo ganado y
@@ -163,7 +164,7 @@ class ComisionLiquidarModal extends Component
             throw $e;
         }
 
-        toastr()->success('Liquidación #' . $liquidacion->id . ' registrada: Bs ' . number_format((float) $liquidacion->total, 2) . '.');
+        toastr()->success('Liquidación #' . $liquidacion->id . ' registrada: ' . Dinero::usd((float) $liquidacion->total) . '.');
         $this->despues();
     }
 

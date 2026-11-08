@@ -22,7 +22,7 @@ use Livewire\WithPagination;
  *     cada una responde lo mismo sobre su linea: que se vendio, que se compro
  *     y cuanto se gano.
  *
- * Todo en Bs y sobre la venta y la compra unificadas: cada pestana es el
+ * Todo en USD y sobre la venta y la compra unificadas: cada pestana es el
  * mismo juego de consultas sobre ventas_detalles / compras_detalles filtrado
  * por la columna generada `tipo` (LineaTipo).
  */

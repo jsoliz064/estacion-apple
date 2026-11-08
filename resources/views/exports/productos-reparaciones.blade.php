@@ -4,9 +4,9 @@
             <th style="background-color: #68cb82;color:#000000">#</th>
             <th style="background-color: #68cb82;color:#000000">Tecnico</th>
             <th style="background-color: #68cb82;color:#000000">Producto</th>
-            <th style="background-color: #68cb82;color:#000000">Costo Bs</th>
-            <th style="background-color: #68cb82;color:#000000">Costo de Repuestos Bs</th>
-            <th style="background-color: #68cb82;color:#000000">Costo Total Bs</th>
+            <th style="background-color: #68cb82;color:#000000">Costo USD</th>
+            <th style="background-color: #68cb82;color:#000000">Costo de Repuestos USD</th>
+            <th style="background-color: #68cb82;color:#000000">Costo Total USD</th>
             <th style="background-color: #68cb82;color:#000000">Repuestos del Tecnico</th>
             <th style="background-color: #68cb82;color:#000000">Repuestos Propios</th>
             <th style="background-color: #68cb82;color:#000000">Repuestos a Devolver</th>

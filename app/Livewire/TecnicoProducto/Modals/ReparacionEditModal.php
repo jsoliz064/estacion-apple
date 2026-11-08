@@ -81,7 +81,7 @@ class ReparacionEditModal extends Component
 
     public function calcularTotalRepuestos()
     {
-        $costoTotalRepuestosBs = 0;
+        $costoTotalRepuestos = 0;
 
         foreach ($this->repuestos as $index => $repuesto) {
             $costo = is_numeric($repuesto['costo']) ? (float) $repuesto['costo'] : 0;
@@ -93,9 +93,9 @@ class ReparacionEditModal extends Component
 
             $subtotalCostoRepuesto = $costo * $cantidad;
             $this->repuestos[$index]['subtotal_costo'] = $subtotalCostoRepuesto;
-            $costoTotalRepuestosBs += $subtotalCostoRepuesto;
+            $costoTotalRepuestos += $subtotalCostoRepuesto;
         }
-        $this->reparacion['costo_repuestos'] = $costoTotalRepuestosBs;
+        $this->reparacion['costo_repuestos'] = $costoTotalRepuestos;
         $this->calcularTotalReparacion();
     }
 
@@ -112,7 +112,7 @@ class ReparacionEditModal extends Component
 
     public function calcularTotalReparacion()
     {
-        // Todo en Bs: mano de obra del tecnico + repuestos.
+        // Todo en USD: mano de obra del tecnico + repuestos.
         $this->reparacion['costo_total'] = round(
             floatval($this->reparacion['costo'] ?? 0) + floatval($this->reparacion['costo_repuestos'] ?? 0),
             2

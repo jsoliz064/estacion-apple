@@ -32,7 +32,7 @@
         ])>
             <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Deuda pendiente</h3>
             <p class="mt-1 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
-                Bs {{ number_format($deuda, 2) }}
+                <x-monto :valor="$deuda" />
             </p>
         </div>
 
@@ -44,7 +44,7 @@
         <div class="bg-green-100 dark:bg-green-900 p-5 rounded-2xl shadow-lg border border-green-200 dark:border-green-700">
             <h3 class="text-sm font-medium text-green-700 dark:text-green-300">Total comprado</h3>
             <p class="mt-1 text-2xl font-semibold tracking-tight text-green-900 dark:text-green-100">
-                Bs {{ number_format($totalGastado, 2) }}
+                <x-monto :valor="$totalGastado" />
             </p>
         </div>
 
@@ -82,7 +82,7 @@
                                 </span>
                                 <span class="block text-xs text-gray-500 font-mono">IMEI {{ $reserva->producto?->imei }}</span>
                                 <span class="block text-xs text-gray-500">
-                                    {{ $reserva->created_at->format('d/m/Y') }} · seña Bs {{ number_format((float) $reserva->sena, 2) }} en {{ $reserva->metodo?->nombre }}
+                                    {{ $reserva->created_at->format('d/m/Y') }} · seña {{ \App\Support\Dinero::usd((float) $reserva->sena) }} en {{ $reserva->metodo?->nombre }}
                                     @if ($reserva->sena_destino) · {{ $reserva->sena_destino->label() }} @endif
                                 </span>
                             </span>

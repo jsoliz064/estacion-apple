@@ -4,7 +4,7 @@
     @include('livewire.reporte.partials.filtros')
 
     @php
-        $bs = fn($v) => number_format((float) $v, 2);
+        $usd = fn($v) => number_format((float) $v, 2);
         $caja = 'mb-6 bg-white dark:bg-gray-800 shadow rounded-lg p-4';
         $thead = 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200';
         $tfoot = 'bg-gray-100 dark:bg-gray-900 font-bold text-gray-900 dark:text-white';
@@ -41,13 +41,13 @@
                         <tr class="{{ $fila }}" wire:key="ri-val-{{ $loop->index }}">
                             <td class="p-2 font-semibold">{{ $v->sucursal }}</td>
                             <td class="p-2 text-right">{{ $v->equipos }}</td>
-                            <td class="p-2 text-right">{{ $bs($v->equipos_costo) }}</td>
-                            <td class="p-2 text-right">{{ $bs($v->equipos_venta) }}</td>
+                            <td class="p-2 text-right">{{ $usd($v->equipos_costo) }}</td>
+                            <td class="p-2 text-right">{{ $usd($v->equipos_venta) }}</td>
                             <td class="p-2 text-right">{{ $v->unidades }}</td>
-                            <td class="p-2 text-right">{{ $bs($v->articulos_costo) }}</td>
-                            <td class="p-2 text-right">{{ $bs($v->articulos_venta) }}</td>
-                            <td class="p-2 text-right font-semibold">{{ $bs($v->equipos_costo + $v->articulos_costo) }}</td>
-                            <td class="p-2 text-right font-semibold">{{ $bs($v->equipos_venta + $v->articulos_venta) }}</td>
+                            <td class="p-2 text-right">{{ $usd($v->articulos_costo) }}</td>
+                            <td class="p-2 text-right">{{ $usd($v->articulos_venta) }}</td>
+                            <td class="p-2 text-right font-semibold">{{ $usd($v->equipos_costo + $v->articulos_costo) }}</td>
+                            <td class="p-2 text-right font-semibold">{{ $usd($v->equipos_venta + $v->articulos_venta) }}</td>
                         </tr>
                     @empty
                         <tr><td colspan="9" class="p-2 text-gray-500">No hay inventario.</td></tr>
@@ -57,19 +57,19 @@
                     <tr>
                         <td class="p-2">TOTAL</td>
                         <td class="p-2 text-right">{{ $valor->sum('equipos') }}</td>
-                        <td class="p-2 text-right">{{ $bs($valor->sum('equipos_costo')) }}</td>
-                        <td class="p-2 text-right">{{ $bs($valor->sum('equipos_venta')) }}</td>
+                        <td class="p-2 text-right">{{ $usd($valor->sum('equipos_costo')) }}</td>
+                        <td class="p-2 text-right">{{ $usd($valor->sum('equipos_venta')) }}</td>
                         <td class="p-2 text-right">{{ $valor->sum('unidades') }}</td>
-                        <td class="p-2 text-right">{{ $bs($valor->sum('articulos_costo')) }}</td>
-                        <td class="p-2 text-right">{{ $bs($valor->sum('articulos_venta')) }}</td>
-                        <td class="p-2 text-right">{{ $bs($valor->sum('equipos_costo') + $valor->sum('articulos_costo')) }}</td>
-                        <td class="p-2 text-right">{{ $bs($valor->sum('equipos_venta') + $valor->sum('articulos_venta')) }}</td>
+                        <td class="p-2 text-right">{{ $usd($valor->sum('articulos_costo')) }}</td>
+                        <td class="p-2 text-right">{{ $usd($valor->sum('articulos_venta')) }}</td>
+                        <td class="p-2 text-right">{{ $usd($valor->sum('equipos_costo') + $valor->sum('articulos_costo')) }}</td>
+                        <td class="p-2 text-right">{{ $usd($valor->sum('equipos_venta') + $valor->sum('articulos_venta')) }}</td>
                     </tr>
                 </tfoot>
             </table>
         </div>
         <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-            Montos en Bs. Equipos sin vender (también en reparación, reservados, rotos y fuera; no los dados de baja): al costo total y a precio vendedor; el roto, a su costo.
+            Montos en USD. Equipos sin vender (también en reparación, reservados, rotos y fuera; no los dados de baja): al costo total y a precio vendedor; el roto, a su costo.
         </p>
     </div>
 
@@ -86,7 +86,7 @@
                         <tr class="{{ $fila }}" wire:key="ri-est-{{ $loop->index }}">
                             <td class="p-2"><span class="inline-block w-2.5 h-2.5 rounded-full mr-1" style="background-color: {{ $e->color }}"></span>{{ $e->estado }}</td>
                             <td class="p-2 text-right">{{ $e->cantidad }}</td>
-                            <td class="p-2 text-right">{{ $bs($e->costo) }}</td>
+                            <td class="p-2 text-right">{{ $usd($e->costo) }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -105,7 +105,7 @@
                         <tr class="{{ $fila }}" wire:key="ri-gra-{{ $loop->index }}">
                             <td class="p-2 font-semibold">{{ $g->grado }}</td>
                             <td class="p-2 text-right">{{ $g->cantidad }}</td>
-                            <td class="p-2 text-right">{{ $bs($g->costo) }}</td>
+                            <td class="p-2 text-right">{{ $usd($g->costo) }}</td>
                         </tr>
                     @empty
                         <tr><td colspan="3" class="p-2 text-gray-500">No hay equipos.</td></tr>
@@ -138,10 +138,10 @@
                             <tr class="{{ $fila }}" wire:key="ri-mot-{{ $loop->index }}">
                                 <td class="p-2 font-semibold">{{ $m->motivo }}</td>
                                 <td class="p-2 text-right">{{ $m->equipos }}</td>
-                                <td class="p-2 text-right">{{ $bs($m->equipos_costo) }}</td>
+                                <td class="p-2 text-right">{{ $usd($m->equipos_costo) }}</td>
                                 <td class="p-2 text-right">{{ $m->unidades }}</td>
-                                <td class="p-2 text-right">{{ $bs($m->unidades_costo) }}</td>
-                                <td class="p-2 text-right font-semibold">{{ $bs($m->equipos_costo + $m->unidades_costo) }}</td>
+                                <td class="p-2 text-right">{{ $usd($m->unidades_costo) }}</td>
+                                <td class="p-2 text-right font-semibold">{{ $usd($m->equipos_costo + $m->unidades_costo) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -149,10 +149,10 @@
                         <tr>
                             <td class="p-2">TOTAL</td>
                             <td class="p-2 text-right">{{ $porMotivo->sum('equipos') }}</td>
-                            <td class="p-2 text-right">{{ $bs($porMotivo->sum('equipos_costo')) }}</td>
+                            <td class="p-2 text-right">{{ $usd($porMotivo->sum('equipos_costo')) }}</td>
                             <td class="p-2 text-right">{{ $porMotivo->sum('unidades') }}</td>
-                            <td class="p-2 text-right">{{ $bs($porMotivo->sum('unidades_costo')) }}</td>
-                            <td class="p-2 text-right">{{ $bs($porMotivo->sum('equipos_costo') + $porMotivo->sum('unidades_costo')) }}</td>
+                            <td class="p-2 text-right">{{ $usd($porMotivo->sum('unidades_costo')) }}</td>
+                            <td class="p-2 text-right">{{ $usd($porMotivo->sum('equipos_costo') + $porMotivo->sum('unidades_costo')) }}</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -173,7 +173,7 @@
                                     @endcan
                                     <span class="text-xs text-gray-500">· {{ \App\Enums\BajaMotivo::labelDe($b->motivo_baja) }}</span>
                                 </span>
-                                <span>{{ $bs($b->costo_total) }}</span>
+                                <span>{{ $usd($b->costo_total) }}</span>
                             </li>
                         @empty
                             <li class="py-1 text-gray-500">Ninguno.</li>
@@ -189,7 +189,7 @@
                                     {{ \Carbon\Carbon::parse($b->created_at)->format('d/m/Y') }} · {{ $b->cantidad }} × {{ $b->nombre }}
                                     <span class="text-xs text-gray-500">· {{ \App\Enums\BajaMotivo::labelDe($b->motivo) }}</span>
                                 </span>
-                                <span>{{ $bs($b->cantidad * $b->costo) }}</span>
+                                <span>{{ $usd($b->cantidad * $b->costo) }}</span>
                             </li>
                         @empty
                             <li class="py-1 text-gray-500">Ninguna.</li>

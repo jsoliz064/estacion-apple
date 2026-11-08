@@ -12,6 +12,7 @@ use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use Rappasoft\LaravelLivewireTables\Views\Filters\MultiSelectDropdownFilter;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
+use App\Support\Dinero;
 
 /**
  * Lo que esta por cobrar: las ventas con saldo. La herramienta diaria de quien
@@ -114,7 +115,7 @@ class CobranzaTable extends DataTableComponent
 
     public function columns(): array
     {
-        $bs = fn($value) => 'Bs ' . number_format((float) $value, 2);
+        $usd = fn($value) => Dinero::usd((float) $value);
 
         return [
             Column::make('Fecha', 'created_at')
@@ -147,19 +148,19 @@ class CobranzaTable extends DataTableComponent
 
             Column::make('Total', 'total')
                 ->sortable()
-                ->format($bs)
+                ->format($usd)
                 ->collapseOnTablet(),
 
             Column::make('Pagado', 'pagado')
                 ->sortable()
-                ->format($bs)
+                ->format($usd)
                 ->collapseOnTablet(),
 
             Column::make('Saldo', 'saldo')
                 ->sortable()
-                ->format(fn($value) => '<span class="font-semibold text-amber-700 dark:text-amber-300">Bs ' . number_format((float) $value, 2) . '</span>')
+                ->format(fn($value) => '<span class="font-semibold text-amber-700 dark:text-amber-300">' . Dinero::usd((float) $value) . '</span>')
                 ->html()
-                ->footer(fn($rows) => 'Bs ' . number_format((float) $this->getTotales()->saldo, 2)),
+                ->footer(fn($rows) => Dinero::usd((float) $this->getTotales()->saldo)),
 
             Column::make('Vendedor', 'user.name')
                 ->sortable()

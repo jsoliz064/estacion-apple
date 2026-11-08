@@ -13,6 +13,7 @@ use App\Models\Venta;
 use App\Models\VentaDetalle;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
+use App\Support\Dinero;
 
 /**
  * El UNICO escritor de ventas_detalles (los cobros de taller los agrega
@@ -246,7 +247,7 @@ class VentaService
             $linea['id'],
             ($destino === ProductoEstado::Credito ? 'Vendido a crédito' : 'Vendido') . ". Venta #{$venta->id}"
                 . ($venta->nombreCliente() ? ', ' . $venta->nombreCliente() : '')
-                . ', Bs ' . number_format(max(0, $linea['precio'] - $linea['descuento']), 2),
+                . ', ' . Dinero::usd(max(0, $linea['precio'] - $linea['descuento'])),
             ['venta_id' => $venta->id, 'sucursal_id' => $venta->sucursal_id],
             $destino,
             $esperado,

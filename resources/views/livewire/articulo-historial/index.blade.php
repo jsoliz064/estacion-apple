@@ -50,7 +50,7 @@
             class="bg-amber-100 dark:bg-amber-800 p-6 rounded-2xl shadow-lg border border-amber-200 dark:border-amber-700">
             <h3 class="text-sm font-medium text-amber-700 dark:text-amber-300 truncate">Costo (código)</h3>
             <p class="mt-1 text-2xl font-semibold tracking-tight text-amber-900 dark:text-amber-100">
-                Bs {{ number_format((float) $articulo->costo, 2) }}
+                {{ \App\Support\Dinero::usd((float) $articulo->costo) }}
             </p>
         </div>
 
@@ -58,7 +58,7 @@
             class="bg-green-100 dark:bg-green-800 p-6 rounded-2xl shadow-lg border border-green-200 dark:border-green-700">
             <h3 class="text-sm font-medium text-green-700 dark:text-green-300 truncate">Precio actual</h3>
             <p class="mt-1 text-2xl font-semibold tracking-tight text-green-900 dark:text-green-100">
-                Bs {{ number_format((float) $articulo->precio, 2) }}
+                {{ \App\Support\Dinero::usd((float) $articulo->precio) }}
             </p>
         </div>
     </div>

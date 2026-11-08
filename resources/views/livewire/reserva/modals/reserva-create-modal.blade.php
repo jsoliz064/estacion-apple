@@ -49,7 +49,7 @@
 
                 <div class="m-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <x-label value="Seña (Bs)" />
+                        <x-label value="Seña (USD)" />
                         <x-input type="number" min="0" step="0.01" class="mt-1 w-full" wire:model="sena" onfocus="this.select()" />
                         <x-input-error for="sena" class="mt-1" />
                     </div>

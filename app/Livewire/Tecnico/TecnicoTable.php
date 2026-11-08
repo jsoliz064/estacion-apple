@@ -7,6 +7,7 @@ use Rappasoft\LaravelLivewireTables\Views\Column;
 use App\Models\Tecnicos;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\On;
+use App\Support\Dinero;
 
 
 class TecnicoTable extends DataTableComponent
@@ -47,7 +48,7 @@ class TecnicoTable extends DataTableComponent
             // Su comision ganada y sin liquidar (docs/05), no la mano de obra
             // entera: eso pagaba el sistema heredado.
             Column::make("Comisión por pagar")
-                ->label(fn($row) => 'Bs ' . number_format((float) $row->comisiones->sum('monto'), 2)),
+                ->label(fn($row) => Dinero::usd((float) $row->comisiones->sum('monto'))),
             Column::make('Acciones', 'id')
                 ->format(function ($value, $row, Column $column) {
                     return view('livewire.tecnico.actions-buttons', [

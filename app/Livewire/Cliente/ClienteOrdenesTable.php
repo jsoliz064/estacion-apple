@@ -14,6 +14,7 @@ use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
 use Rappasoft\LaravelLivewireTables\Views\Filters\MultiSelectDropdownFilter;
+use App\Support\Dinero;
 
 /**
  * Las ventas de un cliente. Antes era un modelo virtual (ClienteOrden, un UNION
@@ -211,18 +212,18 @@ class ClienteOrdenesTable extends DataTableComponent
                     return $partes ? implode(' · ', $partes) : '—';
                 }),
 
-            Column::make('Total (Bs)', 'total')
+            Column::make('Total (USD)', 'total')
                 ->sortable()
-                ->format(fn($value) => 'Bs. ' . number_format((float) $value, 2))
-                ->footer(fn($rows) => 'Bs. ' . number_format((float) $this->getTotales()->total, 2)),
+                ->format(fn($value) => Dinero::usd((float) $value))
+                ->footer(fn($rows) => Dinero::usd((float) $this->getTotales()->total)),
 
-            Column::make('Saldo (Bs)', 'saldo')
+            Column::make('Saldo (USD)', 'saldo')
                 ->sortable()
                 ->format(fn($value) => (float) $value > 0
-                    ? '<span class="font-semibold text-amber-700 dark:text-amber-300">Bs. ' . number_format((float) $value, 2) . '</span>'
+                    ? '<span class="font-semibold text-amber-700 dark:text-amber-300">' . Dinero::usd((float) $value) . '</span>'
                     : '<span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">Pagada</span>')
                 ->html()
-                ->footer(fn($rows) => 'Bs. ' . number_format((float) $this->getTotales()->saldo, 2)),
+                ->footer(fn($rows) => Dinero::usd((float) $this->getTotales()->saldo)),
 
             Column::make('Vendedor', 'user.name')
                 ->sortable()

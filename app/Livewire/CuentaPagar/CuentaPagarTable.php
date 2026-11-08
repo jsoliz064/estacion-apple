@@ -12,6 +12,7 @@ use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use Rappasoft\LaravelLivewireTables\Views\Filters\MultiSelectDropdownFilter;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
+use App\Support\Dinero;
 
 /**
  * Lo que se le debe a los proveedores: las compras con saldo (docs/06). De la
@@ -109,7 +110,7 @@ class CuentaPagarTable extends DataTableComponent
 
     public function columns(): array
     {
-        $bs = fn($value) => 'Bs ' . number_format((float) $value, 2);
+        $usd = fn($value) => Dinero::usd((float) $value);
 
         return [
             Column::make('Fecha', 'fecha')
@@ -132,14 +133,14 @@ class CuentaPagarTable extends DataTableComponent
                 ->html()
                 ->footer(fn($rows) => (int) $this->getTotales()->compras . ' compra(s)'),
 
-            Column::make('Total', 'total')->sortable()->format($bs)->collapseOnTablet(),
-            Column::make('Pagado', 'pagado')->sortable()->format($bs)->collapseOnTablet(),
+            Column::make('Total', 'total')->sortable()->format($usd)->collapseOnTablet(),
+            Column::make('Pagado', 'pagado')->sortable()->format($usd)->collapseOnTablet(),
 
             Column::make('Saldo', 'saldo')
                 ->sortable()
-                ->format(fn($value) => '<span class="font-semibold text-amber-700 dark:text-amber-300">Bs ' . number_format((float) $value, 2) . '</span>')
+                ->format(fn($value) => '<span class="font-semibold text-amber-700 dark:text-amber-300">' . Dinero::usd((float) $value) . '</span>')
                 ->html()
-                ->footer(fn($rows) => 'Bs ' . number_format((float) $this->getTotales()->saldo, 2)),
+                ->footer(fn($rows) => Dinero::usd((float) $this->getTotales()->saldo)),
 
             Column::make('Sucursal', 'sucursal.nombre')
                 ->sortable()

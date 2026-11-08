@@ -16,7 +16,7 @@
                     url: @js(route('ventas.pdf', $venta->id)),
                     archivo: @js('Recibo-' . $numeroRecibo . '.pdf'),
                     telefono: @js($venta->fichaCliente?->telefonoWhatsapp()),
-                    texto: @js('Estación Apple - Recibo Nº ' . $numeroRecibo . '. Total Bs ' . number_format((float) $venta->total, 2, ',', '.')),
+                    texto: @js('Estación Apple - Recibo Nº ' . $numeroRecibo . '. Total ' . \App\Support\Dinero::usd($venta->total)),
                 })"
                 x-on:click="compartir()" :disabled="generando"
                 class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest shadow-sm hover:bg-green-700 disabled:opacity-60">
@@ -57,16 +57,18 @@
         </div>
         <div>
             <h3 class="text-xs font-medium text-gray-500 dark:text-gray-400">Total</h3>
-            <p class="text-xl font-bold text-brand-700 dark:text-brand-300">Bs {{ number_format((float) $venta->total, 2) }}</p>
+            <p class="text-xl font-bold text-brand-700 dark:text-brand-300">{{ \App\Support\Dinero::usd((float) $venta->total) }}</p>
+            {{-- Al tipo de cambio que congelo la venta, no al de hoy. --}}
+            <p class="text-xs text-gray-500 dark:text-gray-400">Equivalente: {{ \App\Support\Dinero::bs($venta->total, $venta->tipo_cambio) }} (TC {{ \App\Support\Dinero::tc($venta->tipo_cambio) }})</p>
         </div>
     </div>
 
     <div class="mt-3 bg-white dark:bg-gray-800 shadow rounded-lg p-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-        <div><span class="text-gray-500">Subtotal</span><br>Bs {{ number_format((float) $venta->subtotal, 2) }}</div>
-        <div><span class="text-gray-500">Descuento</span><br>Bs {{ number_format((float) $venta->descuento, 2) }}</div>
-        <div><span class="text-gray-500">Mano de obra</span><br>Bs {{ number_format((float) $venta->mano_obra, 2) }}</div>
+        <div><span class="text-gray-500">Subtotal</span><br>{{ \App\Support\Dinero::usd((float) $venta->subtotal) }}</div>
+        <div><span class="text-gray-500">Descuento</span><br>{{ \App\Support\Dinero::usd((float) $venta->descuento) }}</div>
+        <div><span class="text-gray-500">Mano de obra</span><br>{{ \App\Support\Dinero::usd((float) $venta->mano_obra) }}</div>
         @can('venta.reporte')
-            <div><span class="text-gray-500">Ganancia</span><br><span class="font-semibold text-green-700 dark:text-green-400">Bs {{ number_format($venta->ganancia(), 2) }}</span></div>
+            <div><span class="text-gray-500">Ganancia</span><br><span class="font-semibold text-green-700 dark:text-green-400">{{ \App\Support\Dinero::usd($venta->ganancia()) }}</span></div>
         @endcan
     </div>
 
@@ -74,9 +76,9 @@
     <div class="mt-3 bg-white dark:bg-gray-800 shadow rounded-lg p-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex flex-wrap gap-6 text-sm">
-                <div><span class="text-gray-500">Cobrado</span><br><span class="font-semibold">Bs {{ number_format((float) $venta->pagado, 2) }}</span></div>
+                <div><span class="text-gray-500">Cobrado</span><br><span class="font-semibold">{{ \App\Support\Dinero::usd((float) $venta->pagado) }}</span></div>
                 <div><span class="text-gray-500">Saldo</span><br>
-                    <span class="font-semibold {{ $venta->aCredito() ? 'text-amber-700 dark:text-amber-300' : '' }}">Bs {{ number_format($venta->saldoPendiente(), 2) }}</span>
+                    <span class="font-semibold {{ $venta->aCredito() ? 'text-amber-700 dark:text-amber-300' : '' }}">{{ \App\Support\Dinero::usd($venta->saldoPendiente()) }}</span>
                 </div>
             </div>
             @if ($venta->aCredito())
@@ -96,7 +98,7 @@
                         <span class="text-xs text-gray-500">· {{ $pago->momento->label() }}{{ $pago->user ? ' · ' . $pago->user->name : '' }}{{ $pago->nota ? ' · ' . $pago->nota : '' }}</span>
                     </span>
                     <span class="flex items-center gap-3">
-                        <span class="font-semibold">Bs {{ number_format((float) $pago->monto, 2) }}</span>
+                        <span class="font-semibold">{{ \App\Support\Dinero::usd((float) $pago->monto) }}</span>
                         @can('pago.anular')
                             @unless ($pago->esPermuta() || $pago->esSena())
                                 <button type="button" wire:click="anularPago({{ $pago->id }})" class="text-xs text-red-600 hover:underline">Anular</button>
@@ -116,7 +118,7 @@
                 <span>
                     Comisión de {{ $comision->user?->name ?? $venta->user?->name }}
                     ({{ rtrim(rtrim(number_format((float) $comision->porcentaje, 2), '0'), '.') }} % de la ganancia):
-                    <span class="font-semibold">Bs {{ number_format((float) $comision->monto, 2) }}</span>
+                    <span class="font-semibold">{{ \App\Support\Dinero::usd((float) $comision->monto) }}</span>
                 </span>
                 {!! $comision->estado()->badge() !!}
                 @if ($comision->liquidacion_id)

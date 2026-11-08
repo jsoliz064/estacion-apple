@@ -7,7 +7,7 @@
     habian quedado atras respecto a las pantallas de edicion: faltaban el costo
     de repuestos, el tipo de cambio, los dos totales, la comision y la garantia.
 
-    UNIDADES: todo en Bs. costo_total = costo (mano de obra) + costo_repuestos.
+    UNIDADES: todo en USD. costo_total = costo (mano de obra) + costo_repuestos.
 
     No se recalcula nada: todo se lee tal como se guardo. Recalcular aqui
     abriria la puerta a que el detalle mostrara una cifra distinta de la
@@ -17,7 +17,7 @@
 
 @if ($reparacion)
     @php
-        $bs = fn($v) => 'Bs. ' . number_format((float) $v, 2);
+        $usd = fn($v) => \App\Support\Dinero::usd($v);
 
         // El modelo ProductoReparacion no declara $casts, asi que vuelve como
         // entero. Los tres componentes de edicion hacen lo mismo.
@@ -100,9 +100,9 @@
                     <thead>
                         <tr class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
                             <th class="p-2 border border-gray-300 dark:border-gray-600 text-left">Repuesto</th>
-                            <th class="p-2 border border-gray-300 dark:border-gray-600 text-right">Costo (Bs)</th>
+                            <th class="p-2 border border-gray-300 dark:border-gray-600 text-right">Costo (USD)</th>
                             <th class="p-2 border border-gray-300 dark:border-gray-600 text-right">Cant.</th>
-                            <th class="p-2 border border-gray-300 dark:border-gray-600 text-right">Subtotal (Bs)</th>
+                            <th class="p-2 border border-gray-300 dark:border-gray-600 text-right">Subtotal (USD)</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-300">
@@ -136,16 +136,16 @@
 
     <div class="m-2 grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
         <div>
-            <x-label>Mano de obra (Bs):</x-label>
-            <x-input type="text" value="{{ $bs($reparacion->costo) }}" class="w-full" disabled="true"></x-input>
+            <x-label>Mano de obra:</x-label>
+            <x-input type="text" value="{{ $usd($reparacion->costo) }}" class="w-full" disabled="true"></x-input>
         </div>
         <div>
-            <x-label>Repuestos (Bs):</x-label>
-            <x-input type="text" value="{{ $bs($reparacion->costo_repuestos) }}" class="w-full" disabled="true"></x-input>
+            <x-label>Repuestos:</x-label>
+            <x-input type="text" value="{{ $usd($reparacion->costo_repuestos) }}" class="w-full" disabled="true"></x-input>
         </div>
         <div>
-            <x-label>Total (Bs):</x-label>
-            <x-input type="text" value="{{ $bs($reparacion->costo_total) }}" class="w-full" disabled="true"></x-input>
+            <x-label>Total:</x-label>
+            <x-input type="text" value="{{ $usd($reparacion->costo_total) }}" class="w-full" disabled="true"></x-input>
         </div>
     </div>
 
@@ -154,7 +154,7 @@
             <x-label>Comisión del técnico:</x-label>
             <div class="mt-1 text-sm">
                 @if ($comision)
-                    {{ $bs($comision->monto) }} ({{ rtrim(rtrim(number_format((float) $comision->porcentaje, 2), '0'), '.') }} %)
+                    {{ $usd($comision->monto) }} ({{ rtrim(rtrim(number_format((float) $comision->porcentaje, 2), '0'), '.') }} %)
                     {!! $comision->estado()->badge() !!}
                 @else
                     <span class="{{ $claseDistintivo }} {{ $claseNo }}">Sin comisión</span>

@@ -15,6 +15,7 @@ use App\Models\Venta;
 use App\Models\VentaPago;
 use App\Services\Concerns\FilasDePago;
 use Illuminate\Validation\ValidationException;
+use App\Support\Dinero;
 
 /**
  * El UNICO escritor de ventas_pagos, de ventas.pagado y de ventas.pagada_at.
@@ -26,8 +27,8 @@ use Illuminate\Validation\ValidationException;
  * llaman todos los flujos que mueven el total o lo cobrado: registrar y anular
  * un pago, editar la venta y anular una linea.
  *
- * Tres clases de pago, todas con `monto` en Bs:
- *  - el que se cobra a mano (registrar): en Bs o en USD con su tipo de cambio;
+ * Tres clases de pago, todas con `monto` en USD:
+ *  - el que se cobra a mano (registrar): en USD o en Bs con su tipo de cambio;
  *  - la PERMUTA (registrarPermuta): el equipo recibido es el pago, con el
  *    metodo de sistema «Permuta»;
  *  - la SEÑA de una reserva (registrarSena), que entra al concretarla.
@@ -50,9 +51,9 @@ class PagoService
     /**
      * Registra uno o varios pagos cobrados a mano.
      *
-     * @param  array  $pagos  [['metodo_pago_id', 'monto' (Bs), 'moneda' (BOB|USD),
-     *                         'monto_moneda' (USD), 'tipo_cambio', 'nota'], ...]
-     *                        En USD, el monto en Bs se calcula aqui (USD x TC).
+     * @param  array  $pagos  [['metodo_pago_id', 'monto' (USD), 'moneda' (USD|BOB),
+     *                         'monto_moneda' (Bs), 'tipo_cambio', 'nota'], ...]
+     *                        En Bs, el monto en USD sale de Bs / TC (FilasDePago).
      *
      * @throws ValidationException si un metodo no esta activo, un monto no es
      *         positivo o la suma supera el saldo (leido despues del bloqueo).
@@ -88,7 +89,7 @@ class PagoService
         $venta->anotar(
             BitacoraEvento::Pago->value,
             ($momento === PagoMomento::Venta ? 'Cobrado al vender: ' : 'Cobro: ') . implode(' + ', $frases)
-                . '. ' . ($restante > 0 ? 'Saldo Bs ' . number_format($restante, 2) . '.' : 'Venta pagada.'),
+                . '. ' . ($restante > 0 ? 'Saldo ' . Dinero::usd($restante) . '.' : 'Venta pagada.'),
             ['venta_id' => $venta->id],
         );
 
@@ -111,7 +112,7 @@ class PagoService
 
         $venta->anotar(
             BitacoraEvento::Pago->value,
-            'Permuta: recibido el equipo IMEI ' . $recibido->imei . ' por Bs ' . number_format($valor, 2) . '.',
+            'Permuta: recibido el equipo IMEI ' . $recibido->imei . ' por ' . Dinero::usd($valor) . '.',
             ['venta_id' => $venta->id],
         );
 
@@ -134,7 +135,7 @@ class PagoService
 
         $venta->anotar(
             BitacoraEvento::Pago->value,
-            'Seña de la reserva #' . $reserva->id . ': Bs ' . number_format((float) $reserva->sena, 2) . '.',
+            'Seña de la reserva #' . $reserva->id . ': ' . Dinero::usd((float) $reserva->sena) . '.',
             ['venta_id' => $venta->id],
         );
 
@@ -188,7 +189,7 @@ class PagoService
             Bitacora::registrar(
                 $venta,
                 BitacoraEvento::PagoAnulado->value,
-                'Pago de Bs ' . number_format((float) $pago->monto, 2) . ' en ' . ($pago->metodo?->nombre ?? 'método') . " anulado: {$motivo}",
+                'Pago de ' . Dinero::usd((float) $pago->monto) . ' en ' . ($pago->metodo?->nombre ?? 'método') . " anulado: {$motivo}",
                 ['venta_id' => $venta->id],
             );
 
@@ -215,8 +216,8 @@ class PagoService
 
         if ($pagado > $total) {
             throw ValidationException::withMessages([
-                'pagos' => "La venta #{$venta->id} quedaría con Bs " . number_format($pagado, 2)
-                    . ' cobrados sobre un total de Bs ' . number_format($total, 2) . '. Anula un pago antes.',
+                'pagos' => "La venta #{$venta->id} quedaría con " . Dinero::usd($pagado)
+                    . ' cobrados sobre un total de ' . Dinero::usd($total) . '. Anula un pago antes.',
             ]);
         }
 
@@ -224,7 +225,7 @@ class PagoService
 
         if ($aCredito && !$venta->cliente_id) {
             throw ValidationException::withMessages([
-                'cliente' => 'Quedan Bs ' . number_format($total - $pagado, 2)
+                'cliente' => 'Quedan ' . Dinero::usd($total - $pagado)
                     . ' por cobrar: una venta a crédito necesita un cliente con ficha.',
             ]);
         }
@@ -249,8 +250,8 @@ class PagoService
 
         if (round($suma, 2) > $saldo) {
             throw ValidationException::withMessages([
-                'pagos' => 'El cobro de Bs ' . number_format($suma, 2) . ' supera el saldo de la venta #' . $venta->id
-                    . ' (Bs ' . number_format($saldo, 2) . ').',
+                'pagos' => 'El cobro de ' . Dinero::usd($suma) . ' supera el saldo de la venta #' . $venta->id
+                    . ' (' . Dinero::usd($saldo) . ').',
             ]);
         }
     }
@@ -290,7 +291,7 @@ class PagoService
                 $destino,
                 $destino === ProductoEstado::Vendido
                     ? "Venta #{$venta->id} pagada por completo."
-                    : "Venta #{$venta->id} a crédito: saldo Bs " . number_format($venta->saldoPendiente(), 2) . '.',
+                    : "Venta #{$venta->id} a crédito: saldo " . Dinero::usd($venta->saldoPendiente()) . '.',
                 ['venta_id' => $venta->id],
             );
         }

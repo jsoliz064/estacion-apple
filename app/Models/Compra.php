@@ -9,10 +9,11 @@ use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
+use App\Support\Dinero;
 
 /**
  * Una compra a un proveedor: equipos, repuestos y accesorios en un solo
- * documento, en Bs. Lo comprado vive en compras_detalles, que escribe solo
+ * documento, en USD. Lo comprado vive en compras_detalles, que escribe solo
  * CompraService; lo pagado al proveedor, en compras_pagos (PagoProveedorService);
  * los reclamos, en compras_reclamos (ReclamoService).
  *
@@ -185,8 +186,8 @@ class Compra extends Model
 
         if ($total < (float) $this->pagado) {
             throw ValidationException::withMessages([
-                'detalles' => 'La compra #' . $this->id . ' ya tiene Bs ' . number_format((float) $this->pagado, 2)
-                    . ' pagados al proveedor y el total quedaría en Bs ' . number_format($total, 2) . '. Anula un pago antes.',
+                'detalles' => 'La compra #' . $this->id . ' ya tiene ' . Dinero::usd((float) $this->pagado)
+                    . ' pagados al proveedor y el total quedaría en ' . Dinero::usd($total) . '. Anula un pago antes.',
             ]);
         }
 

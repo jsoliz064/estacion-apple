@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\On;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
+use App\Support\Dinero;
 
 /** Los pagos que hizo un cliente: al comprar y en cobros posteriores. */
 class ClientePagosTable extends DataTableComponent
@@ -77,8 +78,8 @@ class ClientePagosTable extends DataTableComponent
 
             Column::make('Monto', 'monto')
                 ->sortable()
-                ->format(fn($value) => 'Bs ' . number_format((float) $value, 2))
-                ->footer(fn($rows) => 'Bs ' . number_format($this->total ??= round((float) $this->scopedQuery()->sum('monto'), 2), 2)),
+                ->format(fn($value) => Dinero::usd((float) $value))
+                ->footer(fn($rows) => Dinero::usd($this->total ??= round((float) $this->scopedQuery()->sum('monto'), 2))),
 
             Column::make('Cuándo', 'momento')
                 ->format(fn($value) => PagoMomento::labelDe($value instanceof PagoMomento ? $value->value : $value))

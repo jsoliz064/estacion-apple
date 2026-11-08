@@ -5,7 +5,7 @@
             <x-slot name="content">
                 <hr>
                 <p class="m-2 text-sm text-gray-700 dark:text-gray-300">
-                    Se anulan sus {{ $venta->detalles_count }} línea(s) por Bs {{ number_format((float) $venta->total, 2) }}:
+                    Se anulan sus {{ $venta->detalles_count }} línea(s) por {{ \App\Support\Dinero::usd((float) $venta->total) }}:
                     los equipos vuelven al inventario, los repuestos y accesorios a su stock, y los cobros de taller se descobran.
                     @if ($venta->regalos_count > 0)
                         Los regalos de los equipos se quedan con su equipo.
@@ -13,13 +13,13 @@
                 </p>
                 @if ((float) $venta->pagado > 0)
                     <p class="m-2 text-sm font-semibold text-red-700 dark:text-red-300">
-                        También se anulan sus pagos por Bs {{ number_format((float) $venta->pagado, 2) }}: se entiende que el dinero se devuelve.
+                        También se anulan sus pagos por {{ \App\Support\Dinero::usd((float) $venta->pagado) }}: se entiende que el dinero se devuelve.
                     </p>
                 @endif
                 {{-- docs/05: una comision pagada no se revierte sola. --}}
                 @if ($venta->comision?->liquidacion_id)
                     <p class="m-2 text-sm font-semibold text-amber-700 dark:text-amber-300">
-                        La comisión de {{ $venta->comision->user?->name ?? 'su vendedor' }} (Bs {{ number_format((float) $venta->comision->monto, 2) }})
+                        La comisión de {{ $venta->comision->user?->name ?? 'su vendedor' }} ({{ \App\Support\Dinero::usd((float) $venta->comision->monto) }})
                         ya se pagó en la liquidación #{{ $venta->comision->liquidacion_id }}: queda registrada como pagada y hay que ajustarla a mano.
                     </p>
                 @endif

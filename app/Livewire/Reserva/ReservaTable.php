@@ -10,6 +10,7 @@ use Livewire\Attributes\On;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
+use App\Support\Dinero;
 
 class ReservaTable extends DataTableComponent
 {
@@ -81,7 +82,7 @@ class ReservaTable extends DataTableComponent
 
             Column::make('Seña', 'sena')
                 ->sortable()
-                ->format(fn($value, $row) => 'Bs ' . number_format((float) $value, 2) . '<span class="block text-xs text-gray-500">' . e($row->metodo?->nombre) . '</span>')
+                ->format(fn($value, $row) => Dinero::usd((float) $value) . '<span class="block text-xs text-gray-500">' . e($row->metodo?->nombre) . '</span>')
                 ->html(),
 
             Column::make('Estado', 'estado')

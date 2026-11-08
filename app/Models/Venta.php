@@ -7,9 +7,10 @@ use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
+use App\Support\Dinero;
 
 /**
- * Una venta: equipos, repuestos y accesorios en un solo documento, en Bs. Lo
+ * Una venta: equipos, repuestos y accesorios en un solo documento, en USD. Lo
  * vendido vive en ventas_detalles, que escribe solo VentaService; lo cobrado,
  * en ventas_pagos, que escribe solo PagoService.
  *
@@ -161,8 +162,8 @@ class Venta extends Model
         // ventas_pagado_rango lo impediria con un error de SQL ilegible.
         if ($total < (float) $this->pagado) {
             throw ValidationException::withMessages([
-                'detalles' => 'La venta #' . $this->id . ' ya tiene Bs ' . number_format((float) $this->pagado, 2)
-                    . ' cobrados y el total quedaría en Bs ' . number_format($total, 2)
+                'detalles' => 'La venta #' . $this->id . ' ya tiene ' . Dinero::usd((float) $this->pagado)
+                    . ' cobrados y el total quedaría en ' . Dinero::usd($total)
                     . '. Anula un pago antes de bajar el total.',
             ]);
         }

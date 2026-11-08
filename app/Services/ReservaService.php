@@ -11,6 +11,7 @@ use App\Models\Reserva;
 use App\Models\User;
 use App\Models\Venta;
 use Illuminate\Validation\ValidationException;
+use App\Support\Dinero;
 
 /**
  * El UNICO escritor de `reservas` y el unico que pone o saca un equipo del
@@ -56,7 +57,7 @@ class ReservaService
             $productoId,
             array_map(fn($v) => ProductoEstado::from($v), ProductoEstado::disponibles()),
             ProductoEstado::Reserva,
-            "Reservado para {$cliente->nombre}: seña Bs " . number_format($sena, 2) . " en {$metodo->nombre}.",
+            "Reservado para {$cliente->nombre}: seña " . Dinero::usd($sena) . " en {$metodo->nombre}.",
         );
 
         return Reserva::create([
@@ -87,7 +88,7 @@ class ReservaService
             $reserva->producto_id,
             ProductoEstado::Reserva,
             ProductoEstado::Inventario,
-            "Reserva #{$reserva->id} cancelada: " . mb_strtolower($destino->label()) . ' (Bs ' . number_format((float) $reserva->sena, 2) . ').',
+            "Reserva #{$reserva->id} cancelada: " . mb_strtolower($destino->label()) . ' (' . Dinero::usd((float) $reserva->sena) . ').',
         );
 
         return $reserva;

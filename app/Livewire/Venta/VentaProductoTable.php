@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\On;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
+use App\Support\Dinero;
 
 /** Lo ultimo que se vendio, linea por linea (lo usa el tablero de inicio). */
 class VentaProductoTable extends DataTableComponent
@@ -38,7 +39,7 @@ class VentaProductoTable extends DataTableComponent
                 ->format(fn($v, $row) => $row->descripcion()),
             Column::make('Cant.', 'cantidad'),
             Column::make('Subtotal', 'subtotal')
-                ->format(fn($v) => 'Bs ' . number_format((float) $v, 2)),
+                ->format(fn($v) => Dinero::usd((float) $v)),
             Column::make('Sucursal', 'sucursal.nombre')
                 ->collapseOnTablet(),
         ];

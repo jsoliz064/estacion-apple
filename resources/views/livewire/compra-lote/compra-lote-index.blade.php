@@ -43,7 +43,9 @@
         </div>
         <div class="bg-desert-100 dark:bg-desert-900 p-3 rounded-xl border border-desert-200 dark:border-desert-700">
             <p class="text-xs text-desert-700 dark:text-desert-200">Total</p>
-            <p class="text-xl font-semibold text-desert-900 dark:text-desert-50">Bs {{ number_format((float) $compra->total, 2) }}</p>
+            <p class="text-xl font-semibold text-desert-900 dark:text-desert-50">{{ \App\Support\Dinero::usd((float) $compra->total) }}</p>
+            {{-- Al tipo de cambio que congelo la compra, no al de hoy. --}}
+            <p class="text-xs text-desert-700 dark:text-desert-200">Equivalente: {{ \App\Support\Dinero::bs($compra->total, $compra->tipo_cambio) }} (TC {{ \App\Support\Dinero::tc($compra->tipo_cambio) }})</p>
         </div>
     </div>
 
@@ -51,9 +53,9 @@
     <div class="mb-4 bg-white dark:bg-gray-800 shadow rounded-lg p-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex flex-wrap gap-6 text-sm">
-                <div><span class="text-gray-500">Pagado</span><br><span class="font-semibold">Bs {{ number_format((float) $compra->pagado, 2) }}</span></div>
+                <div><span class="text-gray-500">Pagado</span><br><span class="font-semibold">{{ \App\Support\Dinero::usd((float) $compra->pagado) }}</span></div>
                 <div><span class="text-gray-500">Saldo</span><br>
-                    <span class="font-semibold {{ $compra->saldoPendiente() > 0 ? 'text-amber-700 dark:text-amber-300' : '' }}">Bs {{ number_format($compra->saldoPendiente(), 2) }}</span>
+                    <span class="font-semibold {{ $compra->saldoPendiente() > 0 ? 'text-amber-700 dark:text-amber-300' : '' }}">{{ \App\Support\Dinero::usd($compra->saldoPendiente()) }}</span>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -76,7 +78,7 @@
                             <span class="text-xs text-gray-500">{{ $pago->user ? '· ' . $pago->user->name : '' }}{{ $pago->nota ? ' · ' . $pago->nota : '' }}</span>
                         </span>
                         <span class="flex items-center gap-3">
-                            <span class="font-semibold">Bs {{ number_format((float) $pago->monto, 2) }}</span>
+                            <span class="font-semibold">{{ \App\Support\Dinero::usd((float) $pago->monto) }}</span>
                             @can('pago-proveedor.anular')
                                 <button type="button" wire:click="anularPago({{ $pago->id }})" class="text-xs text-red-600 hover:underline">Anular</button>
                             @endcan
