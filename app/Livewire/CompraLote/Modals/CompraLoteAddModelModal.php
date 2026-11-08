@@ -100,7 +100,7 @@ class CompraLoteAddModelModal extends Component
 
     public $detallesSeleccionados = [];
     public $detallesText;
-    public $estado_grado = 'Semi Nuevo';
+    public $estado_grado = 'Nuevo';
 
     public $currentPhotoIndex = 0;
 
@@ -314,7 +314,8 @@ class CompraLoteAddModelModal extends Component
         $this->tipo_cambio = $ultimo?->tipo_cambio ?? \App\Models\TipoCambio::actual();
         $this->detallesSeleccionados = [];
         $this->detallesText = '';
-        $this->estado_grado = $ultimo?->estado_grado ?? ProductoGrado::SemiNuevo->value;
+        // Nuevo por defecto (pedido de la tienda); en un lote se repite el del ultimo.
+        $this->estado_grado = $ultimo?->estado_grado ?? ProductoGrado::Nuevo->value;
         $this->tipo_venta = $ultimo?->tipo_venta ?? ProductoTipoVenta::Venta->value;
         // El del ultimo equipo si este modelo lo ofrece; si no, el primero.
         $ofrecidos = $this->coloresOfrecidos()->pluck('nombre');
