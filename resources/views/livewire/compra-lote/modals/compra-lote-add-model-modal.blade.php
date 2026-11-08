@@ -73,23 +73,7 @@
                         </div>
 
 
-                        <div class="animate-fade-in">
-                            <x-label value="Color *" />
-                            <div class="grid grid-cols-3 gap-3 mt-2">
-                                @foreach ($colores as $color)
-                                    <label wire:key="color-{{ $color->id }}" class="inline-flex items-center rounded-2xl">
-                                        <input type="radio" wire:model.live="color" value="{{ $color->nombre }}"
-                                            class="hidden peer">
-                                        <span class="w-full px-4 py-2 rounded-full border-2 border-gray-300 dark:border-gray-600
-                                                   peer-checked:border-brand-500 peer-checked:ring-2 peer-checked:ring-brand-300
-                                                   dark:peer-checked:ring-brand-700 transition-all duration-200
-                                                   cursor-pointer hover:shadow-md flex items-center justify-center text-xs font-medium"
-                                            style="{{ $color->estilo() }}">{{ $color->nombre }}</span>
-                                    </label>
-                                @endforeach
-                            </div>
-                            <x-input-error for="color" class="mt-1" />
-                        </div>
+                        @include('livewire.partials.selector-color', ['colores' => $colores, 'modelo' => 'color', 'actual' => $color])
 
                         {{-- <div class="m-2" x-data="detallesHandler()" x-init="init()">
                             <x-label>Detalles:</x-label>
