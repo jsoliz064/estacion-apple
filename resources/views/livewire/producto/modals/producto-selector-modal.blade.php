@@ -75,9 +75,7 @@
                                 <th class="p-2 border-b text-center">Bateria</th>
                                 <th class="p-2 border-b text-left">Sucursal</th>
                                 <th class="p-2 border-b text-center">Estado</th>
-                                <th class="p-2 border-b text-right">
-                                    Precio ({{ $this->esVendedor() ? 'Vendedor' : 'Cliente' }})
-                                </th>
+                                <th class="p-2 border-b text-right">Precio</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -115,7 +113,7 @@
                                         @endif
                                     </td>
                                     <td class="p-2 border text-right">
-                                        {{ number_format($this->esVendedor() ? $p->precio_vendedor : $p->precio_cliente, 2) }}
+                                        <x-monto :valor="$p->precio" class="items-end" />
                                     </td>
                                 </tr>
                             @empty

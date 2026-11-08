@@ -117,7 +117,7 @@
                                 <td class="p-2">{{ $p->sucursal ?? '—' }}</td>
                                 <td class="p-2 text-right font-semibold">{{ $p->dias }}</td>
                                 <td class="p-2 text-right">{{ $bs($p->costo_total) }}</td>
-                                <td class="p-2 text-right">{{ $bs($p->precio_cliente) }}</td>
+                                <td class="p-2 text-right">{{ $bs($p->precio) }}</td>
                             </tr>
                         @endforeach
                     </tbody>

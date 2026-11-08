@@ -38,7 +38,7 @@
                                     @foreach ($selectedModel->almacenamientos as $storage)
                                         <option value="{{ $storage->almacenamiento }}"
                                             @if ($almacenamiento == $storage->almacenamiento) selected @endif>
-                                            {{ $storage->almacenamiento }} - Bs {{ number_format($storage->precio, 2) }}
+                                            {{ $storage->almacenamiento }} - {{ \App\Support\Dinero::usd($storage->precio) }}
                                         </option>
                                     @endforeach
                                 @else
@@ -65,11 +65,14 @@
                             <x-input-error for="version" class="mt-1" />
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in">
-                            @include('livewire.compra-lote.partials.costo-moneda', [
-                                'mMoneda' => 'costo_moneda', 'mUsd' => 'costo_usd', 'mTc' => 'tipo_cambio', 'mBs' => 'costo_unidad',
-                                'moneda' => $costo_moneda, 'costoBs' => $costo_unidad, 'bloqueado' => false,
+                        <div class="animate-fade-in">
+                            @include('livewire.partials.montos-moneda', [
+                                'c' => ['moneda' => 'moneda', 'costo' => 'costo_unidad', 'precio' => 'precio', 'costo_bs' => 'costo_bs', 'precio_bs' => 'precio_bs', 'tc' => 'tipo_cambio'],
+                                'enBs' => $this->enBs(), 'costo' => $costo_unidad, 'precio' => $precio,
                             ])
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
                             <div>
                                 <x-label for="sku" value="SKU (opcional)" />
                                 {{-- Codigo interno, a mano: sin boton de camara (para escanear esta el UPC). --}}
@@ -90,24 +93,6 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-                            <div>
-                                <x-label for="precio_vendedor" value="Precio Vendedor (Bs) *" />
-                                <x-input wire:model="precio_vendedor" id="precio_vendedor" type="number" step="0.01"
-                                    class="mt-2 block w-full h-10 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200
-                                       focus:border-brand-500 focus:ring-brand-500"
-                                    onfocus="this.select()" placeholder="0.00" />
-                                <x-input-error for="precio_vendedor" class="mt-1" />
-                            </div>
-                            <div>
-                                <x-label for="precio_cliente" value="Precio Cliente (Bs) *" />
-                                <x-input wire:model="precio_cliente" id="precio_cliente" type="number" step="0.01"
-                                    class="mt-2 block w-full h-10 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200
-                                       focus:border-brand-500 focus:ring-brand-500"
-                                    onfocus="this.select()" placeholder="0.00" />
-                                <x-input-error for="precio_cliente" class="mt-1" />
-                            </div>
-                        </div>
 
                         <div class="animate-fade-in">
                             <x-label value="Color *" />

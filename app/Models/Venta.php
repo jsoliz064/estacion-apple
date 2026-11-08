@@ -41,11 +41,24 @@ class Venta extends Model
         'clave_idempotencia',
         'pagado',
         'pagada_at',
+        'tipo_cambio',
     ];
 
     protected $casts = [
         'pagada_at' => 'datetime',
+        'tipo_cambio' => 'float',
     ];
+
+    /**
+     * El TC del dia se congela al nacer la venta, aqui y no en cada flujo que
+     * la crea: todo se guarda en USD y este es el que da su equivalente en Bs.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (Venta $venta) {
+            $venta->tipo_cambio ??= TipoCambio::actual();
+        });
+    }
 
     /**
      * La ficha del cliente. Se llama fichaCliente y NO cliente a proposito:

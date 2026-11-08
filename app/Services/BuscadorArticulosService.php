@@ -92,8 +92,7 @@ class BuscadorArticulosService
                 'etiqueta' => trim(($p->modelo?->nombre ?? 'Equipo') . ' ' . $p->almacenamiento . ' ' . $p->color),
                 'detalle' => 'IMEI ' . $p->imei . ($p->sku ? ' · SKU ' . $p->sku : ''),
                 'codigos' => array_values(array_filter([$p->imei, $p->sku, $p->upc])),
-                'precio' => (float) $p->precio_cliente,
-                'precio_vendedor' => (float) $p->precio_vendedor,
+                'precio' => (float) $p->precio,
                 'costo' => (float) $p->costo_total,
                 'stock' => 1,
             ]);
@@ -121,7 +120,6 @@ class BuscadorArticulosService
                 'detalle' => trim(($a->sku ? 'SKU ' . $a->sku : '') . ($sucursalId ? ' · Stock ' . $a->stockEn($sucursalId) : ' · Stock ' . $a->cantidad), ' ·'),
                 'codigos' => array_values(array_filter([$a->sku, $a->upc])),
                 'precio' => (float) $a->precio,
-                'precio_vendedor' => (float) $a->precio,
                 'costo' => (float) $a->costo,
                 'stock' => $sucursalId ? $a->stockEn($sucursalId) : (int) $a->cantidad,
             ]);

@@ -40,9 +40,9 @@ class PagoProveedorModal extends Component
     #[Locked]
     public ?int $compraId = null;
 
-    /** En la moneda elegida: Bs, o dolares (con su tipo de cambio). */
+    /** En la moneda elegida: USD, o bolivianos (con su tipo de cambio). */
     public $montoRecibido = '';
-    public string $moneda = 'BOB';
+    public string $moneda = 'USD';
     public $tipo_cambio = '';
     public $metodo_pago_id = '';
     public string $nota = '';
@@ -99,18 +99,23 @@ class PagoProveedorModal extends Component
         $this->repartir();
     }
 
-    /** El monto recibido en Bs: en USD, dolares x tasa. */
-    public function recibidoBs(): float
+    /** El monto recibido en USD: en Bs, bolivianos / tasa. */
+    public function recibidoBase(): float
     {
         $monto = (float) ($this->montoRecibido ?: 0);
+        $tc = (float) ($this->tipo_cambio ?: 0);
 
-        return $this->moneda === Moneda::USD->value ? round($monto * (float) ($this->tipo_cambio ?: 0), 2) : round($monto, 2);
+        if ($this->moneda === Moneda::alterna()->value) {
+            return $tc > 0 ? round($monto / $tc, 2) : 0.0;
+        }
+
+        return round($monto, 2);
     }
 
-    /** Reparte el monto pagado (en Bs) de la primera a la ultima compra del orden. */
+    /** Reparte el monto pagado (en USD) de la primera a la ultima compra del orden. */
     private function repartir(): void
     {
-        $resto = max(0, $this->recibidoBs());
+        $resto = max(0, $this->recibidoBase());
         $this->montos = [];
 
         foreach ($this->comprasConSaldo() as $compra) {
@@ -132,14 +137,14 @@ class PagoProveedorModal extends Component
         $this->validate([
             'metodo_pago_id' => 'required|integer|exists:metodos_pago,id,activo,1,sistema,0',
             'moneda' => 'required|in:BOB,USD',
-            'tipo_cambio' => 'required_if:moneda,USD|nullable|numeric|min:0.0001',
+            'tipo_cambio' => 'required_if:moneda,BOB|nullable|numeric|min:0.0001',
             'montos.*' => 'nullable|numeric|min:0',
             'nota' => 'nullable|string|max:255',
         ], [
             'metodo_pago_id.required' => 'Elige el método de pago.',
             'metodo_pago_id.exists' => 'Ese método no existe o está desactivado.',
             'montos.*.min' => 'Un monto no puede ser negativo.',
-            'tipo_cambio.required_if' => 'Escribe el tipo de cambio del dólar.',
+            'tipo_cambio.required_if' => 'Escribe el tipo de cambio para el pago en bolivianos.',
         ]);
 
         // Solo compras de ESTE proveedor: las claves de $montos llegan del navegador.
@@ -166,11 +171,13 @@ class PagoProveedorModal extends Component
                 $servicio = app(PagoProveedorService::class);
 
                 foreach ($ids as $id) {
-                    $bs = round((float) $this->montos[$id], 2);
+                    // Cada parte en USD; si se pago en Bs, sus bolivianos a la
+                    // tasa del cobro (FilasDePago acepta el centavo de redondeo).
+                    $usd = round((float) $this->montos[$id], 2);
                     $tc = (float) $this->tipo_cambio;
-                    $pago = $this->moneda === Moneda::USD->value
-                        ? ['moneda' => 'USD', 'monto_moneda' => round($bs / $tc, 2), 'tipo_cambio' => $tc, 'monto' => $bs]
-                        : ['moneda' => 'BOB', 'monto' => $bs];
+                    $pago = $this->moneda === Moneda::alterna()->value
+                        ? ['moneda' => 'BOB', 'monto_moneda' => round($usd * $tc, 2), 'tipo_cambio' => $tc, 'monto' => $usd]
+                        : ['moneda' => 'USD', 'monto' => $usd];
 
                     $servicio->registrar(
                         Compra::findOrFail($id),

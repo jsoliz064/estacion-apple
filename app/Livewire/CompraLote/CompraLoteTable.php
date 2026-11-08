@@ -31,7 +31,7 @@ class CompraLoteTable extends DataTableComponent
         $this->setPrimaryKey('id')
             ->setSearchPlaceholder('Buscar por modelo, IMEI, SKU o código de barras...');
         $this->setAdditionalSelects(['productos.dado_de_baja_at', 'productos.motivo_baja',
-            'productos.costo_unidad', 'productos.costo_moneda', 'productos.costo_moneda_monto', 'productos.costo_tipo_cambio']);
+            'productos.costo_unidad', 'productos.moneda', 'productos.costo_moneda_monto', 'productos.precio_moneda_monto', 'productos.tipo_cambio']);
     }
 
     public function filters(): array
@@ -133,21 +133,17 @@ class CompraLoteTable extends DataTableComponent
                 ->sortable()
                 ->format(fn($value) => \App\Enums\ProductoGrado::labelDe($value))
                 ->collapseOnTablet(),
-            // En Bs; si se compro en dolares, debajo los USD y su tipo de cambio.
+            // En USD; si se cargo en Bs, debajo los bolivianos y su tipo de cambio.
             Column::make("Costo", "costo_total")
                 ->sortable()
-                ->format(fn($value, $row) => 'Bs ' . number_format((float) $value, 2)
-                    . ($row->costo_moneda === \App\Enums\Moneda::USD->value
-                        ? '<span class="block text-xs text-gray-500">' . e($row->costoEnMoneda()) . '</span>' : ''))
+                ->format(fn($value, $row) => \App\Support\Dinero::usd($value)
+                    . ($row->cargadoEnBs()
+                        ? '<span class="block text-xs text-gray-500">' . e($row->montosEnMoneda()) . '</span>' : ''))
                 ->html()
                 ->collapseOnTablet(),
-            Column::make("Precio V.", "precio_vendedor")
+            Column::make("Precio", "precio")
                 ->sortable()
-                ->format(fn($value) => 'Bs ' . number_format((float) $value, 2))
-                ->collapseOnTablet(),
-            Column::make("Precio C.", "precio_cliente")
-                ->sortable()
-                ->format(fn($value) => 'Bs ' . number_format((float) $value, 2))
+                ->format(fn($value) => \App\Support\Dinero::usd($value))
                 ->collapseOnTablet(),
             Column::make("Registrado", "created_at")
                 ->sortable()

@@ -36,14 +36,6 @@
             @endif
         </div>
         <div>
-            <x-label value="Precio de lista (equipos)" />
-            <select wire:model.live="tipo_precio"
-                class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm h-10">
-                <option value="Vendedor">Vendedor</option>
-                <option value="Cliente">Cliente</option>
-            </select>
-        </div>
-        <div>
             <x-cliente-picker :search="$searchCliente" :sugerencias="$filteredClientes"
                 :nombre="$venta['cliente'] ?? null" :cliente-id="$venta['cliente_id'] ?? null" label="Cliente" />
             <x-input-error for="cliente" class="mt-1" />

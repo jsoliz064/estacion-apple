@@ -49,9 +49,10 @@ class ProductoTable extends DataTableComponent
         $this->setAdditionalSelects([
             'productos.costo_unidad',
             'productos.costo_regalos',
-            'productos.costo_moneda',
+            'productos.moneda',
             'productos.costo_moneda_monto',
-            'productos.costo_tipo_cambio',
+            'productos.precio_moneda_monto',
+            'productos.tipo_cambio',
             'productos.tipo_venta',
             'productos.dado_de_baja_at',
             'productos.motivo_baja',
@@ -60,7 +61,8 @@ class ProductoTable extends DataTableComponent
 
     public function columns(): array
     {
-        $bs = fn($value) => 'Bs ' . number_format((float) $value, 2);
+        // En USD; las celdas densas no llevan el equivalente en Bs.
+        $bs = fn($value) => \App\Support\Dinero::usd($value);
 
         return [
             Column::make("Foto")
@@ -146,19 +148,15 @@ class ProductoTable extends DataTableComponent
                 ->collapseOnTablet(),
             Column::make("Costo U.+Regalos")
                 ->label(fn($row) => $bs((float) $row->costo_unidad + (float) $row->costo_regalos)
-                    . ($row->costo_moneda === \App\Enums\Moneda::USD->value
-                        ? '<span class="block text-xs text-gray-500">' . e($row->costoEnMoneda()) . '</span>' : ''))
+                    . ($row->cargadoEnBs()
+                        ? '<span class="block text-xs text-gray-500">' . e($row->montosEnMoneda()) . '</span>' : ''))
                 ->html()
                 ->collapseOnTablet(),
             Column::make("Costo Total", "costo_total")
                 ->sortable()
                 ->format($bs)
                 ->collapseOnTablet(),
-            Column::make("Precio V.", "precio_vendedor")
-                ->sortable()
-                ->format($bs)
-                ->collapseOnTablet(),
-            Column::make("Precio C.", "precio_cliente")
+            Column::make("Precio", "precio")
                 ->sortable()
                 ->format($bs)
                 ->collapseOnTablet(),

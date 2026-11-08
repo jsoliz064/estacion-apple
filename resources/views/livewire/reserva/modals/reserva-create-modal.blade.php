@@ -11,7 +11,7 @@
                         <div class="mt-1 flex items-center justify-between gap-2 rounded-md border border-brand-200 bg-brand-50 px-3 py-2 dark:border-brand-700 dark:bg-brand-900">
                             <span class="text-sm">
                                 <span class="font-semibold">{{ trim(($producto->modelo?->nombre ?? 'Equipo') . ' ' . $producto->almacenamiento . ' ' . $producto->color) }}</span>
-                                <span class="block text-xs font-mono text-gray-600 dark:text-gray-300">IMEI {{ $producto->imei }} · Bs {{ number_format((float) $producto->precio_cliente, 2) }}</span>
+                                <span class="block text-xs font-mono text-gray-600 dark:text-gray-300">IMEI {{ $producto->imei }} · {{ \App\Support\Dinero::ambos($producto->precio) }}</span>
                             </span>
                             <button type="button" wire:click="quitarEquipo" class="text-red-600 text-lg" title="Quitar">&times;</button>
                         </div>

@@ -96,17 +96,18 @@
                     </div>
                 @endif
 
+                <div class="m-2">
+                    @include('livewire.partials.montos-moneda', [
+                        'c' => [
+                            'moneda' => 'articulo.moneda', 'costo' => 'articulo.costo', 'precio' => 'articulo.precio',
+                            'costo_bs' => 'articulo.costo_moneda_monto', 'precio_bs' => 'articulo.precio_moneda_monto', 'tc' => 'articulo.tipo_cambio',
+                        ],
+                        'enBs' => $this->enBs(), 'costo' => $articulo['costo'] ?? 0, 'precio' => $articulo['precio'] ?? 0,
+                        'etiquetaCosto' => 'Costo (código)',
+                    ])
+                </div>
+
                 <div class="m-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <x-label>Costo (código) Bs:</x-label>
-                        <x-input type="number" step="0.01" min="0" wire:model="articulo.costo" class="w-full" onfocus="this.select()"></x-input>
-                        <x-input-error for="articulo.costo"></x-input-error>
-                    </div>
-                    <div>
-                        <x-label>Precio Bs:</x-label>
-                        <x-input type="number" step="0.01" min="0" wire:model="articulo.precio" class="w-full" onfocus="this.select()"></x-input>
-                        <x-input-error for="articulo.precio"></x-input-error>
-                    </div>
                     @if ($conStock)
                         <div>
                             {{-- Calculado y de solo lectura: el stock vive por sucursal

@@ -44,22 +44,23 @@ return new class extends Migration
             $table->enum('tipo_venta', ProductoTipoVenta::values())
                 ->default(ProductoTipoVenta::Venta->value);
 
+            // Todo en USD. Un solo precio de venta (antes habia de cliente y de
+            // vendedor, y la venta elegia uno con un select).
             $table->decimal('costo_unidad', 10, 2)->default(0);
-            // El costo puede cargarse en USD con su tipo de cambio. El costo en
-            // Bs sigue en `costo_unidad` (lo deriva Producto al guardar) y es lo
-            // unico que leen la compra, la venta y los reportes: estas columnas
-            // solo dicen de donde salio ese numero.
-            $table->enum('costo_moneda', Moneda::values())->default(Moneda::BOB->value);
-            $table->decimal('costo_moneda_monto', 10, 2)->nullable();
-            $table->decimal('costo_tipo_cambio', 10, 2)->nullable();
+            $table->decimal('precio', 10, 2)->default(0);
+            // Costo y precio pueden cargarse en Bs, con UN tipo de cambio para
+            // los dos (MontosEnMonedaTrait). Se convierten una vez al guardar:
+            // `costo_unidad` y `precio` quedan en USD y son lo unico que leen la
+            // compra, la venta y los reportes; estas columnas solo dicen de
+            // donde salieron esos numeros.
+            $table->enum('moneda', Moneda::values())->default(Moneda::USD->value);
+            $table->decimal('costo_moneda_monto', 12, 2)->nullable();
+            $table->decimal('precio_moneda_monto', 12, 2)->nullable();
+            $table->decimal('tipo_cambio', 10, 4)->nullable();
             // Cacheados: solo los escribe Producto::recalcularCosto().
             $table->decimal('costo_regalos', 10, 2)->default(0);
             $table->decimal('costo_reparacion', 10, 2)->default(0);
             $table->decimal('costo_total', 10, 2)->default(0);
-            $table->decimal('precio_cliente', 10, 2)->default(0);
-            $table->decimal('precio_cliente_ant', 10, 2)->default(0);
-            $table->decimal('precio_vendedor', 10, 2)->default(0);
-            $table->decimal('precio_vendedor_ant', 10, 2)->default(0);
 
             $table->boolean('venta_rapida')->default(false);
             $table->boolean('disponible_catalogo')->default(true);
@@ -94,13 +95,13 @@ return new class extends Migration
         DB::statement('ALTER TABLE productos ADD CONSTRAINT productos_baja_completa
             CHECK ((dado_de_baja_at IS NULL) = (motivo_baja IS NULL))');
 
-        // En Bs, sin dolares ni tipo de cambio; en USD, los dos. El IS NOT NULL
-        // del tipo de cambio no sobra: con NULL, `> 0` da desconocido y un CHECK
-        // solo rechaza lo FALSO, asi que un USD sin tipo de cambio pasaba.
-        DB::statement("ALTER TABLE productos ADD CONSTRAINT productos_costo_moneda CHECK (
-            (costo_moneda = 'BOB' AND costo_moneda_monto IS NULL AND costo_tipo_cambio IS NULL)
-            OR (costo_moneda = 'USD' AND costo_moneda_monto IS NOT NULL
-                AND costo_tipo_cambio IS NOT NULL AND costo_tipo_cambio > 0))");
+        // En USD, sin bolivianos ni tipo de cambio; en Bs, los tres. El IS NOT
+        // NULL del tipo de cambio no sobra: con NULL, `> 0` da desconocido y un
+        // CHECK solo rechaza lo FALSO, asi que un Bs sin tipo de cambio pasaba.
+        DB::statement("ALTER TABLE productos ADD CONSTRAINT productos_montos_moneda CHECK (
+            (moneda = 'USD' AND costo_moneda_monto IS NULL AND precio_moneda_monto IS NULL AND tipo_cambio IS NULL)
+            OR (moneda = 'BOB' AND costo_moneda_monto IS NOT NULL AND precio_moneda_monto IS NOT NULL
+                AND tipo_cambio IS NOT NULL AND tipo_cambio > 0))");
     }
 
     public function down(): void

@@ -41,6 +41,10 @@ return new class extends Migration
             $table->decimal('mano_obra', 10, 2)->default(0);
             $table->decimal('total', 12, 2)->default(0);
             $table->decimal('costo_total', 12, 2)->default(0);
+            // Todo se guarda en USD. El tipo de cambio del dia en que se hizo la
+            // venta, congelado (Venta::booted): el equivalente en Bs de la nota y
+            // del recibo no cambia cuando se actualiza el del dia.
+            $table->decimal('tipo_cambio', 10, 4);
             $table->decimal('pagado', 12, 2)->default(0);
             $table->decimal('saldo', 12, 2)->storedAs('total - pagado');
             $table->timestamp('pagada_at')->nullable();

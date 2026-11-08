@@ -79,7 +79,7 @@ class CatalogoBaseSeeder extends Seeder
                     foreach ($almacenamientos as $almacenamiento) {
                         ProductoModeloAlmacenamiento::firstOrCreate(
                             ['producto_modelo_id' => $modelo->id, 'almacenamiento' => $almacenamiento],
-                            ['precio' => 0, 'costo' => 0, 'precio_cliente' => 0],
+                            ['precio' => 0, 'costo' => 0],
                         );
                     }
                 }

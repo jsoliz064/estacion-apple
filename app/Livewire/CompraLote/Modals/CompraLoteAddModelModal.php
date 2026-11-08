@@ -17,6 +17,7 @@ use App\Models\Sucursal;
 use App\Models\Tecnicos;
 use App\Rules\CodigoGeneradoLibre;
 use App\Services\CompraService;
+use App\Traits\MontosEnMonedaFormTrait;
 use App\Traits\NormalizaCodigosTrait;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -28,11 +29,13 @@ use Livewire\WithFileUploads;
 /**
  * Alta de un equipo dentro de una compra (uno por uno: lleva IMEI, fotos y
  * camara). Lo escribe CompraService::agregarProducto(), que crea el producto y
- * su linea de compra. Todo en Bs; el viejo "costo de envio" ya no existe (lo
+ * su linea de compra. Todo en USD (o cargado en Bs, MontosEnMonedaFormTrait);
+ * el viejo "costo de envio" ya no existe (lo
  * reemplazan los accesorios de regalo, que se cargan desde la ficha).
  */
 class CompraLoteAddModelModal extends Component
 {
+    use MontosEnMonedaFormTrait;
     use WithFileUploads;
 
     public $openModal = false;
@@ -50,14 +53,13 @@ class CompraLoteAddModelModal extends Component
     public $disponible_catalogo = false;
     public $sucursal_id;
 
-    /** El costo en Bs: el que se guarda. En USD lo calcula sincronizarCostoBs(). */
+    /** En USD: los que se guardan. Cargados en Bs, los calcula el trait. */
     public $costo_unidad = 0;
-    public $costo_moneda = 'BOB';
-    public $costo_usd = 0;
+    public $precio = 0;
+    public $moneda = 'USD';
+    public $costo_bs = 0;
+    public $precio_bs = 0;
     public $tipo_cambio;
-
-    public $precio_cliente = 0;
-    public $precio_vendedor = 0;
     public $descripcion;
     public $status = 'Inventario';
     public $tipo_venta = 'Venta';
@@ -115,11 +117,7 @@ class CompraLoteAddModelModal extends Component
             'upc' => ['nullable', 'string', 'max:50', new CodigoGeneradoLibre('Producto')],
             'bateria_porcentaje' => 'required|numeric|min:1|max:100',
             'costo_unidad' => 'required|numeric|min:0|decimal:0,2',
-            'costo_moneda' => ['required', Rule::in(Moneda::values())],
-            'costo_usd' => $this->costo_moneda === Moneda::USD->value ? 'required|numeric|gt:0|decimal:0,2' : 'nullable',
-            'tipo_cambio' => $this->costo_moneda === Moneda::USD->value ? 'required|numeric|gt:0|decimal:0,2' : 'nullable',
-            'precio_cliente' => 'required|numeric|min:0|decimal:0,2|gte:costo_unidad',
-            'precio_vendedor' => 'required|numeric|min:0|decimal:0,2|gte:costo_unidad',
+            'precio' => 'required|numeric|min:0|decimal:0,2|gte:costo_unidad',
             'descripcion' => 'nullable|string',
             'disponible_catalogo' => 'required',
             'estado_grado' => ['required', Rule::in(ProductoGrado::values())],
@@ -128,7 +126,12 @@ class CompraLoteAddModelModal extends Component
             'status' => ['required', Rule::in($this->estadosPermitidos())],
             'tecnico_selected' => 'required_if:status,' . ProductoEstado::Reparacion->value,
             'sucursal_id' => 'required|exists:sucursales,id,activa,1',
-        ];
+        ] + $this->reglasMontosEnMoneda();
+    }
+
+    protected function camposMoneda(): array
+    {
+        return ['moneda' => 'moneda', 'costo' => 'costo_unidad', 'precio' => 'precio', 'costo_bs' => 'costo_bs', 'precio_bs' => 'precio_bs', 'tc' => 'tipo_cambio'];
     }
 
     protected function messages()
@@ -157,14 +160,11 @@ class CompraLoteAddModelModal extends Component
             'imei' => 'IMEI',
             'bateria_porcentaje' => 'porcentaje de batería',
             'costo_unidad' => 'costo',
-            'costo_usd' => 'costo en USD',
-            'tipo_cambio' => 'tipo de cambio',
-            'precio_cliente' => 'precio al cliente',
-            'precio_vendedor' => 'precio al vendedor',
+            'precio' => 'precio',
             'estado_grado' => 'grado',
             'tipo_venta' => 'tipo de venta',
             'status' => 'estado',
-        ];
+        ] + $this->atributosMontosEnMoneda();
     }
 
     public function mount($compra_lote)
@@ -268,15 +268,15 @@ class CompraLoteAddModelModal extends Component
             return;
         }
 
-        // El de referencia esta en Bs: en USD no se toca.
-        if ((float) $ref->costo > 0 && $this->costo_moneda === Moneda::BOB->value) {
+        // El de referencia esta en USD: cargando en Bs no se toca.
+        if ($this->enBs()) {
+            return;
+        }
+        if ((float) $ref->costo > 0) {
             $this->costo_unidad = $ref->costo;
         }
         if ((float) $ref->precio > 0) {
-            $this->precio_vendedor = $ref->precio;
-        }
-        if ((float) $ref->precio_cliente > 0) {
-            $this->precio_cliente = $ref->precio_cliente;
+            $this->precio = $ref->precio;
         }
     }
 
@@ -298,13 +298,13 @@ class CompraLoteAddModelModal extends Component
             $this->almacenamiento = null;
         }
 
+        // En un lote se repiten la moneda, los montos y el tipo de cambio.
         $this->costo_unidad = $ultimo?->costo_unidad ?? 0;
-        // En un lote en dolares se repiten la moneda y el tipo de cambio.
-        $this->costo_moneda = $ultimo?->costo_moneda ?? Moneda::BOB->value;
-        $this->costo_usd = $ultimo?->costo_moneda_monto ?? 0;
-        $this->tipo_cambio = \App\Models\TipoCambio::actual();
-        $this->precio_cliente = $ultimo?->precio_cliente ?? 0;
-        $this->precio_vendedor = $ultimo?->precio_vendedor ?? 0;
+        $this->precio = $ultimo?->precio ?? 0;
+        $this->moneda = $ultimo?->moneda ?? Moneda::base()->value;
+        $this->costo_bs = $ultimo?->costo_moneda_monto ?? 0;
+        $this->precio_bs = $ultimo?->precio_moneda_monto ?? 0;
+        $this->tipo_cambio = $ultimo?->tipo_cambio ?? \App\Models\TipoCambio::actual();
         $this->detallesSeleccionados = [];
         $this->detallesText = '';
         $this->estado_grado = $ultimo?->estado_grado ?? ProductoGrado::Uno->value;
@@ -341,21 +341,7 @@ class CompraLoteAddModelModal extends Component
             $this->generateDescription();
         }
 
-        if (in_array($propertyName, ['costo_moneda', 'costo_usd', 'tipo_cambio'])) {
-            $this->sincronizarCostoBs();
-        }
-    }
-
-    /**
-     * En USD, el costo en Bs = USD x TC. Se calcula aqui para mostrarlo y para
-     * que la regla «el precio no baja del costo» compare en Bs; el que se guarda
-     * lo vuelve a calcular Producto al guardar.
-     */
-    private function sincronizarCostoBs(): void
-    {
-        if ($this->costo_moneda === Moneda::USD->value && is_numeric($this->costo_usd) && is_numeric($this->tipo_cambio)) {
-            $this->costo_unidad = round((float) $this->costo_usd * (float) $this->tipo_cambio, 2);
-        }
+        $this->montoEnMonedaCambio($propertyName);
     }
 
     protected function generateDescription()
@@ -377,7 +363,7 @@ class CompraLoteAddModelModal extends Component
         $this->imei = trim((string) $this->imei);
         $this->sku = NormalizaCodigosTrait::normalizarCodigo($this->sku);
         $this->upc = NormalizaCodigosTrait::normalizarCodigo($this->upc);
-        $this->sincronizarCostoBs();
+        $this->sincronizarMontosEnMoneda();
         $this->validate();
 
         // La clave natural del alta es el IMEI (productos_imei_unico): un
@@ -396,13 +382,8 @@ class CompraLoteAddModelModal extends Component
                     'upc' => $this->upc,
                     'bateria_porcentaje' => $this->bateria_porcentaje,
                     'costo_unidad' => $this->costo_unidad,
-                    'costo_moneda' => $this->costo_moneda,
-                    'costo_moneda_monto' => $this->costo_moneda === Moneda::USD->value ? $this->costo_usd : null,
-                    'costo_tipo_cambio' => $this->costo_moneda === Moneda::USD->value ? $this->tipo_cambio : null,
-                    'precio_cliente' => $this->precio_cliente,
-                    'precio_cliente_ant' => 0,
-                    'precio_vendedor' => $this->precio_vendedor,
-                    'precio_vendedor_ant' => 0,
+                    'precio' => $this->precio,
+                    ...$this->datosMontosEnMoneda(),
                     'estado' => $this->status,
                     'tipo_venta' => $this->tipo_venta,
                     'descripcion' => $this->descripcion,

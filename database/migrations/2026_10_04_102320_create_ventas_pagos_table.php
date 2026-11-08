@@ -26,11 +26,11 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('venta_id');
             $table->unsignedBigInteger('metodo_pago_id');
-            // SIEMPRE en Bs: es lo que suma ventas.pagado.
+            // SIEMPRE en USD, la moneda base: es lo que suma ventas.pagado.
             $table->decimal('monto', 12, 2);
-            // Un pago en dolares guarda los dolares y la tasa; `monto` es su
-            // equivalente en Bs (redondeado a centavos).
-            $table->enum('moneda', Moneda::values())->default(Moneda::BOB->value);
+            // Un pago en bolivianos guarda los Bs y la tasa; `monto` es su
+            // equivalente en USD (redondeado a centavos).
+            $table->enum('moneda', Moneda::values())->default(Moneda::USD->value);
             $table->decimal('monto_moneda', 12, 2)->nullable();
             $table->decimal('tipo_cambio', 10, 4)->nullable();
             // El equipo recibido en PERMUTA: es el pago. UNIQUE: un equipo paga
@@ -62,8 +62,8 @@ return new class extends Migration
         DB::statement("ALTER TABLE ventas_pagos
             ADD CONSTRAINT vp_monto_positivo CHECK (monto > 0),
             ADD CONSTRAINT vp_moneda_datos CHECK (
-                (moneda = 'BOB' AND monto_moneda IS NULL AND tipo_cambio IS NULL)
-                OR (moneda = 'USD' AND monto_moneda > 0 AND tipo_cambio > 0)),
+                (moneda = 'USD' AND monto_moneda IS NULL AND tipo_cambio IS NULL)
+                OR (moneda = 'BOB' AND monto_moneda > 0 AND tipo_cambio > 0)),
             ADD CONSTRAINT vp_permuta_al_vender CHECK (producto_id IS NULL OR momento = 'Venta')");
     }
 

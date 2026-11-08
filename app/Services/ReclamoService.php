@@ -161,12 +161,12 @@ class ReclamoService
             'estado_grado' => $fallado->estado_grado,
             'tipo_venta' => $fallado->tipo_venta,
             'costo_unidad' => (float) $fallado->costo_unidad,
-            // El mismo costo y en la misma moneda que el fallado.
-            'costo_moneda' => $fallado->costo_moneda,
+            'precio' => (float) $fallado->precio,
+            // El mismo costo y precio, y en la misma moneda, que el fallado.
+            'moneda' => $fallado->moneda,
             'costo_moneda_monto' => $fallado->costo_moneda_monto,
-            'costo_tipo_cambio' => $fallado->costo_tipo_cambio,
-            'precio_cliente' => (float) $fallado->precio_cliente,
-            'precio_vendedor' => (float) $fallado->precio_vendedor,
+            'precio_moneda_monto' => $fallado->precio_moneda_monto,
+            'tipo_cambio' => $fallado->tipo_cambio,
             'disponible_catalogo' => (bool) $fallado->disponible_catalogo,
             'sucursal_id' => $fallado->sucursal_id,
             'descripcion' => trim(($fallado->modelo?->nombre ?? '') . " color {$color} de {$fallado->almacenamiento} con "
@@ -183,9 +183,10 @@ class ReclamoService
         $producto = Producto::whereKey($fallado->id)->lockForUpdate()->firstOrFail();
 
         $producto->anotar('editado', "Devuelto al proveedor (compra #{$compra->id}): {$detalle}. Su costo pasa a 0.", ['compra_id' => $compra->id]);
-        // En BOB: si quedara en USD, Producto volveria a calcular el costo
-        // desde los dolares y el devuelto recuperaria su costo.
-        $producto->update(['costo_unidad' => 0, 'costo_moneda' => \App\Enums\Moneda::BOB->value]);
+        // En USD (la base): si quedara cargado en Bs, Producto volveria a
+        // calcular el costo desde los bolivianos y el devuelto recuperaria su
+        // costo. El precio queda como estaba, en USD.
+        $producto->update(['costo_unidad' => 0, 'moneda' => \App\Enums\Moneda::base()->value]);
         $producto->recalcularCosto();
         // La linea de compra y el total siguen al costo (con el control de que
         // el total no quede por debajo de lo ya pagado).

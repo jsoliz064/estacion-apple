@@ -79,8 +79,7 @@ class PermutaService
             'costo_unidad' => $valor,
             // Precio inicial = costo: el operador le pone precio despues. Fuera
             // del catalogo hasta entonces, para no publicarlo a precio de costo.
-            'precio_cliente' => $valor,
-            'precio_vendedor' => $valor,
+            'precio' => $valor,
             'disponible_catalogo' => false,
             'sucursal_id' => $venta->sucursal_id,
             'descripcion' => trim($modelo->nombre . ' color ' . $datos['color'] . ' de ' . $datos['almacenamiento']

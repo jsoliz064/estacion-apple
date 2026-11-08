@@ -34,9 +34,6 @@ class ProductoSelectorModal extends Component
     public array $seleccionados = [];
     public array $excluidos = [];
 
-    /** Vendedor o Cliente: decide que precio se muestra, para no mentir. */
-    public string $tipoPrecio = 'Vendedor';
-
     public int $pagina = 1;
     public int $porPagina = 10;
 
@@ -45,7 +42,7 @@ class ProductoSelectorModal extends Component
      * agregar, asi que su lista nunca puede quedar obsoleta.
      */
     #[On('openProductoSelectorModal')]
-    public function openModal(array $excluidos = [], $sucursalId = null, string $tipoPrecio = 'Vendedor'): void
+    public function openModal(array $excluidos = [], $sucursalId = null): void
     {
         $this->resetEstado();
         $this->excluidos = array_map('intval', $excluidos);
@@ -53,7 +50,6 @@ class ProductoSelectorModal extends Component
         // Preseleccionada, no impuesta: se puede quitar el filtro para ver las
         // otras tiendas, que es lo que la pantalla de crear ya permite.
         $this->filtroSucursal = (string) ($sucursalId ?? '');
-        $this->tipoPrecio = $tipoPrecio;
         $this->openModal = true;
     }
 
@@ -127,13 +123,8 @@ class ProductoSelectorModal extends Component
     {
         $this->reset([
             'search', 'filtroModelo', 'filtroSucursal',
-            'seleccionados', 'excluidos', 'tipoPrecio', 'pagina',
+            'seleccionados', 'excluidos', 'pagina',
         ]);
-    }
-
-    public function esVendedor(): bool
-    {
-        return $this->tipoPrecio !== 'Cliente';
     }
 
     protected function productosQuery(): LengthAwarePaginator

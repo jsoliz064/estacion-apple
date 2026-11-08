@@ -49,13 +49,13 @@ class CompraPago extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    /** «Transferencia», «Efectivo · USD 100 a 6,96». */
+    /** «Transferencia», «Efectivo · Bs 696.00 a 6.96». */
     public function descripcion(): string
     {
         $texto = $this->metodo?->nombre ?? 'Pago';
 
-        if ($this->moneda === Moneda::USD) {
-            $texto .= ' · USD ' . number_format((float) $this->monto_moneda, 2) . ' a ' . rtrim(rtrim(number_format((float) $this->tipo_cambio, 4), '0'), '.');
+        if ($this->moneda === Moneda::alterna()) {
+            $texto .= ' · ' . \App\Support\Dinero::soloBs($this->monto_moneda) . ' a ' . \App\Support\Dinero::tc($this->tipo_cambio);
         }
 
         return $texto . ($this->al_recibir ? ' · al recibir' : '');

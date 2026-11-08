@@ -54,7 +54,7 @@ class AuditarProductos extends Command
         $this->costoRegalosDescuadrado();
         $this->costoTotalDescuadrado();
         $this->costoCompraDescuadrado();
-        $this->costoUsdDescuadrado();
+        $this->montosEnBsDescuadrados();
         $this->totalVentaDescuadrado();
         $this->totalCompraDescuadrado();
         $this->pagadoDescuadrado();
@@ -341,16 +341,24 @@ class AuditarProductos extends Command
         $this->reportar('Costo de la linea de compra distinto del costo_unidad', $filas, ['id', 'imei', 'costo_unidad', 'costo', 'compra_id']);
     }
 
-    /** Un costo cargado en USD: costo_unidad tiene que ser USD x TC (lo deriva Producto). */
-    private function costoUsdDescuadrado(): void
+    /**
+     * Costo y precio cargados en Bs: los USD tienen que ser Bs / TC (los deriva
+     * MontosEnMonedaTrait). En equipos, repuestos y accesorios.
+     */
+    private function montosEnBsDescuadrados(): void
     {
-        $filas = DB::table('productos')
-            ->where('costo_moneda', 'USD')
-            ->whereRaw('ABS(costo_unidad - ROUND(costo_moneda_monto * costo_tipo_cambio, 2)) > 0.009')
-            ->select('id', 'imei', 'costo_unidad', 'costo_moneda_monto', 'costo_tipo_cambio')
-            ->get();
+        foreach (['productos' => 'costo_unidad', 'repuestos' => 'costo', 'accesorios' => 'costo'] as $tabla => $costo) {
+            $filas = DB::table($tabla)
+                ->where('moneda', 'BOB')
+                ->where(fn($q) => $q
+                    ->whereRaw("ABS({$costo} - ROUND(costo_moneda_monto / tipo_cambio, 2)) > 0.009")
+                    ->orWhereRaw('ABS(precio - ROUND(precio_moneda_monto / tipo_cambio, 2)) > 0.009'))
+                ->select('id', $costo . ' as costo', 'costo_moneda_monto', 'precio', 'precio_moneda_monto', 'tipo_cambio')
+                ->get();
 
-        $this->reportar('Costo en USD que no cuadra con su tipo de cambio', $filas, ['id', 'imei', 'costo_unidad', 'costo_moneda_monto', 'costo_tipo_cambio']);
+            $this->reportar("Montos en Bs que no cuadran con su tipo de cambio ({$tabla})", $filas,
+                ['id', 'costo', 'costo_moneda_monto', 'precio', 'precio_moneda_monto', 'tipo_cambio']);
+        }
     }
 
     private function totalVentaDescuadrado(): void

@@ -27,7 +27,7 @@ class ProductoIndex extends Component
             ->whereNotIn('estado', ProductoEstado::vendidos())
             ->selectRaw('COUNT(*) as total')
             ->selectRaw('COALESCE(SUM(costo_total), 0) as costo')
-            ->selectRaw('COALESCE(SUM(CASE WHEN estado = ? THEN costo_total ELSE precio_vendedor END), 0) as venta', [ProductoEstado::Roto->value])
+            ->selectRaw('COALESCE(SUM(CASE WHEN estado = ? THEN costo_total ELSE precio END), 0) as venta', [ProductoEstado::Roto->value])
             ->toBase()
             ->first();
         $this->totalProductos = (int) $resumen->total;

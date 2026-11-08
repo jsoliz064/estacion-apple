@@ -10,8 +10,8 @@ class ProductoModeloAlmacenamientoModal extends Component
 {
     public $openModal = false;
     public $productomodelo;
+    /** Precio y costo de referencia por almacenamiento, en USD. */
     public $precios = [];
-    public $precios_clientes = [];
     public $costos = [];
 
     public function render()
@@ -26,7 +26,6 @@ class ProductoModeloAlmacenamientoModal extends Component
 
         foreach ($this->productomodelo->almacenamientos as $almacenamiento) {
             $this->precios[$almacenamiento->id] = $almacenamiento->precio;
-            $this->precios_clientes[$almacenamiento->id] = $almacenamiento->precio_cliente;
             $this->costos[$almacenamiento->id] = $almacenamiento->costo;
         }
 
@@ -38,7 +37,6 @@ class ProductoModeloAlmacenamientoModal extends Component
         foreach ($this->productomodelo->almacenamientos as $almacenamiento) {
             $almacenamiento->update([
                 'precio' => $this->precios[$almacenamiento->id],
-                'precio_cliente' => $this->precios_clientes[$almacenamiento->id],
                 'costo' => $this->costos[$almacenamiento->id],
             ]);
         }

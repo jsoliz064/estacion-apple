@@ -20,8 +20,9 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('compra_id');
             $table->unsignedBigInteger('metodo_pago_id');
+            // En USD, como ventas_pagos; uno en Bs guarda los Bs y la tasa.
             $table->decimal('monto', 12, 2);
-            $table->enum('moneda', Moneda::values())->default(Moneda::BOB->value);
+            $table->enum('moneda', Moneda::values())->default(Moneda::USD->value);
             $table->decimal('monto_moneda', 12, 2)->nullable();
             $table->decimal('tipo_cambio', 10, 4)->nullable();
             $table->boolean('al_recibir')->default(false);
@@ -41,8 +42,8 @@ return new class extends Migration
         DB::statement("ALTER TABLE compras_pagos
             ADD CONSTRAINT cp_monto_positivo CHECK (monto > 0),
             ADD CONSTRAINT cp_moneda_datos CHECK (
-                (moneda = 'BOB' AND monto_moneda IS NULL AND tipo_cambio IS NULL)
-                OR (moneda = 'USD' AND monto_moneda > 0 AND tipo_cambio > 0))");
+                (moneda = 'USD' AND monto_moneda IS NULL AND tipo_cambio IS NULL)
+                OR (moneda = 'BOB' AND monto_moneda > 0 AND tipo_cambio > 0))");
     }
 
     public function down(): void

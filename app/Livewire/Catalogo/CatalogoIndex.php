@@ -25,7 +25,6 @@ class CatalogoIndex extends Component
     public $soldOutModels = 0;
     public $minPriceLimit = 0;
     public $maxPriceLimit = 0;
-    public $priceAuth = 'precio_cliente';
 
     public $storageOptionsByModel = [];
 
@@ -38,13 +37,6 @@ class CatalogoIndex extends Component
         'sortBy' => ['except' => 'newest'],
     ];
 
-
-    public function mount()
-    {
-        $this->priceAuth = auth()->check() && auth()->user()->hasRole('Vendedor')
-            ? 'precio_vendedor'
-            : 'precio_cliente';
-    }
 
     public function updatedFilterModel($value)
     {

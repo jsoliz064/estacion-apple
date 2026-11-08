@@ -495,29 +495,8 @@
                         @endif
 
                         <div class="flex items-end justify-between mt-2">
-                            @role('Vendedor')
-                                <div>
-                                    <span class="text-sm font-bold text-brand-600 dark:text-brand-400">
-                                        Bs {{ number_format($product->precio_vendedor, 0) }}
-                                    </span>
-                                    @if ($product->precio_vendedor_ant > $product->precio_vendedor)
-                                        <span class="block text-xs line-through text-gray-400 dark:text-gray-500">
-                                            Bs {{ number_format($product->precio_vendedor_ant, 0) }}
-                                        </span>
-                                    @endif
-                                </div>
-                            @else
-                                <div>
-                                    <span class="text-sm font-bold text-brand-600 dark:text-brand-400">
-                                        Bs {{ number_format($product->precio_cliente, 0) }}
-                                    </span>
-                                    @if ($product->precio_cliente_ant > $product->precio_cliente)
-                                        <span class="block text-xs line-through text-gray-400 dark:text-gray-500">
-                                            Bs {{ number_format($product->precio_cliente_ant, 0) }}
-                                        </span>
-                                    @endif
-                                </div>
-                            @endrole
+                            {{-- Un solo precio, en USD, y su equivalente en Bs al TC del dia. --}}
+                            <x-monto :valor="$product->precio" class="text-sm font-bold text-brand-600 dark:text-brand-400" />
 
                             @if ($product->tipo_venta === App\Enums\ProductoTipoVenta::Oferta->value)
                                 <span
@@ -680,31 +659,7 @@
                                 {{ $selectedProduct->color }}</p>
                         </div>
 
-                        @role('Vendedor')
-                            <div class="text-right">
-                                <span class="text-2xl font-bold text-brand-600 dark:text-brand-400 whitespace-nowrap">
-                                    Bs {{ number_format($selectedProduct->precio_vendedor, 2) }}
-                                </span>
-                                @if ($selectedProduct->precio_vendedor_ant > $selectedProduct->precio_vendedor)
-                                    <span
-                                        class="block text-sm line-through text-gray-400 dark:text-gray-500 whitespace-nowrap">
-                                        Bs {{ number_format($selectedProduct->precio_vendedor_ant, 2) }}
-                                    </span>
-                                @endif
-                            </div>
-                        @else
-                            <div class="text-right">
-                                <span class="text-2xl font-bold text-brand-600 dark:text-brand-400 whitespace-nowrap">
-                                    Bs {{ number_format($selectedProduct->precio_cliente, 2) }}
-                                </span>
-                                @if ($selectedProduct->precio_cliente_ant > $selectedProduct->precio_cliente)
-                                    <span
-                                        class="block text-sm line-through text-gray-400 dark:text-gray-500 whitespace-nowrap">
-                                        Bs {{ number_format($selectedProduct->precio_cliente_ant, 2) }}
-                                    </span>
-                                @endif
-                            </div>
-                        @endrole
+                        <x-monto :valor="$selectedProduct->precio" class="items-end text-2xl font-bold text-brand-600 dark:text-brand-400" />
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">

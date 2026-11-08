@@ -44,7 +44,7 @@
                             <span class="font-medium text-gray-900 dark:text-gray-100">{{ $r['etiqueta'] }}</span>
                             <span class="block text-xs text-gray-500 dark:text-gray-400 truncate">{{ $r['detalle'] }}</span>
                         </span>
-                        <span class="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">Bs {{ number_format($r['precio'], 2) }}</span>
+                        <span class="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">{{ \App\Support\Dinero::usd($r['precio']) }}</span>
                     </button>
                 </li>
             @endforeach

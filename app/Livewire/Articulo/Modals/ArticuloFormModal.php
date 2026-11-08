@@ -7,7 +7,9 @@ use App\Models\AccesorioCategoria;
 use App\Models\ProductoModelo;
 use App\Models\RepuestoCategoria;
 use App\Rules\CodigoGeneradoLibre;
+use App\Enums\Moneda;
 use App\Traits\ArticuloStockSucursalTrait;
+use App\Traits\MontosEnMonedaFormTrait;
 use App\Traits\NormalizaCodigosTrait;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +32,7 @@ use Livewire\Component;
 class ArticuloFormModal extends Component
 {
     use ArticuloStockSucursalTrait;
+    use MontosEnMonedaFormTrait;
 
     #[Locked]
     public string $tipo = '';
@@ -75,7 +78,7 @@ class ArticuloFormModal extends Component
             'articulo.upc' => ['nullable', 'string', 'max:50', new CodigoGeneradoLibre($this->articuloTipo()->value, $this->articuloId)],
             'articulo.costo' => 'required|numeric|min:0',
             'articulo.precio' => 'required|numeric|min:0',
-        ];
+        ] + $this->reglasMontosEnMoneda();
 
         if ($this->esRepuesto()) {
             $reglas += [
@@ -113,6 +116,20 @@ class ArticuloFormModal extends Component
         ];
     }
 
+    /** Costo y precio en USD, o cargados en Bs (MontosEnMonedaFormTrait). */
+    protected function camposMoneda(): array
+    {
+        return [
+            'moneda' => 'articulo.moneda', 'costo' => 'articulo.costo', 'precio' => 'articulo.precio',
+            'costo_bs' => 'articulo.costo_moneda_monto', 'precio_bs' => 'articulo.precio_moneda_monto', 'tc' => 'articulo.tipo_cambio',
+        ];
+    }
+
+    public function updatedArticulo($valor, $clave): void
+    {
+        $this->montoEnMonedaCambio('articulo.' . $clave);
+    }
+
     #[On('openArticuloCreateModal')]
     public function abrirCrear(?string $tipo = null): void
     {
@@ -123,6 +140,8 @@ class ArticuloFormModal extends Component
 
         $this->resetExcept(['tipo', 'conStock']);
         $this->resetErrorBag();
+        // Por defecto en USD: todo el sistema se maneja en dolares.
+        $this->articulo = ['moneda' => Moneda::base()->value, 'costo' => 0, 'precio' => 0];
         $this->openModal = true;
     }
 
@@ -136,6 +155,10 @@ class ArticuloFormModal extends Component
         $this->articuloId = $articulo->id;
         // `cantidad` es el total cacheado: no viaja en el formulario.
         $this->articulo = collect($articulo->toArray())->except(['id', 'cantidad', 'created_at', 'updated_at'])->all();
+        // La columna guarda 4 decimales ("6.9600"): en pantalla, sin los ceros.
+        if ($this->articulo['tipo_cambio'] !== null) {
+            $this->articulo['tipo_cambio'] = (float) $this->articulo['tipo_cambio'];
+        }
 
         if (!$this->esRepuesto()) {
             $this->modelos = $articulo->modelosCompatibles()->pluck('productos_modelos.id')->map(fn($v) => (string) $v)->all();
@@ -152,13 +175,15 @@ class ArticuloFormModal extends Component
 
         // Un SKU en blanco es NULL, antes de validar el unique.
         $this->articulo['sku'] = NormalizaCodigosTrait::normalizarCodigo($this->articulo['sku'] ?? null);
-        $this->validate();
+        $this->sincronizarMontosEnMoneda();
+        $this->validate($this->rules(), $this->messages(), $this->atributosMontosEnMoneda());
 
         $campos = $this->esRepuesto()
             ? ['nombre', 'sku', 'upc', 'costo', 'precio', 'fabricante', 'producto_modelo_id', 'repuesto_categoria_id', 'color', 'color_hex']
             : ['nombre', 'sku', 'upc', 'costo', 'precio', 'marca', 'accesorio_categoria_id'];
 
-        $datos = collect($campos)->mapWithKeys(fn($c) => [$c => ($this->articulo[$c] ?? null) === '' ? null : ($this->articulo[$c] ?? null)])->all();
+        $datos = collect($campos)->mapWithKeys(fn($c) => [$c => ($this->articulo[$c] ?? null) === '' ? null : ($this->articulo[$c] ?? null)])->all()
+            + $this->datosMontosEnMoneda();
 
         try {
             $articulo = DB::transaction(function () use ($tipo, $datos) {

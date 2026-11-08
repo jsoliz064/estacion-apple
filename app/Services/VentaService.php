@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\ArticuloTipo;
 use App\Enums\LineaTipo;
+use App\Enums\Moneda;
 use App\Enums\PagoMomento;
 use App\Enums\ProductoEstado;
 use App\Models\Producto;
@@ -133,11 +134,13 @@ class VentaService
         return $this->pagos->registrar($venta, $pagos, PagoMomento::Venta, $user, $clave);
     }
 
-    /** El monto en Bs de una fila de pago, antes de que PagoService la valide. */
+    /** El monto en USD de una fila de pago, antes de que PagoService la valide. */
     private function montoPrevisto(array $pago): float
     {
-        if (($pago['moneda'] ?? 'BOB') === 'USD') {
-            return round((float) ($pago['monto_moneda'] ?? 0) * (float) ($pago['tipo_cambio'] ?? 0), 2);
+        if (($pago['moneda'] ?? '') === Moneda::alterna()->value) {
+            $tc = (float) ($pago['tipo_cambio'] ?? 0);
+
+            return $tc > 0 ? round((float) ($pago['monto_moneda'] ?? 0) / $tc, 2) : 0.0;
         }
 
         return (float) ($pago['monto'] ?? 0);

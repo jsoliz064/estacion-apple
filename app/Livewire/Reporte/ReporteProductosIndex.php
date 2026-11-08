@@ -122,7 +122,7 @@ class ReporteProductosIndex extends Component
         $totales = (clone $query)->selectRaw('COUNT(*) AS cantidad, COALESCE(SUM(p.costo_total), 0) AS costo')->first();
 
         $lista = $query
-            ->selectRaw('p.id, p.imei, p.almacenamiento, p.color, p.estado_grado, p.costo_total, p.precio_cliente,
+            ->selectRaw('p.id, p.imei, p.almacenamiento, p.color, p.estado_grado, p.costo_total, p.precio,
                 m.nombre AS modelo, s.nombre AS sucursal, DATEDIFF(CURDATE(), ' . self::ENTRADA . ') AS dias')
             ->orderByDesc('dias')
             ->orderBy('p.id')

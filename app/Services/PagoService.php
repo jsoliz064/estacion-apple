@@ -105,7 +105,7 @@ class PagoService
         $metodoId = MetodoPago::permutaId() ?? throw new \LogicException('Falta el método de sistema «Permuta» (MetodoPagoSeeder).');
 
         $this->insertar($venta, $metodoId, [
-            'monto' => $valor, 'moneda' => Moneda::BOB->value, 'monto_moneda' => null, 'tipo_cambio' => null,
+            'monto' => $valor, 'moneda' => Moneda::base()->value, 'monto_moneda' => null, 'tipo_cambio' => null,
             'nota' => null, 'producto_id' => $recibido->id,
         ], PagoMomento::Venta, $user, $clave);
 
@@ -127,7 +127,7 @@ class PagoService
         // El metodo de la seña aunque hoy este desactivado: el dinero entro
         // cuando entro. La fecha es la de la reserva.
         $this->insertar($venta, $reserva->metodo_pago_id, [
-            'monto' => round((float) $reserva->sena, 2), 'moneda' => Moneda::BOB->value, 'monto_moneda' => null,
+            'monto' => round((float) $reserva->sena, 2), 'moneda' => Moneda::base()->value, 'monto_moneda' => null,
             'tipo_cambio' => null, 'nota' => 'Seña de la reserva #' . $reserva->id, 'producto_id' => null,
             'fecha' => $reserva->created_at,
         ], PagoMomento::Sena, $user, null);
@@ -261,7 +261,7 @@ class PagoService
             'venta_id' => $venta->id,
             'metodo_pago_id' => $metodoId,
             'monto' => $pago['monto'],
-            'moneda' => $pago['moneda'] ?? Moneda::BOB->value,
+            'moneda' => $pago['moneda'] ?? Moneda::base()->value,
             'monto_moneda' => $pago['monto_moneda'] ?? null,
             'tipo_cambio' => $pago['tipo_cambio'] ?? null,
             'producto_id' => $pago['producto_id'] ?? null,

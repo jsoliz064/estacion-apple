@@ -71,9 +71,6 @@ class VentaForm extends Component
      */
     public array $lineas = [];
 
-    /** Vendedor o Cliente: que precio de lista se propone para los equipos. */
-    public string $tipo_precio = 'Vendedor';
-
     /** Cobros de taller por equipo: producto_id => [lineas]. */
     public array $repuestosVenta = [];
 
@@ -280,7 +277,7 @@ class VentaForm extends Component
             'descripcion' => trim(($producto->modelo?->nombre ?? 'Equipo') . ' ' . $producto->almacenamiento . ' ' . $producto->color),
             'codigo' => $producto->imei,
             'cantidad' => 1,
-            'precio' => (float) ($this->tipo_precio === 'Vendedor' ? $producto->precio_vendedor : $producto->precio_cliente),
+            'precio' => (float) $producto->precio,
             'descuento' => 0,
             'garantia_meses' => 3,
             'stock' => 1,
@@ -367,7 +364,6 @@ class VentaForm extends Component
             'openProductoSelectorModal',
             excluidos: collect($this->lineas)->where('tipo', LineaTipo::Producto->value)->pluck('id')->values()->all(),
             sucursalId: $this->sucursalDelDocumento(),
-            tipoPrecio: $this->tipo_precio,
         );
     }
 
@@ -398,19 +394,6 @@ class VentaForm extends Component
 
         unset($this->lineas[$index]);
         $this->lineas = array_values($this->lineas);
-    }
-
-    /** Re-precia los equipos al cambiar entre precio Vendedor y Cliente. */
-    public function updatedTipoPrecio(): void
-    {
-        $ids = collect($this->lineas)->where('tipo', LineaTipo::Producto->value)->pluck('id');
-        $productos = Producto::whereIn('id', $ids)->get()->keyBy('id');
-
-        foreach ($this->lineas as $i => $linea) {
-            if ($linea['tipo'] === LineaTipo::Producto->value && $p = $productos->get($linea['id'])) {
-                $this->lineas[$i]['precio'] = (float) ($this->tipo_precio === 'Vendedor' ? $p->precio_vendedor : $p->precio_cliente);
-            }
-        }
     }
 
     /** La sucursal no cambia con lineas cargadas (ni en edicion): el stock sale de ella. */

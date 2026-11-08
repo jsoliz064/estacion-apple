@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ArticuloTipo;
 use App\Traits\ArticuloDeStockTrait;
 use App\Traits\Auditable;
+use App\Traits\MontosEnMonedaTrait;
 use App\Traits\NormalizaCodigosTrait;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,6 +18,7 @@ class Accesorio extends Model
 {
     use Auditable;
     use ArticuloDeStockTrait;
+    use MontosEnMonedaTrait;
     use NormalizaCodigosTrait;
 
     protected $table = 'accesorios';
@@ -26,6 +28,11 @@ class Accesorio extends Model
 
     protected $auditarExcluye = ['cantidad'];
 
+    /** Costo y precio cargados en Bs se pasan a USD al guardar (MontosEnMonedaTrait). */
+    public static function columnasEnMoneda(): array
+    {
+        return ['costo' => 'costo_moneda_monto', 'precio' => 'precio_moneda_monto'];
+    }
 
     public static function tipoArticulo(): ArticuloTipo
     {

@@ -25,6 +25,9 @@ return new class extends Migration
             // GuardadoIdempotenteTrait::esClaveDuplicada().
             $table->string('clave_idempotencia', 36)->nullable();
             $table->date('fecha');
+            // En USD, como todo; el TC del dia de la compra, congelado
+            // (Compra::booted), para ver su equivalente en Bs.
+            $table->decimal('tipo_cambio', 10, 4);
             // Total cacheado = SUM(compras_detalles.subtotal). Solo lo escribe
             // Compra::recalcularTotal().
             $table->decimal('total', 12, 2)->default(0);

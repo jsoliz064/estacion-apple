@@ -31,7 +31,16 @@ class Compra extends Model
         'fecha' => 'date',
         'pagada_at' => 'datetime',
         'finalizada_at' => 'datetime',
+        'tipo_cambio' => 'float',
     ];
+
+    /** El TC del dia, congelado al crear la compra (como en Venta). */
+    protected static function booted(): void
+    {
+        static::creating(function (Compra $compra) {
+            $compra->tipo_cambio ??= TipoCambio::actual();
+        });
+    }
 
     public function proveedor()
     {

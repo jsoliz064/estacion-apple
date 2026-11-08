@@ -3,21 +3,21 @@
 namespace App\Traits;
 
 use App\Enums\Moneda;
-use App\Services\PagoService;
+use App\Models\TipoCambio;
 
 /**
  * Las filas de pago de una pantalla (venta: lo cobrado al vender; compra: lo
- * pagado al recibir): metodo, Bs o USD con su tipo de cambio. La vista es el
+ * pagado al recibir): metodo, USD (la base) o Bs con su tipo de cambio. La vista es el
  * parcial livewire.partials.filas-pago. Del lado del servidor las valida y
  * junta Services\Concerns\FilasDePago.
  *
- * Mientras nadie toque los montos, el unico pago (en Bs) sigue a lo que falta:
+ * Mientras nadie toque los montos, el unico pago (en USD) sigue a lo que falta:
  * la operacion de contado en efectivo no pide escribir nada. Cada componente
  * decide a que sigue en seguirTotal().
  */
 trait FilasDePagoFormTrait
 {
-    /** [['metodo_pago_id', 'moneda', 'monto' (Bs), 'monto_moneda' (USD), 'tipo_cambio'], ...] */
+    /** [['metodo_pago_id', 'moneda', 'monto' (USD), 'monto_moneda' (Bs), 'tipo_cambio'], ...] */
     public array $pagos = [];
 
     public bool $montoTocado = false;
@@ -29,10 +29,10 @@ trait FilasDePagoFormTrait
     {
         return [
             'metodo_pago_id' => $metodoId,
-            'moneda' => Moneda::BOB->value,
+            'moneda' => Moneda::base()->value,
             'monto' => $monto,
             'monto_moneda' => '',
-            'tipo_cambio' => \App\Models\TipoCambio::actual(),
+            'tipo_cambio' => TipoCambio::actual(),
         ];
     }
 
@@ -51,16 +51,36 @@ trait FilasDePagoFormTrait
 
     public function updatedPagos($valor, $clave): void
     {
-        if (preg_match('/\.(monto|monto_moneda|moneda)$/', (string) $clave)) {
-            $this->montoTocado = true;
+        if (!preg_match('/^(\d+)\.(monto|monto_moneda|moneda|tipo_cambio)$/', (string) $clave, $m)) {
+            return;
         }
+
+        $this->montoTocado = true;
+        $i = (int) $m[1];
+        $fila = $this->pagos[$i] ?? null;
+
+        if (!$fila || ($fila['moneda'] ?? '') !== Moneda::alterna()->value) {
+            return;
+        }
+
+        // Pasar la fila a Bs propone en Bs lo que ya decia en USD (lo que el
+        // cliente debe, al TC de la fila).
+        if ($m[2] === 'moneda' && !(float) ($fila['monto_moneda'] ?: 0)) {
+            $this->pagos[$i]['monto_moneda'] = round((float) ($fila['monto'] ?: 0) * (float) ($fila['tipo_cambio'] ?: 0), 2);
+        }
+
+        // `monto` sigue siendo el USD de la fila: es lo que suma y lo que valida
+        // el servidor contra Bs / TC.
+        $this->pagos[$i]['monto'] = $this->montoBaseDe($this->pagos[$i]);
     }
 
-    /** El equivalente en Bs de una fila (en USD, dolares x tasa). */
-    public function montoBsDe(array $pago): float
+    /** Lo que vale una fila en USD (en Bs, bolivianos / tasa). */
+    public function montoBaseDe(array $pago): float
     {
-        if (($pago['moneda'] ?? 'BOB') === Moneda::USD->value) {
-            return round((float) ($pago['monto_moneda'] ?: 0) * (float) ($pago['tipo_cambio'] ?: 0), 2);
+        if (($pago['moneda'] ?? '') === Moneda::alterna()->value) {
+            $tc = (float) ($pago['tipo_cambio'] ?: 0);
+
+            return $tc > 0 ? round((float) ($pago['monto_moneda'] ?: 0) / $tc, 2) : 0.0;
         }
 
         return round((float) ($pago['monto'] ?: 0), 2);
@@ -68,13 +88,13 @@ trait FilasDePagoFormTrait
 
     public function sumaFilas(): float
     {
-        return round(array_sum(array_map(fn($p) => $this->montoBsDe($p), $this->pagos)), 2);
+        return round(array_sum(array_map(fn($p) => $this->montoBaseDe($p), $this->pagos)), 2);
     }
 
-    /** El unico pago en Bs, sin tocar, pasa a valer $monto. */
+    /** El unico pago en USD, sin tocar, pasa a valer $monto. */
     protected function seguirMonto(float $monto): void
     {
-        if (!$this->montoTocado && count($this->pagos) === 1 && ($this->pagos[0]['moneda'] ?? 'BOB') === Moneda::BOB->value) {
+        if (!$this->montoTocado && count($this->pagos) === 1 && ($this->pagos[0]['moneda'] ?? '') === Moneda::base()->value) {
             $this->pagos[0]['monto'] = max(0, round($monto, 2));
         }
     }

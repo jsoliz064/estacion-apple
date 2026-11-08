@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use App\Traits\MontosEnMonedaFormTrait;
 use Livewire\Component;
 use Livewire\Attributes\On;
 use Livewire\WithFileUploads;
@@ -26,6 +27,7 @@ use Livewire\WithFileUploads;
 
 class CompraLoteProductoEditModal extends Component
 {
+    use MontosEnMonedaFormTrait;
     use WithFileUploads;
 
     public $openModal = false;
@@ -73,9 +75,9 @@ class CompraLoteProductoEditModal extends Component
         $producto = Producto::with(['modelo', 'modelo.almacenamientos', 'imagenes',])->find($id);
         $this->producto = $producto->toArray();
         $this->producto['nombre'] = $producto->modelo->nombre;
-        // La columna guarda 4 decimales ("6.9600"): en pantalla, 2.
-        if ($this->producto['costo_tipo_cambio'] !== null) {
-            $this->producto['costo_tipo_cambio'] = round((float) $this->producto['costo_tipo_cambio'], 2);
+        // La columna guarda 4 decimales ("6.9600"): en pantalla, sin los ceros.
+        if ($this->producto['tipo_cambio'] !== null) {
+            $this->producto['tipo_cambio'] = (float) $this->producto['tipo_cambio'];
         }
         $this->enBorrador = $producto->estado === ProductoEstado::EnCompra->value;
         $this->producto['status'] = $this->enBorrador
@@ -108,30 +110,15 @@ class CompraLoteProductoEditModal extends Component
     public function updatedProducto($value = null, $key = null)
     {
         $this->generateDescription();
-
-        if ($key === 'costo_moneda' && $value === Moneda::USD->value) {
-            // Pasar a USD propone el tipo de cambio y los dolares del costo actual.
-            $tc = round((float) ($this->producto['costo_tipo_cambio'] ?? 0), 2) ?: \App\Models\TipoCambio::actual();
-            $this->producto['costo_tipo_cambio'] = $tc;
-            if (!(float) ($this->producto['costo_moneda_monto'] ?? 0)) {
-                $this->producto['costo_moneda_monto'] = round((float) $this->producto['costo_unidad'] / $tc, 2);
-            }
-        }
-
-        if (in_array($key, ['costo_moneda', 'costo_moneda_monto', 'costo_tipo_cambio'], true)) {
-            $this->sincronizarCostoBs();
-        }
+        $this->montoEnMonedaCambio('producto.' . $key);
     }
 
-    /** En USD, el costo en Bs = USD x TC (para mostrarlo; Producto lo recalcula al guardar). */
-    private function sincronizarCostoBs(): void
+    protected function camposMoneda(): array
     {
-        $usd = $this->producto['costo_moneda_monto'] ?? null;
-        $tc = $this->producto['costo_tipo_cambio'] ?? null;
-
-        if (($this->producto['costo_moneda'] ?? null) === Moneda::USD->value && is_numeric($usd) && is_numeric($tc)) {
-            $this->producto['costo_unidad'] = round((float) $usd * (float) $tc, 2);
-        }
+        return [
+            'moneda' => 'producto.moneda', 'costo' => 'producto.costo_unidad', 'precio' => 'producto.precio',
+            'costo_bs' => 'producto.costo_moneda_monto', 'precio_bs' => 'producto.precio_moneda_monto', 'tc' => 'producto.tipo_cambio',
+        ];
     }
 
     protected function generateDescription()
@@ -154,7 +141,7 @@ class CompraLoteProductoEditModal extends Component
         // errores por campo en un unico addError('general'). El usuario veia
         // "Error: The given data was invalid" sin saber que campo arreglar.
         $this->producto['sku'] = NormalizaCodigosTrait::normalizarCodigo($this->producto['sku'] ?? null);
-        $this->sincronizarCostoBs();
+        $this->sincronizarMontosEnMoneda();
 
         $this->validate([
             'producto.almacenamiento' => 'required',
@@ -162,16 +149,12 @@ class CompraLoteProductoEditModal extends Component
             'producto.version' => 'nullable',
             'producto.bateria_porcentaje' => 'required|numeric|min:0|max:100',
             'producto.costo_unidad' => 'required|numeric|min:0',
-            'producto.costo_moneda' => ['required', Rule::in(Moneda::values())],
-            'producto.costo_moneda_monto' => ($this->producto['costo_moneda'] ?? null) === Moneda::USD->value ? 'required|numeric|gt:0' : 'nullable',
-            'producto.costo_tipo_cambio' => ($this->producto['costo_moneda'] ?? null) === Moneda::USD->value ? 'required|numeric|gt:0|decimal:0,2' : 'nullable',
             // Un sticker de Codigos de barras se asigna a un solo registro.
             'producto.sku' => ['nullable', 'string', 'max:50', Rule::unique('productos', 'sku')->ignore($this->producto['id'] ?? null),
                 new CodigoGeneradoLibre('Producto', $this->producto['id'] ?? null)],
             'producto.upc' => ['nullable', 'string', 'max:50', new CodigoGeneradoLibre('Producto', $this->producto['id'] ?? null)],
             'producto.tipo_venta' => ['required', Rule::in(ProductoTipoVenta::values())],
-            'producto.precio_cliente' => 'required|numeric|min:0',
-            'producto.precio_vendedor' => 'required|numeric|min:0',
+            'producto.precio' => 'required|numeric|min:0',
             // Vendido y Credito solo los escribe una venta.
             'producto.status' => ['required', Rule::in($this->enBorrador
                 ? CompraService::estadosDestinoBorrador()
@@ -189,10 +172,9 @@ class CompraLoteProductoEditModal extends Component
             'producto.disponible_catalogo' => 'required',
             'producto.sucursal_id' => 'required',
             'producto.estado_grado' => ['required', Rule::in(ProductoGrado::values())],
-        ], [
+        ] + $this->reglasMontosEnMoneda(), [
             'producto.sku.unique' => 'Ese SKU ya lo tiene otro equipo.',
-            'producto.costo_tipo_cambio.decimal' => 'El tipo de cambio debe tener máximo 2 decimales.',
-        ]);
+        ], $this->atributosMontosEnMoneda());
 
         $estados = app(EstadoProductoService::class);
 
@@ -220,15 +202,13 @@ class CompraLoteProductoEditModal extends Component
                 'bateria_porcentaje' => $this->producto['bateria_porcentaje'],
                 'sku' => $this->producto['sku'],
                 'upc' => $this->producto['upc'] ?? null,
-                // El de un equipo recibido en permuta no cambia: es el pago de la venta.
+                // El de un equipo recibido en permuta no cambia: es el pago de la
+                // venta, y queda en USD (la moneda se bloquea en la pantalla).
                 'costo_unidad' => $esPermuta ? $product->costo_unidad : $this->producto['costo_unidad'],
-                // En USD, Producto deriva costo_unidad de estos dos al guardar.
-                'costo_moneda' => $esPermuta ? $product->costo_moneda : $this->producto['costo_moneda'],
-                'costo_moneda_monto' => $esPermuta ? $product->costo_moneda_monto : ($this->producto['costo_moneda_monto'] ?? null),
-                'costo_tipo_cambio' => $esPermuta ? $product->costo_tipo_cambio : ($this->producto['costo_tipo_cambio'] ?? null),
+                'precio' => $this->producto['precio'],
+                // En Bs, Producto deriva costo_unidad y precio de estos al guardar.
+                ...($esPermuta ? [] : $this->datosMontosEnMoneda()),
                 'tipo_venta' => $this->producto['tipo_venta'],
-                'precio_cliente' => $this->producto['precio_cliente'],
-                'precio_vendedor' => $this->producto['precio_vendedor'],
                 'descripcion' => $this->descripcion,
                 'detalles' => $this->producto['detalles'],
                 'estado_grado' => $this->producto['estado_grado'],

@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use App\Enums\Moneda;
 use App\Enums\ProductoEstado;
 use App\Enums\ReparacionTipo;
 use App\Traits\Auditable;
+use App\Traits\MontosEnMonedaTrait;
 use App\Traits\NormalizaCodigosTrait;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 class Producto extends Model
 {
     use Auditable;
+    use MontosEnMonedaTrait;
     use NormalizaCodigosTrait;
 
     protected $table = 'productos';
@@ -23,35 +24,13 @@ class Producto extends Model
     ];
 
     /**
-     * El costo en USD se convierte a Bs AQUI, al guardar, y no en cada pantalla:
-     * `costo_unidad` es lo que leen la linea de compra, el costo congelado de la
-     * venta y los reportes, y no puede contradecir a los dolares de los que sale.
-     * Asi el alta, la edicion y el reemplazo de un reclamo dan el mismo numero.
-     * Quien cambia el costo llama despues a recalcularCosto() (costo_total).
+     * Costo y precio cargados en Bs se pasan a USD al guardar
+     * (MontosEnMonedaTrait). Quien cambia el costo llama despues a
+     * recalcularCosto() (costo_total).
      */
-    protected static function booted(): void
+    public static function columnasEnMoneda(): array
     {
-        static::saving(function (Producto $producto) {
-            $moneda = $producto->getAttribute('costo_moneda');
-
-            if ($moneda === Moneda::USD->value) {
-                $producto->costo_unidad = round((float) $producto->costo_moneda_monto * (float) $producto->costo_tipo_cambio, 2);
-            } elseif ($moneda === Moneda::BOB->value) {
-                $producto->costo_moneda_monto = null;
-                $producto->costo_tipo_cambio = null;
-            }
-        });
-    }
-
-    /** El costo como se cargo: «USD 300,00 × 6,96» o «Bs 2.088,00». */
-    public function costoEnMoneda(): string
-    {
-        if ($this->costo_moneda === Moneda::USD->value) {
-            return 'USD ' . number_format((float) $this->costo_moneda_monto, 2, ',', '.')
-                . ' × ' . number_format((float) $this->costo_tipo_cambio, 2, ',', '.');
-        }
-
-        return 'Bs ' . number_format((float) $this->costo_unidad, 2, ',', '.');
+        return ['costo_unidad' => 'costo_moneda_monto', 'precio' => 'precio_moneda_monto'];
     }
 
     /**

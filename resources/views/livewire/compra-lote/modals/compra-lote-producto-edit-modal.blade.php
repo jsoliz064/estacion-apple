@@ -59,28 +59,30 @@
                         </div>
 
 
+                        <div class="animate-fade-in">
+                            @include('livewire.partials.montos-moneda', [
+                                'c' => [
+                                    'moneda' => 'producto.moneda', 'costo' => 'producto.costo_unidad', 'precio' => 'producto.precio',
+                                    'costo_bs' => 'producto.costo_moneda_monto', 'precio_bs' => 'producto.precio_moneda_monto', 'tc' => 'producto.tipo_cambio',
+                                ],
+                                'enBs' => $this->enBs(), 'costo' => $producto['costo_unidad'] ?? 0, 'precio' => $producto['precio'] ?? 0,
+                                'costoBloqueado' => $producto['es_permuta'] ?? false,
+                            ])
+                            @if ($producto['es_permuta'] ?? false)
+                                <p class="mt-1 text-xs text-gray-500">Recibido en permuta: su costo es el valor reconocido en la venta y no se cambia aquí.</p>
+                            @endif
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
                             <div>
-                                @include('livewire.compra-lote.partials.costo-moneda', [
-                                    'mMoneda' => 'producto.costo_moneda', 'mUsd' => 'producto.costo_moneda_monto', 'mTc' => 'producto.costo_tipo_cambio', 'mBs' => 'producto.costo_unidad',
-                                    'moneda' => $producto['costo_moneda'] ?? 'BOB', 'costoBs' => $producto['costo_unidad'] ?? 0, 'bloqueado' => $producto['es_permuta'] ?? false,
-                                ])
-                                @if ($producto['es_permuta'] ?? false)
-                                    <p class="mt-1 text-xs text-gray-500">Recibido en permuta: su costo es el valor reconocido en la venta y no se cambia aquí.</p>
-                                @endif
-                            </div>
-
-                            <div>
-                                <x-label value="Costo regalos (Bs)" />
+                                <x-label value="Costo regalos (USD)" />
                                 <x-input wire:model="producto.costo_regalos" type="number" class="mt-2 block w-full h-10" disabled="true" />
                                 <p class="mt-1 text-xs text-gray-500">Se cargan desde «Regalos» en la ficha del equipo.</p>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-
                             <div>
-                                <x-label value="Costo reparación (Bs)" />
+                                <x-label value="Costo reparación (USD)" />
                                 <x-input wire:model="producto.costo_reparacion" type="number"
                                     class="mt-2 block w-full h-10 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200
                                        focus:border-brand-500 focus:ring-brand-500"
@@ -89,33 +91,12 @@
                             </div>
 
                             <div>
-                                <x-label value="Costo total (Bs)" />
+                                <x-label value="Costo total (USD)" />
                                 <x-input wire:model="producto.costo_total" type="number"
                                     class="mt-2 block w-full h-10 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200
                                        focus:border-brand-500 focus:ring-brand-500"
                                     disabled="true" />
                                 <x-input-error for="producto.costo_total" class="mt-1" />
-                            </div>
-
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-                            <div>
-                                <x-label value="Precio Vendedor (Bs) *" />
-                                <x-input wire:model="producto.precio_vendedor" type="number" step="0.01"
-                                    class="mt-2 block w-full h-10 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200
-                                       focus:border-brand-500 focus:ring-brand-500"
-                                    placeholder="0.00" />
-                                <x-input-error for="producto.precio_vendedor" class="mt-1" />
-                            </div>
-
-                            <div>
-                                <x-label value="Precio Cliente (Bs) *" />
-                                <x-input wire:model="producto.precio_cliente" type="number" step="0.01"
-                                    class="mt-2 block w-full h-10 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200
-                                       focus:border-brand-500 focus:ring-brand-500"
-                                    placeholder="0.00" />
-                                <x-input-error for="producto.precio_cliente" class="mt-1" />
                             </div>
 
                         </div>
