@@ -97,9 +97,7 @@ class EstadoProductoService
      *
      * NO toca disponible_catalogo. Las tres puertas lo ponian en false al
      * vender, y era redundante y destructivo a la vez: el catalogo ya excluye
-     * Vendido con un whereNotIn explicito, y su condicion es
-     * `disponible_catalogo = 1 OR estado IN (Inventario, Oferta)` -- un OR, asi
-     * que la bandera no cambiaba nada de lo que se ve. Lo que si hacia era
+     * lo vendido por estado (Producto::scopeEnCatalogo). Lo que si hacia era
      * pisar para siempre una casilla que marca el operador a mano en el modal
      * del lote, sin guardar el valor anterior en ninguna parte: al cancelar la
      * venta no habia nada que restaurar.

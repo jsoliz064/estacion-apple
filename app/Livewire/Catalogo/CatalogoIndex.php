@@ -3,187 +3,256 @@
 namespace App\Livewire\Catalogo;
 
 use App\Enums\ProductoAlmacenamiento;
-use App\Enums\ProductoEstado;
+use App\Enums\ProductoGrado;
+use App\Enums\ProductoTipoVenta;
+use App\Http\Controllers\ProductoMiniaturaController;
+use App\Models\Color;
 use App\Models\Producto;
-use App\Models\ProductoModelo;
-use Illuminate\Support\Facades\DB;
+use App\Support\Dinero;
+use Illuminate\Database\Eloquent\Builder;
+use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithPagination;
 
+/**
+ * El catalogo publico (/catalogo), pensado para el celular del cliente.
+ *
+ * Solo lo que publica Producto::scopeEnCatalogo() (Inventario, sin baja y con
+ * la casilla marcada): los chips de modelo, almacenamiento y grado tambien
+ * salen de ahi, asi que un modelo sin equipos no aparece (antes habia una
+ * seccion «Agotados» con todo el catalogo base).
+ *
+ * Los filtros y el equipo abierto viven en la URL: un link compartido abre lo
+ * mismo, y `equipo` va con history para que el «atras» del celular cierre el
+ * detalle en vez de salir de la pagina.
+ *
+ * Nunca muestra ni busca por IMEI: es una pagina publica.
+ */
 class CatalogoIndex extends Component
 {
-    use WithPagination;
+    public const POR_PAGINA = 12;
 
-    public $search = '';
-    public $filterStorage = '';
-    public $filterModel = '';
-    public $selectedProduct = null;
-    public $currentImageIndex = 0;
-    public $models = [];
-    public $availableModels = 0;
-    public $soldOutModels = 0;
-    public $minPriceLimit = 0;
-    public $maxPriceLimit = 0;
-
-    public $storageOptionsByModel = [];
-
-    protected $queryString = [
-        'search' => ['except' => ''],
-        'filterStorage' => ['except' => ''],
-        'filterColor' => ['except' => ''],
-        'filterModel' => ['except' => ''],
-        'filterPriceRange' => ['except' => [0, 0]],
-        'sortBy' => ['except' => 'newest'],
+    public const ORDENES = [
+        'recomendados' => 'Recomendados',
+        'precio_asc' => 'Menor precio',
+        'precio_desc' => 'Mayor precio',
+        'recientes' => 'Recién llegados',
     ];
 
+    #[Url(as: 'q', except: '')]
+    public string $search = '';
 
-    public function updatedFilterModel($value)
+    #[Url(as: 'modelo', except: '')]
+    public string $modeloId = '';
+
+    #[Url(as: 'gb', except: '')]
+    public string $almacenamiento = '';
+
+    #[Url(except: '')]
+    public string $grado = '';
+
+    #[Url(except: 'recomendados')]
+    public string $orden = 'recomendados';
+
+    #[Url(as: 'equipo', except: '', history: true)]
+    public string $equipoId = '';
+
+    public int $porPagina = self::POR_PAGINA;
+
+    public function updated($propiedad): void
     {
-        $this->reset('filterStorage');
-        $this->resetPage();
-
-        if ($value) {
-            $this->loadStorageOptions($value);
-        } else {
-            $this->storageOptionsByModel = [];
+        if (in_array($propiedad, ['search', 'modeloId', 'almacenamiento', 'grado', 'orden'], true)) {
+            $this->porPagina = self::POR_PAGINA;
         }
     }
 
-    protected function loadStorageOptions($modelId)
+    public function elegirModelo($id): void
     {
-        $query = Producto::query()
-            ->where('producto_modelo_id', $modelId)
-            ->whereNotIn('productos.estado', ProductoEstado::fueraDeCatalogo())->whereNull('productos.dado_de_baja_at')
-            ->where(function ($q) {
-                $q->where('disponible_catalogo', true)
-                    ->orWhereIn('estado', ProductoEstado::disponibles());
-            });
-
-        $this->storageOptionsByModel = $query
-            ->select('almacenamiento', DB::raw('count(*) as count'))
-            ->groupBy('almacenamiento')
-            ->orderBy('almacenamiento')
-            ->get()
-            ->mapWithKeys(function ($item) {
-                return [$item->almacenamiento => $item->count];
-            })
-            ->toArray();
+        // Tocar el elegido lo suelta. El almacenamiento es del modelo: se limpia.
+        $this->modeloId = (string) $this->modeloId === (string) $id ? '' : (string) $id;
+        $this->almacenamiento = '';
+        $this->porPagina = self::POR_PAGINA;
     }
 
-    public function filterByStorage($storage)
+    public function elegirAlmacenamiento(string $valor): void
     {
-        $this->filterStorage = $storage;
-        $this->resetPage();
+        $this->almacenamiento = $this->almacenamiento === $valor ? '' : $valor;
+        $this->porPagina = self::POR_PAGINA;
     }
 
-    public function selectProduct($productId)
+    public function elegirGrado(string $valor): void
     {
-        // Solo lo publicable: un id viejo (vendido, reservado, dado de baja)
-        // no se abre aunque llegue por la peticion.
-        $this->selectedProduct = Producto::with('imagenes')
-            ->whereNotIn('productos.estado', ProductoEstado::fueraDeCatalogo())
-            ->whereNull('productos.dado_de_baja_at')
-            ->find($productId);
-        $this->currentImageIndex = 0;
-        $this->dispatch('product-selected');
+        $this->grado = $this->grado === $valor ? '' : $valor;
+        $this->porPagina = self::POR_PAGINA;
     }
 
-    public function closeProductDetail()
+    public function limpiar(): void
     {
-        $this->selectedProduct = null;
+        $this->reset(['search', 'modeloId', 'almacenamiento', 'grado', 'orden']);
+        $this->porPagina = self::POR_PAGINA;
     }
 
-    public function nextImage()
+    public function verMas(): void
     {
-        if ($this->selectedProduct && $this->selectedProduct->imagenes->count() > 0) {
-            $this->currentImageIndex = ($this->currentImageIndex + 1) % $this->selectedProduct->imagenes->count();
+        $this->porPagina += self::POR_PAGINA;
+    }
+
+    public function abrir($id): void
+    {
+        $this->equipoId = (string) (int) $id;
+    }
+
+    public function cerrar(): void
+    {
+        $this->equipoId = '';
+    }
+
+    /**
+     * Lo publicado con los filtros aplicados, menos los que se nombran en
+     * $sin: cada fila de chips cuenta con los DEMAS filtros, para que elegir
+     * un grado no deje la fila de grados con uno solo.
+     */
+    private function consulta(array $sin = []): Builder
+    {
+        $q = Producto::query()->enCatalogo();
+
+        if ($this->search !== '' && !in_array('search', $sin, true)) {
+            $termino = '%' . trim($this->search) . '%';
+            $q->where(fn($w) => $w
+                ->whereHas('modelo', fn($m) => $m->where('nombre', 'like', $termino))
+                ->orWhere('productos.almacenamiento', 'like', $termino)
+                ->orWhere('productos.color', 'like', $termino)
+                ->orWhere('productos.estado_grado', 'like', $termino));
         }
-    }
-
-    public function prevImage()
-    {
-        if ($this->selectedProduct && $this->selectedProduct->imagenes->count() > 0) {
-            $this->currentImageIndex = ($this->currentImageIndex - 1 + $this->selectedProduct->imagenes->count()) % $this->selectedProduct->imagenes->count();
+        if ($this->modeloId !== '' && !in_array('modelo', $sin, true)) {
+            $q->where('productos.producto_modelo_id', (int) $this->modeloId);
         }
+        if ($this->almacenamiento !== '' && !in_array('almacenamiento', $sin, true)) {
+            $q->where('productos.almacenamiento', $this->almacenamiento);
+        }
+        if ($this->grado !== '' && !in_array('grado', $sin, true)) {
+            $q->where('productos.estado_grado', $this->grado);
+        }
+
+        return $q;
     }
 
-    public function selectImage($index)
+    private function ordenar(Builder $q): Builder
     {
-        $this->currentImageIndex = $index;
+        return match ($this->orden) {
+            'precio_asc' => $q->orderBy('productos.precio')->orderByDesc('productos.id'),
+            'precio_desc' => $q->orderByDesc('productos.precio')->orderByDesc('productos.id'),
+            'recientes' => $q->orderByDesc('productos.created_at')->orderByDesc('productos.id'),
+            // Los destacados primero, despues lo ultimo que entro.
+            default => $q->orderByDesc('productos.venta_rapida')->orderByDesc('productos.created_at')->orderByDesc('productos.id'),
+        };
     }
 
-    public function resetFilters()
+    /** Los modelos con equipos publicados, con su cantidad. */
+    private function modelos()
     {
-        $this->reset(['search', 'filterStorage', 'filterModel', 'storageOptionsByModel']);
-        $this->resetPage();
+        return $this->consulta(['modelo', 'almacenamiento'])
+            ->join('productos_modelos as m', 'm.id', '=', 'productos.producto_modelo_id')
+            ->groupBy('m.id', 'm.nombre')
+            ->orderBy('m.nombre')
+            ->selectRaw('m.id, m.nombre, COUNT(*) AS cantidad')
+            ->toBase()
+            ->get();
     }
 
-    public function selectModel($modelId)
+    /** Almacenamientos del modelo elegido, en el orden del enum (64GB antes que 1TB). */
+    private function almacenamientos(): array
     {
-        $this->filterModel = $modelId;
-        $this->loadStorageOptions($modelId);
-        $this->reset('filterStorage');
-        $this->resetPage();
+        if ($this->modeloId === '') {
+            return [];
+        }
+
+        $hay = $this->consulta(['almacenamiento'])
+            ->groupBy('productos.almacenamiento')
+            ->selectRaw('productos.almacenamiento AS valor, COUNT(*) AS cantidad')
+            ->pluck('cantidad', 'valor');
+
+        $orden = array_column(ProductoAlmacenamiento::cases(), 'value');
+
+        return $hay->map(fn($c) => (int) $c)
+            ->sortBy(fn($c, $valor) => ($i = array_search($valor, $orden, true)) === false ? 99 : $i)
+            ->all();
+    }
+
+    /** Grados con equipos, en el orden del enum. */
+    private function grados(): array
+    {
+        $hay = $this->consulta(['grado'])
+            ->whereNotNull('productos.estado_grado')
+            ->groupBy('productos.estado_grado')
+            ->selectRaw('productos.estado_grado AS valor, COUNT(*) AS cantidad')
+            ->pluck('cantidad', 'valor');
+
+        return collect(ProductoGrado::values())
+            ->filter(fn($g) => isset($hay[$g]))
+            ->mapWithKeys(fn($g) => [$g => (int) $hay[$g]])
+            ->all();
+    }
+
+    /** El equipo abierto, solo si se sigue publicando (un link viejo no abre nada). */
+    private function equipo(): ?Producto
+    {
+        if ($this->equipoId === '' || !ctype_digit($this->equipoId)) {
+            return null;
+        }
+
+        return Producto::enCatalogo()->with(['imagenes', 'modelo'])->find((int) $this->equipoId);
+    }
+
+    public static function miniatura(Producto $p): ?string
+    {
+        $primera = $p->imagenes->sortBy('id')->first();
+
+        return $primera ? ProductoMiniaturaController::url($primera->id, ProductoMiniaturaController::LADO_CATALOGO) : null;
+    }
+
+    public static function esOferta(Producto $p): bool
+    {
+        return $p->tipo_venta === ProductoTipoVenta::Oferta->value;
+    }
+
+    public static function recienLlegado(Producto $p): bool
+    {
+        return $p->created_at !== null && $p->created_at->gt(now()->subDays(3));
+    }
+
+    private function nombre(Producto $p): string
+    {
+        return trim(($p->modelo?->nombre ?? 'Equipo') . ' ' . $p->almacenamiento . ' ' . $p->color);
+    }
+
+    /** El link de WhatsApp: general, o la consulta por un equipo con su link. */
+    public function whatsapp(?Producto $p = null): string
+    {
+        $texto = $p
+            ? "Hola, me interesa el {$this->nombre($p)}"
+                . ($p->estado_grado ? " ({$p->estado_grado}" . ($p->bateria_porcentaje ? ", batería {$p->bateria_porcentaje}%" : '') . ')' : '')
+                . ' de ' . Dinero::usd($p->precio) . '. ' . route('catalogo', ['equipo' => $p->id])
+            : 'Hola, quisiera consultar por un equipo del catálogo.';
+
+        return 'https://wa.me/' . config('tienda.whatsapp') . '?text=' . rawurlencode($texto);
     }
 
     public function render()
     {
-        $this->models = ProductoModelo::withCount([
-            'productos as productos_disponibles_count' => function ($query) {
-                $query->whereNotIn('productos.estado', ProductoEstado::fueraDeCatalogo())->whereNull('productos.dado_de_baja_at')
-                    ->where(function ($q) {
-                        $q->where('disponible_catalogo', 1)
-                            ->orWhereIn('estado', ProductoEstado::disponibles());
-                    });
-            },
-        ])->get();
-
-        $this->availableModels = $this->models->where('productos_disponibles_count', '>', 0);
-        $this->soldOutModels = $this->models->where('productos_disponibles_count', 0);
-
-        $query = Producto::query()
-            ->with(['imagenes', 'modelo'])
-            ->whereNotIn('productos.estado', ProductoEstado::fueraDeCatalogo())->whereNull('productos.dado_de_baja_at')
-            ->where(function ($q) {
-                $q->where('disponible_catalogo', 1)
-                    ->orWhereIn('estado', ProductoEstado::disponibles());
-            });
-        $filtersActive = $this->search || $this->filterModel;
-
-        if (!$filtersActive) {
-            $query->where('venta_rapida', true)
-                ->orderByDesc('venta_rapida');
-        } else {
-            if ($this->search) {
-                $query->where(function ($q) {
-                    $q->whereHas('modelo', function ($modelQuery) {
-                        $modelQuery->where('nombre', 'like', '%' . $this->search . '%');
-                    })
-                        ->orWhere('imei', 'like', '%' . $this->search . '%')
-                        ->orWhere('descripcion', 'like', '%' . $this->search . '%')
-                        ->orWhere('almacenamiento', 'like', '%' . $this->search . '%')
-                        ->orWhere('color', 'like', '%' . $this->search . '%');
-                });
-            } else {
-
-                if ($this->filterModel) {
-                    $query->whereHas('modelo', function ($q) {
-                        $q->where('id', $this->filterModel);
-                    });
-                }
-                if ($this->filterStorage) {
-                    $query->where('almacenamiento', $this->filterStorage);
-                }
-            }
-        }
-
-        $products = $query->paginate(12);
+        $consulta = $this->consulta();
+        $total = (clone $consulta)->count();
 
         return view('livewire.catalogo.catalogo-index', [
-            'products' => $products,
-            'storageOptions' => ProductoAlmacenamiento::cases(),
-            'filtersActive' => $filtersActive,
-            'storageOptionsByModel' => $this->storageOptionsByModel,
+            'equipos' => $this->ordenar($consulta)->with(['imagenes', 'modelo'])->limit($this->porPagina)->get(),
+            'total' => $total,
+            'publicados' => Producto::enCatalogo()->count(),
+            'modelos' => $this->modelos(),
+            'almacenamientos' => $this->almacenamientos(),
+            'grados' => $this->grados(),
+            'equipo' => $this->equipo(),
+            // Una consulta para el punto de color de tarjetas y detalle.
+            'hexColores' => Color::pluck('hex', 'nombre'),
+            'filtrosActivos' => $this->search !== '' || $this->modeloId !== '' || $this->almacenamiento !== '' || $this->grado !== '',
         ]);
     }
 }

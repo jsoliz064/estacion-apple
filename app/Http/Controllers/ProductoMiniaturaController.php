@@ -3,30 +3,44 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProductoImagen;
+use Illuminate\Http\Request;
 
 /**
- * La miniatura de una foto de equipo, para las tablas (Productos y el detalle
- * de la compra).
+ * La miniatura de una foto de equipo: 160 px para las tablas (Productos y el
+ * detalle de la compra) y 480 px para las tarjetas del catalogo publico.
  *
- * La foto completa es de hasta 1280 px (100-300 KB) y la tabla muestra 40 px
- * (80 en el desplegable del celular); rappasoft la redibuja en cada filtro,
- * busqueda o pagina. Se reduce una vez a 160 px con GD (nitida a 80 px en una
- * pantalla 2x) y queda en disco.
+ * La foto completa es de hasta 1280 px (100-300 KB). La tabla muestra 40 px
+ * (80 en el desplegable del celular) y la tarjeta del catalogo unos 180 px de
+ * ancho en un celular 2x. Se reduce una vez con GD y queda en disco.
+ *
+ * Publica, como la foto completa (ProductoFotoController): el catalogo no
+ * tiene sesion, y una miniatura no expone mas que la foto.
  *
  * Cache eterno: una imagen no se edita nunca (editar fotos borra filas y crea
  * otras), asi que su id identifica siempre los mismos bytes.
  */
 class ProductoMiniaturaController extends Controller
 {
+    /** Lo de las tablas. */
     public const LADO = 160;
+    /** Lo de las tarjetas del catalogo. */
+    public const LADO_CATALOGO = 480;
+    /** Los unicos lados que se generan: un ?l= libre llenaria el disco. */
+    public const LADOS = [self::LADO, self::LADO_CATALOGO];
 
     /**
      * El lado va en el nombre del archivo y en la URL: el navegador guarda la
-     * miniatura como inmutable, y cambiar LADO sin cambiar la URL dejaria la vieja.
+     * miniatura como inmutable, y cambiar el lado sin cambiar la URL dejaria la vieja.
      */
-    public static function ruta(int $imagenId): string
+    public static function ruta(int $imagenId, int $lado = self::LADO): string
     {
-        return storage_path("app/miniaturas/{$imagenId}-" . self::LADO . '.jpg');
+        return storage_path("app/miniaturas/{$imagenId}-{$lado}.jpg");
+    }
+
+    /** La URL de la miniatura de ese lado. */
+    public static function url(int $imagenId, int $lado = self::LADO): string
+    {
+        return route('productos.miniatura', ['imagen' => $imagenId, 'l' => $lado]);
     }
 
     /**
@@ -46,7 +60,7 @@ class ProductoMiniaturaController extends Controller
 
         return '<button type="button" title="Ver fotos" class="inline-block align-middle cursor-pointer rounded-md hover:opacity-80" '
             . 'wire:click="$dispatch(\'openProductoFotosModal\', { id: ' . $productoId . ' })">'
-            . '<img src="' . e(route('productos.miniatura', ['imagen' => $imagenId, 'l' => self::LADO])) . '" loading="lazy" alt="" class="h-20 w-20 lg:h-10 lg:w-10 rounded-md object-cover">'
+            . '<img src="' . e(self::url($imagenId)) . '" loading="lazy" alt="" class="h-20 w-20 lg:h-10 lg:w-10 rounded-md object-cover">'
             . '</button>';
     }
 
@@ -56,9 +70,13 @@ class ProductoMiniaturaController extends Controller
         return ProductoImagen::selectRaw('MIN(id)')->whereColumn('producto_id', 'productos.id');
     }
 
-    public function __invoke(int $imagen)
+    public function __invoke(Request $request, int $imagen)
     {
-        $ruta = self::ruta($imagen);
+        $lado = (int) $request->query('l', self::LADO);
+        if (!in_array($lado, self::LADOS, true)) {
+            $lado = self::LADO;
+        }
+        $ruta = self::ruta($imagen, $lado);
 
         if (!is_file($ruta)) {
             $foto = ProductoImagen::find($imagen);
@@ -68,20 +86,19 @@ class ProductoMiniaturaController extends Controller
             // Sin GD con JPEG (le pasaba a produccion) la miniatura no se puede
             // hacer: se sirve la foto entera, sin el cache eterno, para que la
             // tabla no muestre una imagen rota y la reduzca cuando GD funcione.
-            if (!$this->generar($contenido, $ruta)) {
-                return response($contenido, 200, ['Content-Type' => 'image/jpeg', 'Cache-Control' => 'private, no-cache']);
+            if (!$this->generar($contenido, $ruta, $lado)) {
+                return response($contenido, 200, ['Content-Type' => 'image/jpeg', 'Cache-Control' => 'no-cache']);
             }
         }
 
-        // setPrivate(): BinaryFileResponse se marca public sola, y va detras del login.
         return response()->file($ruta, ['Content-Type' => 'image/jpeg'])
-            ->setPrivate()
+            ->setPublic()
             ->setMaxAge(31536000)
             ->setImmutable();
     }
 
-    /** Recorta al centro en cuadrado y la reduce a LADO x LADO. */
-    private function generar(string $contenido, string $ruta): bool
+    /** Recorta al centro en cuadrado y la reduce a $lado x $lado (sin agrandar). */
+    private function generar(string $contenido, string $ruta, int $lado): bool
     {
         $origen = @imagecreatefromstring($contenido);
         if ($origen === false) {
@@ -90,10 +107,11 @@ class ProductoMiniaturaController extends Controller
 
         $ancho = imagesx($origen);
         $alto = imagesy($origen);
-        $lado = min($ancho, $alto);
+        $corte = min($ancho, $alto);
+        $lado = min($lado, $corte);
 
-        $mini = imagecreatetruecolor(self::LADO, self::LADO);
-        imagecopyresampled($mini, $origen, 0, 0, intdiv($ancho - $lado, 2), intdiv($alto - $lado, 2), self::LADO, self::LADO, $lado, $lado);
+        $mini = imagecreatetruecolor($lado, $lado);
+        imagecopyresampled($mini, $origen, 0, 0, intdiv($ancho - $corte, 2), intdiv($alto - $corte, 2), $lado, $lado, $corte, $corte);
 
         if (!is_dir(dirname($ruta))) {
             mkdir(dirname($ruta), 0775, true);

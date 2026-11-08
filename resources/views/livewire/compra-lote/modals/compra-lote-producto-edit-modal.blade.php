@@ -217,7 +217,7 @@
                             <div class="flex items-between">
                                 <input type="checkbox" wire:model="producto.disponible_catalogo"
                                     class="form-checkbox h-5 w-5 text-brand-600 transition duration-150 ease-in-out rounded dark:bg-gray-700 dark:border-gray-600">
-                                <span class="text-gray-700 dark:text-gray-200">Mostrar en Catálogo</span>
+                                <span class="text-gray-700 dark:text-gray-200">Mostrar en el catálogo público</span>
                                 <x-input-error for="producto.disponible_catalogo" class="mt-1" />
                             </div>
                         </div>

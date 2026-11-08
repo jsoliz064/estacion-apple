@@ -30,7 +30,10 @@ class ProductoImagen extends Model
     {
         static::deleted(function (ProductoImagen $imagen) {
             Storage::disk(self::DISCO)->delete($imagen->ruta);
-            @unlink(ProductoMiniaturaController::ruta($imagen->id));
+            // Todas sus miniaturas (la de las tablas y la del catalogo).
+            foreach (ProductoMiniaturaController::LADOS as $lado) {
+                @unlink(ProductoMiniaturaController::ruta($imagen->id, $lado));
+            }
         });
     }
 

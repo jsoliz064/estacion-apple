@@ -83,6 +83,18 @@ class Producto extends Model
             ->whereNull('productos.dado_de_baja_at');
     }
 
+    /**
+     * Lo que publica el catalogo: vendible (disponibles()) Y con la casilla
+     * «Mostrar en el catalogo publico» marcada. Es la unica regla del catalogo
+     * (listado, chips y detalle). Antes era `casilla OR Inventario`: la casilla
+     * no ocultaba nada, y el equipo recibido en permuta salia a precio de
+     * costo. La casilla nace marcada en el alta y desmarcada en la permuta.
+     */
+    public function scopeEnCatalogo(Builder $query): Builder
+    {
+        return $query->disponibles()->where('productos.disponible_catalogo', true);
+    }
+
     /** Los que no estan dados de baja: lo que muestran los listados por defecto. */
     public function scopeVigentes(Builder $query): Builder
     {

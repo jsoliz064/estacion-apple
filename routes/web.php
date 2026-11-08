@@ -169,12 +169,6 @@ Route::middleware([
             ->whereNumber('id')
             ->middleware('can:producto.historial')
             ->name('productos.historial');
-
-        // La miniatura de una foto, para las tablas. Sin permiso de modulo: la
-        // usan Productos y el detalle de la compra, y el catalogo ya es publico.
-        Route::get('imagenes/{imagen}/miniatura', \App\Http\Controllers\ProductoMiniaturaController::class)
-            ->whereNumber('imagen')
-            ->name('productos.miniatura');
     });
 
     // Repuestos y accesorios: dos tablas distintas (`repuestos`, `accesorios`)
@@ -291,6 +285,10 @@ Route::get('catalogo', [CatalogoController::class, 'index'])->name('catalogo');
 Route::get('productos/fotos/{imagen}', \App\Http\Controllers\ProductoFotoController::class)
     ->whereNumber('imagen')
     ->name('productos.foto');
+// Su miniatura (160 px las tablas, 480 px el catalogo), publica por lo mismo.
+Route::get('productos/imagenes/{imagen}/miniatura', \App\Http\Controllers\ProductoMiniaturaController::class)
+    ->whereNumber('imagen')
+    ->name('productos.miniatura');
 
 // Los terminos de garantia, publicos: a esta pagina lleva el QR de la nota.
 Route::view('garantia', 'garantia')->name('garantia');

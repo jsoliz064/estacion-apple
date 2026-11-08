@@ -1,8 +1,8 @@
 {{-- Los terminos de garantia, publicos: a esta pagina lleva el QR de la nota y
      del recibo PDF (App\Support\QrGarantia). El texto es el del talonario del
      negocio; se cambia editando este archivo. --}}
-<x-public-layout>
-    <div class="mx-auto w-full max-w-2xl px-4 pt-20 pb-10">
+<x-public-layout titulo="Términos de garantía">
+    <div class="mx-auto w-full max-w-2xl px-4 pt-8 pb-10">
         <div class="text-center">
             <img src="{{ asset('imgs/logo.png') }}" alt="Estación Apple" class="mx-auto h-20 w-auto">
             <h1 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">Términos de garantía</h1>

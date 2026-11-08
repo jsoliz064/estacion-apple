@@ -90,18 +90,6 @@ enum ProductoEstado: string
     }
 
     /**
-     * Los que no se muestran en el catalogo publico aunque esten marcados como
-     * disponibles en catalogo: vendidos, rotos y reservados (docs/03: el
-     * equipo reservado "no aparece para vender ni en el catalogo publico").
-     *
-     * @return string[]
-     */
-    public static function fueraDeCatalogo(): array
-    {
-        return [self::Vendido->value, self::Credito->value, self::Roto->value, self::Reserva->value, self::Reclamo->value, self::EnCompra->value];
-    }
-
-    /**
      * El color con que se pinta el estado. Va a un `style` inline, nunca a una
      * clase de Tailwind: son nombres de color de CSS (el proyecto no tiene
      * safelist, asi que 'bg-' . $color no se generaria).

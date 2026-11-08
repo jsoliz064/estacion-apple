@@ -49,7 +49,8 @@ class CompraLoteAddModelModal extends Component
     public $imei;
     public $upc;
     public $bateria_porcentaje = 0;
-    public $disponible_catalogo = false;
+    // Marcada: lo normal es publicar lo que entra. Se desmarca para ocultar uno.
+    public $disponible_catalogo = true;
     public $sucursal_id;
 
     /** En USD: los que se guardan. Cargados en Bs, los calcula el trait. */
