@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Producto;
 
-use App\Enums\BajaMotivo;
 use App\Enums\ProductoEstado;
 use App\Enums\ProductoGrado;
 use App\Enums\ProductoTipoVenta;
@@ -55,15 +54,11 @@ class ProductoTable extends DataTableComponent
             'productos.tipo_cambio',
             'productos.tipo_venta',
             'productos.dado_de_baja_at',
-            'productos.motivo_baja',
         ]);
     }
 
     public function columns(): array
     {
-        // En USD; las celdas densas no llevan el equivalente en Bs.
-        $usd = fn($value) => \App\Support\Dinero::usd($value);
-
         return [
             Column::make("Foto")
                 ->label(fn($row) => \App\Http\Controllers\ProductoMiniaturaController::html($row->primera_imagen_id, $row->id))
@@ -138,29 +133,9 @@ class ProductoTable extends DataTableComponent
                     . '</span>')
                 ->html()
                 ->collapseOnTablet(),
-            Column::make("Venta")
-                ->label(function ($row) use ($usd) {
-                    $linea = $row->ventaDetalle;
-                    if (!$linea) {
-                        return '';
-                    }
-                    return "Venta #{$linea->venta_id}, {$usd($linea->subtotal)}, " . $linea->created_at?->format('d/m/Y');
-                })
-                ->collapseOnTablet(),
-            Column::make("Baja")
-                ->label(fn($row) => $row->dado_de_baja_at
-                    ? '<span style="color:gray">' . e(BajaMotivo::labelDe($row->motivo_baja)) . ', ' . $row->dado_de_baja_at->format('d/m/Y') . '</span>'
-                    : '<span style="color:gray">-</span>')
-                ->html()
-                ->collapseOnTablet(),
-            Column::make("Garantia")
-                ->label(fn($row) => $this->distintivo((bool) $row->garantia_pendiente, 'Activa'))
-                ->html()
-                ->collapseOnTablet(),
-            Column::make("Trabajo Externo")
-                ->label(fn($row) => $this->distintivo((bool) $row->trabajo_externo_pendiente, 'En curso'))
-                ->html()
-                ->collapseOnTablet(),
+            // Compra, Venta, Baja, Garantia y Trabajo Externo ya no son columnas
+            // (pedido de la tienda: estorbaban y casi siempre decian «-»): se
+            // ven en «Ver detalle» (ProductoDetalleModal). Los filtros siguen.
             Column::make('Acciones', 'id')
                 ->format(function ($value, $row) {
                     return view('livewire.producto.actions-buttons', [
@@ -170,13 +145,6 @@ class ProductoTable extends DataTableComponent
         ];
     }
 
-    /** Distintivo de las columnas deducidas. Sin safelist: color en linea. */
-    private function distintivo(bool $activo, string $texto): string
-    {
-        return $activo
-            ? '<span style="color:green">' . $texto . '</span>'
-            : '<span style="color:gray">-</span>';
-    }
 
     public function filters(): array
     {
@@ -274,22 +242,6 @@ class ProductoTable extends DataTableComponent
     {
         return Producto::query()
             ->addSelect(['primera_imagen_id' => \App\Http\Controllers\ProductoMiniaturaController::subconsultaPrimera()])
-            // La compra y la venta salen de sus lineas: cargadas de una vez,
-            // sin un find por fila.
-            ->with(['compraDetalle.compra.proveedor', 'ventaDetalle', 'permuta'])
-            // Los distintivos se DEDUCEN de si hay una reparacion pendiente de
-            // ese tipo, en vez de leer una bandera guardada. La bandera
-            // `garantia_activa` solo se apagaba desde su propio modal, asi que
-            // cerrar la reparacion desde la pantalla del tecnico la dejaba
-            // encendida para siempre. Una subconsulta por columna, sin N+1.
-            ->withExists([
-                'reparaciones as garantia_pendiente' => fn($query) => $query
-                    ->where('tipo', ReparacionTipo::Garantia->value)
-                    ->where('estado', 'Pendiente'),
-                'reparaciones as trabajo_externo_pendiente' => fn($query) => $query
-                    ->where('tipo', ReparacionTipo::Externo->value)
-                    ->where('estado', 'Pendiente'),
-            ])
             ->when($this->selectedModelId, function ($query) {
                 $query->where('producto_modelo_id', $this->selectedModelId);
             })->orderby('productos.created_at', 'desc');
@@ -356,6 +308,12 @@ class ProductoTable extends DataTableComponent
         }
 
         $this->dispatch('openProductoTrabajoExternoModal', $id);
+    }
+
+    public function openProductoDetalleModal($id)
+    {
+        abort_unless(auth()->user()->can('producto.detalle'), 403);
+        $this->dispatch('openProductoDetalleModal', $id);
     }
 
     public function openProductoBajaModal($id)

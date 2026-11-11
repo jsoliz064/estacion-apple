@@ -1,5 +1,12 @@
 <div>
     <x-dropdown-table>
+        {{-- Compra, venta, garantia, trabajo externo y baja: antes eran columnas. --}}
+        @can('producto.detalle')
+            <button wire:click="openProductoDetalleModal({{ $row->id }})"
+                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
+                Ver detalle
+            </button>
+        @endcan
         @can('producto.edit')
             <button wire:click="openProductoEditModal({{ $row->id }})"
                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">

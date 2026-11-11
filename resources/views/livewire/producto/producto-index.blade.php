@@ -109,6 +109,7 @@
     @livewire('producto.modals.producto-baja-modal')
     @livewire('producto.modals.producto-regalos-modal')
     @livewire('producto.modals.producto-reparacion-cliente-modal')
+    @livewire('producto.modals.producto-detalle-modal')
     @livewire('producto.modals.producto-edit-sucursal-modal')
     @livewire('tecnico-producto.modals.reparacion-edit-modal')
     @livewire('producto.modals.producto-estado-masivo-modal')

@@ -93,6 +93,7 @@ class CatalogoPermisos
         'producto.editar-precio' => ['Cambiar el precio de venta de un equipo ya cargado.', []],
         'producto.delete' => ['Eliminar un equipo.', []],
         'producto.historial' => ['Ver el historial de un equipo: todo lo que le pasó, quién y cuándo.', [self::VENDEDOR, self::TECNICOS]],
+        'producto.detalle' => ['Ver el detalle de un equipo: de qué compra vino, a quién se vendió y su garantía, si tiene una garantía o un trabajo externo en curso, y su baja.', [self::VENDEDOR, self::TECNICOS]],
         'producto.historial.show' => ['Abrir el detalle de cada movimiento o reparación dentro del historial del equipo.', [self::VENDEDOR, self::TECNICOS]],
         'producto.garantia' => ['Mandar un equipo vendido a reparación por garantía.', [self::VENDEDOR]],
         'producto.trabajo-externo' => ['Mandar a reparar un equipo ya vendido con la garantía vencida (lo paga el cliente).', []],
