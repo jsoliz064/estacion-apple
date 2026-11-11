@@ -108,7 +108,7 @@
                         <div class="m-2">
                             <x-label>Detalles Seleccionados:</x-label>
                             <textarea wire:model.defer="producto.detalles" rows="3"
-                                class="w-full mt-1 p-2 border border-gray-300 rounded-lg shadow-sm resize-none bg-gray-50 text-gray-700"></textarea>
+                                class="w-full mt-1 p-2 resize-none border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-brand-500 dark:focus:border-brand-600 focus:ring-brand-500 dark:focus:ring-brand-600 rounded-md shadow-sm"></textarea>
                         </div>
 
                         {{-- Serial o UPC y, justo debajo, el IMEI: se cargan juntos. --}}

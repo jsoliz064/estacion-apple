@@ -249,9 +249,14 @@ class CompraLoteAddModelModal extends Component
         $this->resetForm(false);
         $this->openModal = true;
 
-        // El precio de referencia del modelo, si ya lo cargaron: 128GB por defecto.
-        if ($this->selectedModel->almacenamientos->firstWhere('almacenamiento', '128GB')) {
-            $this->almacenamiento = '128GB';
+        // 128GB por defecto y, si el modelo no lo tiene, su primer almacenamiento.
+        // El select no tiene opcion vacia: el navegador muestra elegida la
+        // primera, y si la propiedad quedaba en null el guardado decia «Debe
+        // seleccionar un almacenamiento» con uno a la vista (hasta cambiarlo).
+        $almacenamientos = $this->selectedModel->almacenamientos;
+        $this->almacenamiento = ($almacenamientos->firstWhere('almacenamiento', '128GB') ?? $almacenamientos->first())?->almacenamiento;
+
+        if ($this->almacenamiento) {
             $this->aplicarPreciosDeReferencia();
         }
 

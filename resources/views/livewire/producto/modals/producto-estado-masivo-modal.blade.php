@@ -25,7 +25,7 @@
                     <div>
                         <x-label>{{ $modo === 'tipo_venta' ? 'Tipo de venta origen' : 'Estado origen' }}</x-label>
                         <select wire:model.live="origen"
-                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm">
+                            class="w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-brand-500 dark:focus:border-brand-600 focus:ring-brand-500 dark:focus:ring-brand-600 rounded-md shadow-sm">
                             <option value="">Seleccione una opción</option>
                             @foreach ($opciones as $valor => $nombre)
                                 <option value="{{ $valor }}">{{ $nombre }}</option>
@@ -37,7 +37,7 @@
                     <div>
                         <x-label>{{ $modo === 'tipo_venta' ? 'Tipo de venta destino' : 'Estado destino' }}</x-label>
                         <select wire:model.live="destino"
-                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm">
+                            class="w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-brand-500 dark:focus:border-brand-600 focus:ring-brand-500 dark:focus:ring-brand-600 rounded-md shadow-sm">
                             <option value="">Seleccione una opción</option>
                             @foreach ($opciones as $valor => $nombre)
                                 @if ($valor !== $origen)
@@ -143,7 +143,7 @@
                         <div>
                             <x-label>Descripcion</x-label>
                             <textarea wire:model="descripcion"
-                                class="w-full border-gray-300 rounded-md shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm"
+                                class="w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-brand-500 dark:focus:border-brand-600 focus:ring-brand-500 dark:focus:ring-brand-600 rounded-md shadow-sm"
                                 rows="3"></textarea>
                             <x-input-error for="descripcion" class="mt-1" />
                             <x-input-error for="productos" class="mt-1" />

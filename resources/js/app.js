@@ -475,4 +475,35 @@ document.addEventListener('alpine:init', () => {
             }
         },
     }));
+
+    // El equivalente bajo cada monto del parcial montos-moneda (USD <-> Bs),
+    // calculado aqui mientras se escribe. Antes los montos iban con
+    // wire:model.live y cada tecla viajaba al servidor para la conversion: en
+    // los formularios anidados (producto.*, articulo.*) la respuesta reemplaza
+    // el objeto entero y pisaba lo que se habia tecleado mientras tanto, y el
+    // campo no dejaba borrar ni escribir. El servidor convierte al guardar.
+    window.Alpine.data('montosMoneda', (cfg) => ({
+        num(campo) {
+            const v = parseFloat(this.$wire.$get(cfg.campos[campo]));
+
+            return Number.isFinite(v) ? v : 0;
+        },
+
+        // number_format($n, 2) de PHP.
+        formato(n) {
+            return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+
+        // En Bs: el USD de un monto = Bs / TC (como MontosEnMonedaTrait).
+        usdDe(monto) {
+            const tc = this.num('tc');
+
+            return 'USD ' + this.formato(tc > 0 ? this.num(monto + '_bs') / tc : 0);
+        },
+
+        // En USD: su equivalente en Bs al TC del dia (Dinero::bs).
+        bsDe(monto) {
+            return 'Bs ' + this.formato(this.num(monto) * cfg.tcDia);
+        },
+    }));
 });

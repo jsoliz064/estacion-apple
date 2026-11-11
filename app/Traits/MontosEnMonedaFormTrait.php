@@ -49,18 +49,27 @@ trait MontosEnMonedaFormTrait
     {
         $campos = $this->camposMoneda();
 
-        if ($propiedad === $campos['moneda'] && $this->enBs()) {
+        // Los montos van con wire:model a secas: el USD tecleado llega en la
+        // MISMA peticion que el cambio a Bs, y el orden de los updated() es el
+        // de las claves (en el articulo nuevo, la moneda va antes que el costo).
+        // Por eso se propone tambien cuando el USD llega ya en Bs, y no solo
+        // cuando cambia la moneda: si no, los Bs quedaban en 0.
+        $usd = array_search($propiedad, [
+            'costo' => $campos['costo'], 'precio' => $campos['precio'], 'moneda' => $campos['moneda'],
+        ], true);
+
+        if ($usd !== false && $this->enBs()) {
             $tc = (float) ($this->campoMoneda('tc') ?: 0) ?: TipoCambio::actual();
             $this->fijarCampoMoneda('tc', $tc);
 
-            foreach (['costo', 'precio'] as $monto) {
+            foreach ($usd === 'moneda' ? ['costo', 'precio'] : [$usd] as $monto) {
                 if (!(float) ($this->campoMoneda($monto . '_bs') ?: 0)) {
                     $this->fijarCampoMoneda($monto . '_bs', round((float) ($this->campoMoneda($monto) ?: 0) * $tc, 2));
                 }
             }
         }
 
-        if (in_array($propiedad, [$campos['moneda'], $campos['costo_bs'], $campos['precio_bs'], $campos['tc']], true)) {
+        if ($usd !== false || in_array($propiedad, [$campos['costo_bs'], $campos['precio_bs'], $campos['tc']], true)) {
             $this->sincronizarMontosEnMoneda();
         }
     }
