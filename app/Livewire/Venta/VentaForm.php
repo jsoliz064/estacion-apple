@@ -15,7 +15,9 @@ use App\Models\ProductoRegalo;
 use App\Models\ProductoModelo;
 use App\Models\Reserva;
 use App\Models\Sucursal;
+use App\Models\TipoCambio;
 use App\Models\Venta;
+use App\Models\VentaDetalle;
 use App\Services\PagoService;
 use App\Services\RepuestosDeReparacionService;
 use App\Services\VentaService;
@@ -26,6 +28,7 @@ use App\Traits\GuardadoIdempotenteTrait;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -102,6 +105,22 @@ class VentaForm extends Component
     /** Pagos ya registrados (edicion, solo lectura): [['fecha','metodo','monto'], ...]. */
     public array $pagosExistentes = [];
 
+    /**
+     * El descuento y la mano de obra de la cabecera se pueden escribir en Bs
+     * (pedido de la tienda: el vendedor dice «te lo dejo en 7800 Bs» y antes
+     * tenia que calcular a mano cuantos USD de descuento eran 200 Bs). Solo es
+     * la pantalla: venta.descuento y venta.mano_obra siguen en USD, que es lo
+     * que se guarda; en Bs, USD = Bs / tcVenta().
+     */
+    public bool $descuentoEnBs = false;
+    public $descuentoBs = '';
+    public bool $manoObraEnBs = false;
+    public $manoObraBs = '';
+
+    /** El TC congelado de la venta que se edita (al crear, null: el del dia). */
+    #[Locked]
+    public ?float $tcVentaGuardada = null;
+
     public function mount(?int $ventaId = null): void
     {
         if ($ventaId) {
@@ -158,6 +177,7 @@ class VentaForm extends Component
         ])->values()->all();
 
         $this->ventaId = $venta->id;
+        $this->tcVentaGuardada = (float) $venta->tipo_cambio ?: null;
         $this->venta = [
             'sucursal_id' => $venta->sucursal_id,
             'cliente_id' => $venta->cliente_id,
@@ -525,6 +545,93 @@ class VentaForm extends Component
         }
     }
 
+    // ------------------------------------------- descuento y mano de obra en Bs
+
+    /** Los campos de la cabecera que se escriben en USD o Bs: [enBs, Bs]. */
+    private const MONTOS_CABECERA = [
+        'descuento' => ['descuentoEnBs', 'descuentoBs'],
+        'mano_obra' => ['manoObraEnBs', 'manoObraBs'],
+    ];
+
+    /** El TC de los Bs de la cabecera: el de la venta al editar, el del dia al crear (el que congelara). */
+    public function tcVenta(): float
+    {
+        return $this->tcVentaGuardada ?: TipoCambio::actual();
+    }
+
+    public function monedaCabecera(string $campo, string $moneda): void
+    {
+        [$enBs, $bs] = self::MONTOS_CABECERA[$campo] ?? abort(400);
+        $this->$enBs = $moneda === Moneda::alterna()->value;
+
+        // Pasar a Bs propone en Bs lo que ya decia en USD.
+        if ($this->$enBs) {
+            $usd = (float) ($this->venta[$campo] ?: 0);
+            $this->$bs = $usd > 0 ? round($usd * $this->tcVenta(), 2) : '';
+        }
+    }
+
+    public function updatedDescuentoBs(): void
+    {
+        $this->sincronizarMontoCabecera('descuento');
+    }
+
+    public function updatedManoObraBs(): void
+    {
+        $this->sincronizarMontoCabecera('mano_obra');
+    }
+
+    private function sincronizarMontoCabecera(string $campo): void
+    {
+        [$enBs, $bs] = self::MONTOS_CABECERA[$campo];
+
+        if ($this->$enBs) {
+            $this->venta[$campo] = is_numeric($this->$bs) ? round((float) $this->$bs / $this->tcVenta(), 2) : 0;
+        }
+    }
+
+    // ------------------------------------------------------- precio por linea
+
+    public function puedeEditarPrecio(): bool
+    {
+        return (bool) Auth::user()?->can('venta.editar-precio');
+    }
+
+    /**
+     * Sin venta.editar-precio, el precio de cada linea es el del articulo (o,
+     * al editar, el que ya tenia la linea: no se le cambia a quien no puede la
+     * venta que hizo otro). La pantalla bloquea el campo; esto cubre una
+     * peticion armada a mano. El descuento de la linea sigue libre.
+     */
+    private function exigirPermisoDePrecio(): void
+    {
+        if ($this->puedeEditarPrecio()) {
+            return;
+        }
+
+        $guardadas = $this->esEdicion()
+            ? VentaDetalle::where('venta_id', $this->ventaId)->get()
+                ->reject(fn($d) => $d->esRegalo() || $d->esCobro())
+                ->keyBy(fn($d) => $d->tipo . '-' . ($d->producto_id ?? $d->repuesto_id ?? $d->accesorio_id))
+            : collect();
+        $errores = [];
+
+        foreach ($this->lineas as $i => $l) {
+            $guardada = $guardadas->get($l['tipo'] . '-' . $l['id']);
+            $tipo = LineaTipo::from($l['tipo'])->articulo();
+            $articulo = $guardada ? null : ($tipo ? $tipo->buscar((int) $l['id']) : Producto::find((int) $l['id']));
+            $precio = (float) ($guardada?->precio ?? $articulo?->precio ?? 0);
+
+            if (round((float) $l['precio'], 2) !== round($precio, 2)) {
+                $errores["lineas.$i.precio"] = "No tienes permiso para cambiar el precio de «{$l['descripcion']}» (" . Dinero::usd($precio) . '). Puedes darle un descuento.';
+            }
+        }
+
+        if ($errores) {
+            throw ValidationException::withMessages($errores);
+        }
+    }
+
     // ------------------------------------------------------- guardar
 
     protected function rules(): array
@@ -556,8 +663,11 @@ class VentaForm extends Component
 
     public function guardar()
     {
+        $this->sincronizarMontoCabecera('descuento');
+        $this->sincronizarMontoCabecera('mano_obra');
         $this->seguirTotal();
         $this->validate();
+        $this->exigirPermisoDePrecio();
 
         $cabecera = [
             'sucursal_id' => $this->sucursalDelDocumento(),
@@ -637,6 +747,7 @@ class VentaForm extends Component
                 : Sucursal::activas()->orderBy('nombre')->get(),
             'metodos' => $this->esEdicion() ? collect() : MetodoPago::activos()->get(),
             'deudaCliente' => $deudaCliente,
+            'puedeEditarPrecio' => $this->puedeEditarPrecio(),
             'equiposVenta' => $this->equiposEnLaVenta(),
             'modelosPermuta' => $this->conPermuta ? ProductoModelo::orderBy('nombre')->get(['id', 'nombre']) : collect(),
             'almacenamientos' => ProductoAlmacenamiento::cases(),

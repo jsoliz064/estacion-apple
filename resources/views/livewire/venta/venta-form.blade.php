@@ -131,7 +131,9 @@
                         @endif
                         <label class="block md:p-2">
                             <span class="md:hidden text-xs text-gray-500">Precio USD</span>
-                            <x-input type="number" min="0" step="0.01" inputmode="decimal" class="w-full text-right" wire:model.live.debounce.400ms="lineas.{{ $index }}.precio" onfocus="this.select()" />
+                            {{-- Sin venta.editar-precio, el precio es el del articulo (VentaForm::exigirPermisoDePrecio). --}}
+                            <x-input type="number" min="0" step="0.01" inputmode="decimal" class="w-full text-right" wire:model.live.debounce.400ms="lineas.{{ $index }}.precio" onfocus="this.select()"
+                                :disabled="!$puedeEditarPrecio" :title="$puedeEditarPrecio ? null : 'No tienes permiso para cambiar el precio: usa el descuento'" />
                         </label>
                         <label class="block md:p-2">
                             <span class="md:hidden text-xs text-gray-500">Desc. USD</span>
@@ -190,6 +192,14 @@
                 @endforeach
             </div>
             @error('lineas.*.cantidad') <p class="text-sm text-red-600 mt-1">{{ $message }}</p> @enderror
+            @foreach ($errors->get('lineas.*.precio') as $mensajes)
+                @foreach ($mensajes as $mensaje)
+                    <p class="text-sm text-red-600 mt-1">{{ $mensaje }}</p>
+                @endforeach
+            @endforeach
+            @unless ($puedeEditarPrecio)
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400"><i class="fa-solid fa-lock mr-1"></i>El precio de cada línea es el de lista: para rebajarlo, usa el descuento.</p>
+            @endunless
             <x-input-error for="lineas" class="mt-1" />
             <x-input-error for="detalles" class="mt-1" />
         </div>
@@ -205,13 +215,47 @@
                 @endif
             </div>
             <div>
-                <x-label value="Descuento USD" />
-                <x-input type="number" min="0" step="0.01" inputmode="decimal" class="mt-1 w-full" wire:model.live.debounce.400ms="venta.descuento" onfocus="this.select()" />
+                {{-- USD o Bs (VentaForm::monedaCabecera): en Bs se escribe lo que se le
+                     dice al cliente y se guarda su USD al TC de la venta. --}}
+                <x-label value="Descuento" />
+                {{-- La moneda junto al campo y no junto al rotulo: en el celular
+                     «Mano de obra» y el selector no entraban en la misma linea. --}}
+                <div class="mt-1 flex items-stretch gap-1">
+                    @if ($descuentoEnBs)
+                        <x-input type="number" min="0" step="0.01" inputmode="decimal" class="min-w-0 flex-1" wire:model.live.debounce.400ms="descuentoBs" wire:key="descuento-bs" onfocus="this.select()" placeholder="Bs" />
+                    @else
+                        <x-input type="number" min="0" step="0.01" inputmode="decimal" class="min-w-0 flex-1" wire:model.live.debounce.400ms="venta.descuento" wire:key="descuento-usd" onfocus="this.select()" placeholder="USD" />
+                    @endif
+                    <div class="inline-flex shrink-0 flex-col overflow-hidden rounded-md border border-gray-300 text-[11px] font-semibold leading-none dark:border-gray-600">
+                        <button type="button" wire:click="monedaCabecera('descuento', 'USD')" @class(['flex-1 px-2', 'bg-brand-600 text-white' => !$descuentoEnBs, 'text-gray-600 dark:text-gray-300' => $descuentoEnBs])>USD</button>
+                        <button type="button" wire:click="monedaCabecera('descuento', 'BOB')" @class(['flex-1 px-2', 'bg-brand-600 text-white' => $descuentoEnBs, 'text-gray-600 dark:text-gray-300' => !$descuentoEnBs])>Bs</button>
+                    </div>
+                </div>
+                @if ($descuentoEnBs)
+                    <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">= {{ \App\Support\Dinero::usd($venta['descuento'] ?: 0) }} · TC {{ \App\Support\Dinero::tc($this->tcVenta()) }}</p>
+                @endif
                 <x-input-error for="venta.descuento" />
             </div>
             <div>
-                <x-label value="Mano de obra USD" />
-                <x-input type="number" min="0" step="0.01" inputmode="decimal" class="mt-1 w-full" wire:model.live.debounce.400ms="venta.mano_obra" onfocus="this.select()" />
+                {{-- USD o Bs (VentaForm::monedaCabecera): en Bs se escribe lo que se le
+                     dice al cliente y se guarda su USD al TC de la venta. --}}
+                <x-label value="Mano de obra" />
+                {{-- La moneda junto al campo y no junto al rotulo: en el celular
+                     «Mano de obra» y el selector no entraban en la misma linea. --}}
+                <div class="mt-1 flex items-stretch gap-1">
+                    @if ($manoObraEnBs)
+                        <x-input type="number" min="0" step="0.01" inputmode="decimal" class="min-w-0 flex-1" wire:model.live.debounce.400ms="manoObraBs" wire:key="mano_obra-bs" onfocus="this.select()" placeholder="Bs" />
+                    @else
+                        <x-input type="number" min="0" step="0.01" inputmode="decimal" class="min-w-0 flex-1" wire:model.live.debounce.400ms="venta.mano_obra" wire:key="mano_obra-usd" onfocus="this.select()" placeholder="USD" />
+                    @endif
+                    <div class="inline-flex shrink-0 flex-col overflow-hidden rounded-md border border-gray-300 text-[11px] font-semibold leading-none dark:border-gray-600">
+                        <button type="button" wire:click="monedaCabecera('mano_obra', 'USD')" @class(['flex-1 px-2', 'bg-brand-600 text-white' => !$manoObraEnBs, 'text-gray-600 dark:text-gray-300' => $manoObraEnBs])>USD</button>
+                        <button type="button" wire:click="monedaCabecera('mano_obra', 'BOB')" @class(['flex-1 px-2', 'bg-brand-600 text-white' => $manoObraEnBs, 'text-gray-600 dark:text-gray-300' => !$manoObraEnBs])>Bs</button>
+                    </div>
+                </div>
+                @if ($manoObraEnBs)
+                    <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">= {{ \App\Support\Dinero::usd($venta['mano_obra'] ?: 0) }} · TC {{ \App\Support\Dinero::tc($this->tcVenta()) }}</p>
+                @endif
                 <x-input-error for="venta.mano_obra" />
             </div>
             <div>
@@ -335,7 +379,7 @@
             <x-input-error for="pagos" class="mt-1" />
 
             <div class="mt-3 flex flex-wrap justify-between gap-2 text-sm">
-                <span>Cobrado: <strong>{{ \App\Support\Dinero::usd($this->cobradoPrevisto()) }}</strong></span>
+                <span class="text-gray-700 dark:text-gray-200">Cobrado: <strong>{{ \App\Support\Dinero::usd($this->cobradoPrevisto()) }}</strong></span>
                 @if ($saldo > 0)
                     <span class="font-semibold text-amber-700 dark:text-amber-300">
                         <i class="fa-solid fa-hand-holding-dollar"></i> Queda a crédito: {{ \App\Support\Dinero::usd($saldo) }}
