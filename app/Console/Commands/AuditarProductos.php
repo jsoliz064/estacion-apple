@@ -72,6 +72,7 @@ class AuditarProductos extends Command
         $this->comisionesSobrantes();
         $this->comisionesGanadaIncoherente();
         $this->comisionesMontoDescuadrado();
+        $this->comisionesBsDescuadrado();
         $this->liquidacionesDescuadradas();
         $this->codigosGeneradosRepetidos();
 
@@ -633,6 +634,24 @@ class AuditarProductos extends Command
         );
 
         $this->reportar('Comisiones con base o monto descuadrado', collect($filas), ['id', 'referencia', 'base', 'base_documento', 'porcentaje', 'monto']);
+    }
+
+    /**
+     * El monto en Bs de una comision es su monto x su TC, y la de una venta
+     * no liquidada lleva el TC congelado de esa venta (ComisionService).
+     */
+    private function comisionesBsDescuadrado(): void
+    {
+        $filas = DB::select(
+            'SELECT c.id, c.referencia, c.monto, c.tipo_cambio, c.monto_bs, v.tipo_cambio AS tc_venta
+               FROM comisiones c
+          LEFT JOIN ventas v ON v.id = c.venta_id
+              WHERE c.tipo_cambio IS NULL OR c.monto_bs IS NULL
+                 OR ABS(c.monto_bs - ROUND(c.monto * c.tipo_cambio, 2)) > 0.009
+                 OR (c.liquidacion_id IS NULL AND v.id IS NOT NULL AND ABS(c.tipo_cambio - v.tipo_cambio) > 0.00001)'
+        );
+
+        $this->reportar('Comisiones con monto en Bs o TC en desacuerdo', collect($filas), ['id', 'referencia', 'monto', 'tipo_cambio', 'monto_bs', 'tc_venta']);
     }
 
     /** El total y la cantidad de una liquidacion son los de sus comisiones. */

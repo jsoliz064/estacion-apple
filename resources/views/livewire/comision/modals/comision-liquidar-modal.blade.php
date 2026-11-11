@@ -63,6 +63,9 @@
                                         <td class="p-2 text-right whitespace-nowrap">{{ number_format((float) $item->base, 2) }}</td>
                                         <td class="p-2 text-right whitespace-nowrap">
                                             {{ number_format((float) $item->monto, 2) }}
+                                            @if ($item->tipo_cambio)
+                                                <span class="block text-xs text-gray-500">{{ \App\Support\Dinero::soloBs((float) $item->monto_bs) }} · TC {{ \App\Support\Dinero::tc($item->tipo_cambio) }}</span>
+                                            @endif
                                             <span class="block text-xs text-gray-500">{{ rtrim(rtrim(number_format((float) $item->porcentaje, 2), '0'), '.') }} %</span>
                                         </td>
                                     </tr>
@@ -80,6 +83,8 @@
 
                 <p class="m-2 text-right text-lg font-semibold text-gray-800 dark:text-gray-100">
                     Total a pagar: {{ \App\Support\Dinero::usd($total) }}
+                    {{-- La suma de los Bs de cada una: cada venta tiene su TC. --}}
+                    <span class="block text-sm font-normal text-gray-500 dark:text-gray-400">{{ \App\Support\Dinero::soloBs($totalBs) }}</span>
                 </p>
             </x-slot>
 

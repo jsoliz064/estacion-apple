@@ -54,6 +54,7 @@ class ComisionTable extends DataTableComponent
         $this->setAdditionalSelects([
             'comisiones.id', 'comisiones.user_id', 'comisiones.tecnico_id', 'comisiones.venta_id',
             'comisiones.producto_reparacion_id', 'comisiones.liquidacion_id', 'comisiones.origen',
+            'comisiones.tipo_cambio', 'comisiones.monto_bs',
             // Una columna con label() no selecciona su campo.
             'comisiones.referencia',
         ]);
@@ -134,7 +135,7 @@ class ComisionTable extends DataTableComponent
     {
         return $this->totales ??= $this->scopedQuery()
             ->toBase()
-            ->selectRaw('COUNT(*) as cantidad, COALESCE(SUM(comisiones.monto), 0) as monto')
+            ->selectRaw('COUNT(*) as cantidad, COALESCE(SUM(comisiones.monto), 0) as monto, COALESCE(SUM(comisiones.monto_bs), 0) as monto_bs')
             ->first();
     }
 
@@ -194,11 +195,18 @@ class ComisionTable extends DataTableComponent
                 ->format(fn($value) => rtrim(rtrim(number_format((float) $value, 2), '0'), '.') . ' %')
                 ->collapseOnTablet(),
 
+            // El USD y, debajo, su Bs al TC de la comision (el de su venta):
+            // cada venta tiene el suyo, asi que el total en Bs es la suma de
+            // los Bs guardados, no el total USD por un TC.
             Column::make('Comisión', 'monto')
                 ->sortable()
-                ->format(fn($value) => '<span class="font-semibold">' . Dinero::usd((float) $value) . '</span>')
+                ->format(fn($value, $row) => '<span class="font-semibold whitespace-nowrap">' . Dinero::usd((float) $value) . '</span>'
+                    . ($row->tipo_cambio
+                        ? '<span class="block text-xs text-gray-500 whitespace-nowrap">' . Dinero::soloBs((float) $row->monto_bs) . ' · TC ' . Dinero::tc($row->tipo_cambio) . '</span>'
+                        : ''))
                 ->html()
-                ->footer(fn($rows) => Dinero::usd((float) $this->getTotales()->monto)),
+                ->footer(fn($rows) => '<span class="whitespace-nowrap">' . Dinero::usd((float) $this->getTotales()->monto) . '</span>'
+                    . '<span class="block text-xs font-normal text-gray-500 whitespace-nowrap">' . Dinero::soloBs((float) $this->getTotales()->monto_bs) . '</span>'),
 
             Column::make('Estado')
                 ->label(fn($row) => $row->estado()->badge()

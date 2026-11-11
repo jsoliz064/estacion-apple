@@ -216,7 +216,7 @@ class ComisionLiquidarModal extends Component
 
     public function render()
     {
-        $data = ['personas' => [], 'items' => collect(), 'anteriores' => null, 'total' => 0.0];
+        $data = ['personas' => [], 'items' => collect(), 'anteriores' => null, 'total' => 0.0, 'totalBs' => 0.0];
 
         if ($this->openModal) {
             [$desde] = $this->periodo();
@@ -229,6 +229,7 @@ class ComisionLiquidarModal extends Component
                 'anteriores' => $this->porPagar()->whereDate('comisiones.ganada_at', '<', $desde)->toBase()
                     ->selectRaw('COUNT(*) as cantidad, COALESCE(SUM(monto), 0) as monto')->first(),
                 'total' => round((float) $items->whereIn('id', $marcados)->sum('monto'), 2),
+                'totalBs' => round((float) $items->whereIn('id', $marcados)->sum('monto_bs'), 2),
             ];
         }
 

@@ -93,6 +93,12 @@ class ArticuloTable extends DataTableComponent
                     ->orWhere('accesorios.upc', $term));
             $columnas[] = Column::make('Marca', 'marca')->sortable()->searchable()->format($vacio)->html()->collapseOnTablet();
             $columnas[] = Column::make('Categoría', 'categoria.nombre')->sortable()->searchable();
+            // Descripcion libre (como los detalles del equipo); tambien se busca.
+            $columnas[] = Column::make('Detalles', 'detalles')
+                ->searchable(fn(Builder $q, $term) => $q->orWhere('accesorios.detalles', 'like', '%' . $term . '%'))
+                ->format(fn($v) => $v ? '<span class="text-xs whitespace-normal">' . e(\Illuminate\Support\Str::limit($v, 80)) . '</span>' : '<span class="text-gray-400">—</span>')
+                ->html()
+                ->collapseOnTablet();
             $columnas[] = Column::make('Compatible con')
                 ->label(fn($row) => $row->modelosCompatibles->isEmpty()
                     ? '<span class="text-gray-400">—</span>'

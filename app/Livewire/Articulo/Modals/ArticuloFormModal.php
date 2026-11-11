@@ -81,6 +81,7 @@ class ArticuloFormModal extends Component
         } else {
             $reglas += [
                 'articulo.marca' => 'nullable|string|max:255',
+                'articulo.detalles' => 'nullable|string|max:1000',
                 'articulo.accesorio_categoria_id' => 'nullable|integer|exists:accesorios_categorias,id',
                 'modelos' => 'array',
                 'modelos.*' => 'integer|exists:productos_modelos,id',
@@ -173,7 +174,7 @@ class ArticuloFormModal extends Component
 
         $campos = $this->esRepuesto()
             ? ['nombre', 'upc', 'costo', 'precio', 'fabricante', 'producto_modelo_id', 'repuesto_categoria_id']
-            : ['nombre', 'upc', 'costo', 'precio', 'marca', 'accesorio_categoria_id'];
+            : ['nombre', 'upc', 'costo', 'precio', 'marca', 'detalles', 'accesorio_categoria_id'];
 
         $datos = collect($campos)->mapWithKeys(fn($c) => [$c => ($this->articulo[$c] ?? null) === '' ? null : ($this->articulo[$c] ?? null)])->all()
             + $this->datosMontosEnMoneda();

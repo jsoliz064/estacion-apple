@@ -64,6 +64,14 @@
                             </div>
                         </div>
 
+                        {{-- Una descripcion libre, como los detalles del equipo. --}}
+                        <div class="m-2">
+                            <x-label>Detalles (opcional):</x-label>
+                            <textarea wire:model="articulo.detalles" rows="2" maxlength="1000" placeholder="Ej.: cable de 2 m, trenzado"
+                                class="mt-1 w-full p-2 resize-none border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-brand-500 dark:focus:border-brand-600 focus:ring-brand-500 dark:focus:ring-brand-600 rounded-md shadow-sm"></textarea>
+                            <x-input-error for="articulo.detalles"></x-input-error>
+                        </div>
+
                         <div class="m-2">
                             <x-label>Compatible con (opcional):</x-label>
                             <select wire:model="modelos" multiple

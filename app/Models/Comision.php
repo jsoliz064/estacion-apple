@@ -26,6 +26,8 @@ class Comision extends Model
         'base',
         'porcentaje',
         'monto',
+        'tipo_cambio',
+        'monto_bs',
         'ganada_at',
         'liquidacion_id',
     ];
@@ -35,6 +37,8 @@ class Comision extends Model
         'base' => 'decimal:2',
         'porcentaje' => 'decimal:2',
         'monto' => 'decimal:2',
+        'tipo_cambio' => 'float',
+        'monto_bs' => 'decimal:2',
         'ganada_at' => 'datetime',
     ];
 

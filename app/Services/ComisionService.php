@@ -8,6 +8,7 @@ use App\Models\Comision;
 use App\Models\ComisionLiquidacion;
 use App\Models\ProductoReparacion;
 use App\Models\Tecnicos;
+use App\Models\TipoCambio;
 use App\Models\User;
 use App\Models\Venta;
 use Illuminate\Support\Carbon;
@@ -28,6 +29,10 @@ use Illuminate\Validation\ValidationException;
  *  - Una fila por documento aunque el monto sea 0: el % se CONGELA el dia que
  *    nace, y cambiar despues la ficha no reescribe lo anterior.
  *  - Una ganancia negativa da comision 0.
+ *  - `monto` en USD (lo que se suma y se liquida) y su equivalente `monto_bs`
+ *    al `tipo_cambio` de la comision: el congelado de la VENTA (cada venta
+ *    tiene el suyo), o en una reparacion, que no tiene TC, el del dia en que
+ *    nace la comision. Se recalcula con el monto, nunca con otro TC.
  *  - Una comision LIQUIDADA no se toca: si luego se edita o anula la venta,
  *    queda como se pago ("hay que ajustarlo a mano", docs/05).
  *
@@ -56,11 +61,15 @@ class ComisionService
             ? (float) $comision->porcentaje
             : (float) (User::whereKey($venta->user_id)->value('comision_porcentaje') ?? 0);
         $base = $venta->ganancia();
+        $monto = self::monto($base, $porcentaje);
+        $tc = (float) $venta->tipo_cambio ?: TipoCambio::actual();
 
         $datos = [
             'referencia' => Str::limit('Venta #' . $venta->id . ($venta->nombreCliente() ? ' · ' . $venta->nombreCliente() : ''), 250),
             'base' => $base,
-            'monto' => self::monto($base, $porcentaje),
+            'monto' => $monto,
+            'tipo_cambio' => $tc,
+            'monto_bs' => self::montoBs($monto, $tc),
             'ganada_at' => $venta->pagada_at,
         ];
 
@@ -121,13 +130,19 @@ class ComisionService
             ? (float) $comision->porcentaje
             : (float) (Tecnicos::whereKey($reparacion->tecnico_id)->value('comision_porcentaje') ?? 0);
         $base = round((float) $reparacion->costo, 2);
+        $monto = self::monto($base, $porcentaje);
+        // La reparacion no tiene TC propio: el del dia en que nace la comision,
+        // y despues se conserva.
+        $tc = (float) ($comision?->tipo_cambio ?: 0) ?: TipoCambio::actual();
 
         $datos = [
             'tecnico_id' => $reparacion->tecnico_id,
             'referencia' => $this->referenciaReparacion($reparacion),
             'base' => $base,
             'porcentaje' => $porcentaje,
-            'monto' => self::monto($base, $porcentaje),
+            'monto' => $monto,
+            'tipo_cambio' => $tc,
+            'monto_bs' => self::montoBs($monto, $tc),
             'ganada_at' => self::ganadaReparacion($reparacion),
         ];
 
@@ -219,6 +234,12 @@ class ComisionService
     }
 
     // ------------------------------------------------------------------ reglas
+
+    /** El equivalente en Bs de una comision: monto (USD) x su TC. */
+    public static function montoBs(float $monto, float $tipoCambio): float
+    {
+        return round($monto * $tipoCambio, 2);
+    }
 
     /** El monto de una base y un %. Una ganancia negativa da 0. */
     public static function monto(float $base, float $porcentaje): float
