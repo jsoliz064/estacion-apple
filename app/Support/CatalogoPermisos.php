@@ -157,7 +157,7 @@ class CatalogoPermisos
         'venta.index' => ['Ver la lista de ventas.', [self::VENDEDOR]],
         'venta.create' => ['Registrar una venta.', [self::VENDEDOR]],
         'venta.edit' => ['Editar una venta ya registrada.', [self::VENDEDOR]],
-        'venta.editar-precio' => ['Cambiar el precio de cada línea al vender o editar una venta. Sin este permiso solo se cambian el descuento, la garantía y la cantidad.', []],
+        'venta.editar-precio' => ['Cambiar el precio de cada línea al vender o editar una venta. Sin este permiso solo se cambian la garantía y la cantidad; la rebaja va en el descuento de la venta.', []],
         'venta.reporte' => ['Ver el resumen de ventas (totales y ganancia) y la ganancia de cada venta.', []],
         'venta.delete' => ['Anular una venta entera (devuelve el stock y los pagos).', []],
         'venta.detalle' => ['Abrir el detalle de una venta, con su nota y recibo.', [self::VENDEDOR]],

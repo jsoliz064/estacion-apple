@@ -66,11 +66,10 @@
                  inputs a media pantalla (en la tabla de 7 columnas un precio de
                  1000 mostraba un solo digito). En pantalla ancha vuelven a ser
                  columnas. Un solo juego de inputs: dos wire:model iguales se pisan. --}}
-            <div class="hidden md:grid md:grid-cols-[minmax(0,1fr)_5rem_8rem_7rem_5rem_7rem_2rem] gap-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-t-md">
+            <div class="hidden md:grid md:grid-cols-[minmax(0,1fr)_5rem_9rem_5rem_7rem_2rem] gap-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-t-md">
                 <div class="p-2 text-left">Detalle</div>
                 <div class="p-2 text-right">Cant.</div>
                 <div class="p-2 text-right">Precio USD</div>
-                <div class="p-2 text-right">Desc. USD</div>
                 <div class="p-2 text-right">Garantía</div>
                 <div class="p-2 text-right">Subtotal</div>
                 <div class="p-2"></div>
@@ -79,12 +78,12 @@
                 @foreach ($lineas as $index => $linea)
                     @php($esEquipo = $linea['tipo'] === 'Producto')
                     {{-- wire:key con el indice: los inputs se enlazan por posicion. --}}
-                    {{-- En el celular, tres columnas: precio, descuento y garantia (o
-                         cantidad, precio y descuento) en una sola fila; en dos, cada
-                         linea ocupaba cuatro filas de alto. --}}
-                    <div class="relative grid grid-cols-3 gap-2 rounded-md border border-gray-200 p-2 md:grid-cols-[minmax(0,1fr)_5rem_8rem_7rem_5rem_7rem_2rem] md:rounded-none md:border-0 md:border-t md:p-0 dark:border-gray-700"
+                    {{-- En el celular, dos columnas: precio y garantia (o cantidad y
+                         precio) en una sola fila. El descuento por linea ya no se
+                         escribe aqui (pedido de la tienda): se rebaja en el de la venta. --}}
+                    <div class="relative grid grid-cols-2 gap-2 rounded-md border border-gray-200 p-2 md:grid-cols-[minmax(0,1fr)_5rem_9rem_5rem_7rem_2rem] md:rounded-none md:border-0 md:border-t md:p-0 dark:border-gray-700"
                         wire:key="linea-{{ $linea['tipo'] }}-{{ $linea['id'] }}-{{ $index }}">
-                        <div class="col-span-3 pr-8 md:col-span-1 md:p-2">
+                        <div class="col-span-2 pr-8 md:col-span-1 md:p-2">
                             {!! \App\Enums\LineaTipo::badge($linea['tipo']) !!}
                             <span class="text-gray-900 dark:text-gray-100">{{ $linea['descripcion'] }}</span>
                             {{-- IMEI y serial uno bajo el otro (al lado en pantalla ancha);
@@ -133,11 +132,13 @@
                             <span class="md:hidden text-xs text-gray-500">Precio USD</span>
                             {{-- Sin venta.editar-precio, el precio es el del articulo (VentaForm::exigirPermisoDePrecio). --}}
                             <x-input type="number" min="0" step="0.01" inputmode="decimal" class="w-full text-right" wire:model.live.debounce.400ms="lineas.{{ $index }}.precio" onfocus="this.select()"
-                                :disabled="!$puedeEditarPrecio" :title="$puedeEditarPrecio ? null : 'No tienes permiso para cambiar el precio: usa el descuento'" />
-                        </label>
-                        <label class="block md:p-2">
-                            <span class="md:hidden text-xs text-gray-500">Desc. USD</span>
-                            <x-input type="number" min="0" step="0.01" inputmode="decimal" class="w-full text-right" wire:model.live.debounce.400ms="lineas.{{ $index }}.descuento" onfocus="this.select()" />
+                                :disabled="!$puedeEditarPrecio" :title="$puedeEditarPrecio ? null : 'No tienes permiso para cambiar el precio: usa el descuento de la venta'" />
+                            {{-- Lo que se le dice al cliente, al TC de la venta. --}}
+                            <span class="mt-0.5 block text-right text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ \App\Support\Dinero::bs((float) ($linea['precio'] ?: 0), $this->tcVenta()) }}</span>
+                            {{-- Una venta vieja con descuento por linea lo conserva (ya no se escribe). --}}
+                            @if ((float) ($linea['descuento'] ?? 0) > 0)
+                                <span class="block text-right text-xs text-amber-700 dark:text-amber-300 whitespace-nowrap">Desc. {{ \App\Support\Dinero::usd($linea['descuento']) }}</span>
+                            @endif
                         </label>
                         @if ($esEquipo)
                             <label class="block md:p-2">
@@ -147,7 +148,7 @@
                         @else
                             <div class="hidden md:block md:p-2 text-right text-gray-400">—</div>
                         @endif
-                        <div class="col-span-3 flex items-center justify-between md:col-span-1 md:block md:p-2 md:text-right whitespace-nowrap">
+                        <div class="col-span-2 flex items-center justify-between md:col-span-1 md:block md:p-2 md:text-right whitespace-nowrap">
                             <span class="md:hidden text-xs text-gray-500">Subtotal USD</span>
                             <span class="font-semibold md:font-normal">{{ number_format($this->subtotalLinea($linea), 2) }}</span>
                         </div>
@@ -158,7 +159,7 @@
                     {{-- Los regalos del equipo: van con el a precio 0, sin quitar (se quitan desde la ficha del equipo). --}}
                     @if ($esEquipo)
                         @foreach ($regalos[$linea['id']] ?? [] as $regalo)
-                            <div class="grid grid-cols-2 gap-2 rounded-md bg-pink-50 p-2 md:grid-cols-[minmax(0,1fr)_5rem_8rem_7rem_5rem_7rem_2rem] md:rounded-none md:p-0 dark:bg-pink-900/20"
+                            <div class="grid grid-cols-2 gap-2 rounded-md bg-pink-50 p-2 md:grid-cols-[minmax(0,1fr)_5rem_9rem_5rem_7rem_2rem] md:rounded-none md:p-0 dark:bg-pink-900/20"
                                 wire:key="regalo-{{ $linea['id'] }}-{{ $loop->index }}">
                                 <div class="col-span-2 md:col-span-1 md:p-2 md:pl-6">
                                     <span class="text-gray-500">↳</span>
@@ -169,7 +170,6 @@
                                 <div class="md:p-2 md:text-right"><span class="md:hidden text-xs text-gray-500">Cant. </span>{{ $regalo['cantidad'] }}</div>
                                 <div class="hidden md:block md:p-2 text-right text-gray-500">0.00</div>
                                 <div class="hidden md:block"></div>
-                                <div class="hidden md:block"></div>
                                 <div class="text-right md:p-2 whitespace-nowrap"><span class="md:hidden text-xs text-gray-500">Subtotal USD </span>0.00</div>
                                 <div class="hidden md:block"></div>
                             </div>
@@ -177,9 +177,9 @@
                     @endif
                 @endforeach
                 @foreach ($cobrosExistentes as $cobro)
-                    <div class="grid grid-cols-2 gap-2 rounded-md bg-green-50 p-2 md:grid-cols-[minmax(0,1fr)_5rem_8rem_7rem_5rem_7rem_2rem] md:rounded-none md:border-t md:border-gray-200 md:p-0 dark:bg-green-900/30"
+                    <div class="grid grid-cols-2 gap-2 rounded-md bg-green-50 p-2 md:grid-cols-[minmax(0,1fr)_5rem_9rem_5rem_7rem_2rem] md:rounded-none md:border-t md:border-gray-200 md:p-0 dark:bg-green-900/30"
                         wire:key="cobro-{{ $loop->index }}">
-                        <div class="col-span-2 md:col-span-5 md:p-2">
+                        <div class="col-span-2 md:col-span-4 md:p-2">
                             {!! \App\Enums\LineaTipo::badge('Repuesto') !!} {{ $cobro['nombre'] }}
                             <span class="block text-xs text-gray-500">Cobro de taller (ya registrado). Se anula desde el detalle de la venta.</span>
                         </div>
@@ -198,7 +198,7 @@
                 @endforeach
             @endforeach
             @unless ($puedeEditarPrecio)
-                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400"><i class="fa-solid fa-lock mr-1"></i>El precio de cada línea es el de lista: para rebajarlo, usa el descuento.</p>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400"><i class="fa-solid fa-lock mr-1"></i>El precio de cada línea es el de lista: para rebajarlo, usa el descuento de la venta.</p>
             @endunless
             <x-input-error for="lineas" class="mt-1" />
             <x-input-error for="detalles" class="mt-1" />
@@ -206,7 +206,7 @@
 
         {{-- Totales --}}
         @php($t = $this->totales())
-        <div class="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow p-4 grid grid-cols-2 md:grid-cols-3 gap-4">
             <div>
                 <x-label value="Subtotal USD" />
                 <p class="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">{{ number_format($t['subtotal'], 2) }}</p>
@@ -236,33 +236,15 @@
                 @endif
                 <x-input-error for="venta.descuento" />
             </div>
-            <div>
-                {{-- USD o Bs (VentaForm::monedaCabecera): en Bs se escribe lo que se le
-                     dice al cliente y se guarda su USD al TC de la venta. --}}
-                <x-label value="Mano de obra" />
-                {{-- La moneda junto al campo y no junto al rotulo: en el celular
-                     «Mano de obra» y el selector no entraban en la misma linea. --}}
-                <div class="mt-1 flex items-stretch gap-1">
-                    @if ($manoObraEnBs)
-                        <x-input type="number" min="0" step="0.01" inputmode="decimal" class="min-w-0 flex-1" wire:model.live.debounce.400ms="manoObraBs" wire:key="mano_obra-bs" onfocus="this.select()" placeholder="Bs" />
-                    @else
-                        <x-input type="number" min="0" step="0.01" inputmode="decimal" class="min-w-0 flex-1" wire:model.live.debounce.400ms="venta.mano_obra" wire:key="mano_obra-usd" onfocus="this.select()" placeholder="USD" />
-                    @endif
-                    <div class="inline-flex shrink-0 flex-col overflow-hidden rounded-md border border-gray-300 text-[11px] font-semibold leading-none dark:border-gray-600">
-                        <button type="button" wire:click="monedaCabecera('mano_obra', 'USD')" @class(['flex-1 px-2', 'bg-brand-600 text-white' => !$manoObraEnBs, 'text-gray-600 dark:text-gray-300' => $manoObraEnBs])>USD</button>
-                        <button type="button" wire:click="monedaCabecera('mano_obra', 'BOB')" @class(['flex-1 px-2', 'bg-brand-600 text-white' => $manoObraEnBs, 'text-gray-600 dark:text-gray-300' => !$manoObraEnBs])>Bs</button>
-                    </div>
-                </div>
-                @if ($manoObraEnBs)
-                    <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">= {{ \App\Support\Dinero::usd($venta['mano_obra'] ?: 0) }} · TC {{ \App\Support\Dinero::tc($this->tcVenta()) }}</p>
-                @endif
-                <x-input-error for="venta.mano_obra" />
-            </div>
-            <div>
+            <div class="col-span-2 md:col-span-1">
                 <x-label value="Total USD" />
                 {{-- El equivalente en Bs, al tipo de cambio de hoy, solo al crear: la
                      venta editada ya tiene el suyo congelado. --}}
                 <p class="mt-2 text-2xl font-bold text-brand-700 dark:text-brand-300"><x-monto :valor="$t['total']" :sinBs="$this->esEdicion()" /></p>
+                {{-- La mano de obra ya no se escribe aqui; una venta vieja que la tenia la conserva. --}}
+                @if ((float) ($venta['mano_obra'] ?? 0) > 0)
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Incluye mano de obra {{ \App\Support\Dinero::usd($venta['mano_obra']) }}</p>
+                @endif
             </div>
         </div>
 

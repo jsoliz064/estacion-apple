@@ -106,16 +106,18 @@ class VentaForm extends Component
     public array $pagosExistentes = [];
 
     /**
-     * El descuento y la mano de obra de la cabecera se pueden escribir en Bs
-     * (pedido de la tienda: el vendedor dice «te lo dejo en 7800 Bs» y antes
-     * tenia que calcular a mano cuantos USD de descuento eran 200 Bs). Solo es
-     * la pantalla: venta.descuento y venta.mano_obra siguen en USD, que es lo
-     * que se guarda; en Bs, USD = Bs / tcVenta().
+     * El descuento de la cabecera se puede escribir en Bs (pedido de la tienda:
+     * el vendedor dice «te lo dejo en 7800 Bs» y antes tenia que calcular a mano
+     * cuantos USD de descuento eran 200 Bs). Solo es la pantalla: venta.descuento
+     * sigue en USD, que es lo que se guarda; en Bs, USD = Bs / tcVenta().
+     *
+     * El descuento por linea y la mano de obra ya no se escriben en el
+     * formulario (pedido de la tienda): la rebaja va en este descuento. Las
+     * columnas siguen, y una venta vieja que los tenia los conserva al editarla
+     * (viajan en $lineas y $venta como se cargaron).
      */
     public bool $descuentoEnBs = false;
     public $descuentoBs = '';
-    public bool $manoObraEnBs = false;
-    public $manoObraBs = '';
 
     /** El TC congelado de la venta que se edita (al crear, null: el del dia). */
     #[Locked]
@@ -545,12 +547,11 @@ class VentaForm extends Component
         }
     }
 
-    // ------------------------------------------- descuento y mano de obra en Bs
+    // ------------------------------------------------------- descuento en Bs
 
     /** Los campos de la cabecera que se escriben en USD o Bs: [enBs, Bs]. */
     private const MONTOS_CABECERA = [
         'descuento' => ['descuentoEnBs', 'descuentoBs'],
-        'mano_obra' => ['manoObraEnBs', 'manoObraBs'],
     ];
 
     /** El TC de los Bs de la cabecera: el de la venta al editar, el del dia al crear (el que congelara). */
@@ -574,11 +575,6 @@ class VentaForm extends Component
     public function updatedDescuentoBs(): void
     {
         $this->sincronizarMontoCabecera('descuento');
-    }
-
-    public function updatedManoObraBs(): void
-    {
-        $this->sincronizarMontoCabecera('mano_obra');
     }
 
     private function sincronizarMontoCabecera(string $campo): void
@@ -623,7 +619,7 @@ class VentaForm extends Component
             $precio = (float) ($guardada?->precio ?? $articulo?->precio ?? 0);
 
             if (round((float) $l['precio'], 2) !== round($precio, 2)) {
-                $errores["lineas.$i.precio"] = "No tienes permiso para cambiar el precio de «{$l['descripcion']}» (" . Dinero::usd($precio) . '). Puedes darle un descuento.';
+                $errores["lineas.$i.precio"] = "No tienes permiso para cambiar el precio de «{$l['descripcion']}» (" . Dinero::usd($precio) . '). Para rebajarlo, usa el descuento de la venta.';
             }
         }
 
@@ -664,7 +660,6 @@ class VentaForm extends Component
     public function guardar()
     {
         $this->sincronizarMontoCabecera('descuento');
-        $this->sincronizarMontoCabecera('mano_obra');
         $this->seguirTotal();
         $this->validate();
         $this->exigirPermisoDePrecio();
