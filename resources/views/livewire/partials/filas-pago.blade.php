@@ -1,5 +1,7 @@
 {{-- Las filas de pago (FilasDePagoFormTrait): metodo, USD (la base) o Bs con
-     su tipo de cambio. Lo comparten la venta y la compra. Variables: $metodos.
+     su tipo de cambio. Lo comparten la venta y la compra. Variables: $metodos y
+     $tcEditable (false en la venta: el TC se ve pero no se cambia; lo fija el
+     servidor, FilasDePagoFormTrait::tcFijoDePagos()).
 
      Dos cosas que trababan el campo en Bs:
      - wire:key en cada input, con la moneda: sin el, el morph reusaba el input
@@ -9,6 +11,7 @@
        teclear, y viaja con la peticion. Si solo lo calculaba el servidor, la
        respuesta traia `pagos` cambiado y Livewire reemplazaba el arreglo
        entero, pisando lo que se seguia tecleando. --}}
+@php($tcEditable = $tcEditable ?? true)
 <div class="mt-2 space-y-2">
     @foreach ($pagos as $i => $pago)
         @php($enBs = ($pago['moneda'] ?? 'USD') === \App\Enums\Moneda::alterna()->value)
@@ -27,10 +30,14 @@
                 <x-input type="number" min="0" step="0.01" inputmode="decimal" class="w-28 text-right" placeholder="Bs"
                     wire:model.live.debounce.400ms="pagos.{{ $i }}.monto_moneda" wire:key="pago-{{ $i }}-bs" onfocus="this.select()"
                     x-on:input="$wire.$set('pagos.{{ $i }}.monto', usdDePago($event.target.value, $wire.$get('pagos.{{ $i }}.tipo_cambio')), false)" />
-                <span class="text-xs text-gray-500">a</span>
-                <x-input type="number" min="0" step="0.0001" inputmode="decimal" class="w-24 text-right" title="Tipo de cambio"
-                    wire:model.live.debounce.400ms="pagos.{{ $i }}.tipo_cambio" wire:key="pago-{{ $i }}-tc" onfocus="this.select()"
-                    x-on:input="$wire.$set('pagos.{{ $i }}.monto', usdDePago($wire.$get('pagos.{{ $i }}.monto_moneda'), $event.target.value), false)" />
+                @if ($tcEditable)
+                    <span class="text-xs text-gray-500">a</span>
+                    <x-input type="number" min="0" step="0.0001" inputmode="decimal" class="w-24 text-right" title="Tipo de cambio"
+                        wire:model.live.debounce.400ms="pagos.{{ $i }}.tipo_cambio" wire:key="pago-{{ $i }}-tc" onfocus="this.select()"
+                        x-on:input="$wire.$set('pagos.{{ $i }}.monto', usdDePago($wire.$get('pagos.{{ $i }}.monto_moneda'), $event.target.value), false)" />
+                @else
+                    <span class="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap" title="Tipo de cambio de la venta (no se cambia aquí)">a TC {{ \App\Support\Dinero::tc($pago['tipo_cambio'] ?? 0) }}</span>
+                @endif
                 <span class="text-sm whitespace-nowrap text-gray-700 dark:text-gray-200" x-text="'= USD ' + usdDePago($wire.$get('pagos.{{ $i }}.monto_moneda'), $wire.$get('pagos.{{ $i }}.tipo_cambio')).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })">= {{ \App\Support\Dinero::usd($this->montoBaseDe($pago)) }}</span>
             @else
                 <x-input type="number" min="0" step="0.01" inputmode="decimal" class="w-36 text-right" placeholder="USD"

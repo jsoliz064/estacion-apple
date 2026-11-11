@@ -560,6 +560,12 @@ class VentaForm extends Component
         return $this->tcVentaGuardada ?: TipoCambio::actual();
     }
 
+    /** Los pagos en Bs van al TC de la venta: se ve, pero no se cambia en la fila. */
+    protected function tcFijoDePagos(): ?float
+    {
+        return $this->tcVenta();
+    }
+
     public function monedaCabecera(string $campo, string $moneda): void
     {
         [$enBs, $bs] = self::MONTOS_CABECERA[$campo] ?? abort(400);
@@ -660,6 +666,7 @@ class VentaForm extends Component
     public function guardar()
     {
         $this->sincronizarMontoCabecera('descuento');
+        $this->fijarTipoCambioDePagos();
         $this->seguirTotal();
         $this->validate();
         $this->exigirPermisoDePrecio();

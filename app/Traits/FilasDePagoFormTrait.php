@@ -55,6 +55,32 @@ trait FilasDePagoFormTrait
         $this->montoTocado = true;
     }
 
+    /**
+     * El TC de las filas en Bs cuando la pantalla no deja cambiarlo (la venta:
+     * pedido de la tienda, el vendedor no elige el tipo de cambio); null si se
+     * edita en la fila (la compra). Se aplica al teclear y al guardar, asi que
+     * un TC enviado a mano no cuenta.
+     */
+    protected function tcFijoDePagos(): ?float
+    {
+        return null;
+    }
+
+    /** Pone el TC fijo en las filas en Bs y recalcula su USD. Llamar antes de validar. */
+    protected function fijarTipoCambioDePagos(): void
+    {
+        if (!$fijo = $this->tcFijoDePagos()) {
+            return;
+        }
+
+        foreach ($this->pagos as $i => $fila) {
+            if (($fila['moneda'] ?? '') === Moneda::alterna()->value) {
+                $this->pagos[$i]['tipo_cambio'] = $fijo;
+                $this->pagos[$i]['monto'] = $this->montoBaseDe($this->pagos[$i]);
+            }
+        }
+    }
+
     public function updatedPagos($valor, $clave): void
     {
         if (!preg_match('/^(\d+)\.(monto|monto_moneda|moneda|tipo_cambio)$/', (string) $clave, $m)) {
@@ -72,8 +98,12 @@ trait FilasDePagoFormTrait
         // Pasar la fila a Bs propone en Bs lo que decia en USD (lo que el
         // cliente debe, al TC de la fila): 1000 USD a TC 10 = 10000 Bs. Siempre,
         // no solo si estaba vacio: tras ir y volver de USD quedaban los Bs viejos.
+        if ($fijo = $this->tcFijoDePagos()) {
+            $this->pagos[$i]['tipo_cambio'] = $fijo;
+        }
+
         if ($m[2] === 'moneda') {
-            $this->pagos[$i]['tipo_cambio'] = (float) ($fila['tipo_cambio'] ?: 0) ?: TipoCambio::actual();
+            $this->pagos[$i]['tipo_cambio'] = (float) ($this->pagos[$i]['tipo_cambio'] ?: 0) ?: TipoCambio::actual();
             $this->pagos[$i]['monto_moneda'] = round((float) ($fila['monto'] ?: 0) * (float) $this->pagos[$i]['tipo_cambio'], 2);
         }
 

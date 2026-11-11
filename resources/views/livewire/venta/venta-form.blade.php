@@ -282,7 +282,7 @@
                     </div>
                 @endif
 
-                @include('livewire.partials.filas-pago')
+                @include('livewire.partials.filas-pago', ['tcEditable' => false])
 
                 {{-- Permuta: el equipo que entrega el cliente es un pago mas (PermutaService). --}}
                 <div class="mt-4 border-t border-gray-200 pt-3 dark:border-gray-700">
