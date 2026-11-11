@@ -139,4 +139,8 @@
     @livewire('venta.modals.venta-destroy-modal')
     @livewire('cobranza.modals.cobro-modal')
     @livewire('cobranza.modals.pago-anular-modal')
+    {{-- Garantia y trabajo externo del equipo, con su selector de piezas: sin el,
+         «Agregar repuesto» del modal no haria nada. --}}
+    @livewire('producto.modals.producto-reparacion-cliente-modal')
+    @livewire('reparacion.modals.repuestos-reparacion-modal')
 </div>

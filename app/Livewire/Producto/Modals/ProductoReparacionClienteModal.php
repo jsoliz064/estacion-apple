@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Producto\Modals;
 
+use App\Enums\ProductoEstado;
 use App\Enums\ReparacionTipo;
 use App\Models\Producto;
 use App\Models\Bitacora;
@@ -12,6 +13,7 @@ use App\Models\VentaDetalle;
 use Illuminate\Support\Facades\DB;
 use App\Traits\RepuestosReparacionFormTrait;
 use Livewire\Component;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Repuesto;
@@ -38,7 +40,8 @@ class ProductoReparacionClienteModal extends Component
     public $producto;
     public $detalle;
 
-    /** Modo activo: Garantia o Externo. */
+    /** Modo activo: Garantia o Externo. #[Locked]: lo decide el evento que abrio el modal. */
+    #[Locked]
     public $tipo = 'Garantia';
 
     public $reparacion = [];
@@ -73,6 +76,16 @@ class ProductoReparacionClienteModal extends Component
         return $this->tipo === ReparacionTipo::Externo->value;
     }
 
+    /**
+     * El permiso de cada modo. Lo exige el modal mismo y no solo la pantalla que
+     * lo abre (Productos o el detalle de la venta): antes cualquiera que
+     * disparara el evento abria y guardaba.
+     */
+    private function exigirPermiso(): void
+    {
+        abort_unless(Auth::user()?->can($this->esExterno() ? 'producto.trabajo-externo' : 'producto.garantia'), 403);
+    }
+
     /** Etiqueta para titulos y mensajes. */
     public function etiquetaTipo(): string
     {
@@ -82,8 +95,15 @@ class ProductoReparacionClienteModal extends Component
     private function abrir($id, string $tipo)
     {
         $this->tipo = $tipo;
+        $this->exigirPermiso();
 
-        $producto = Producto::find($id);
+        $producto = Producto::findOrFail($id);
+        if (!in_array($producto->estado, ProductoEstado::vendidos(), true)) {
+            toastr()->error('El equipo debe estar vendido');
+
+            return;
+        }
+
         $this->tecnicos = Tecnicos::all();
         $this->producto = $producto;
         $this->openModal = true;
@@ -201,6 +221,7 @@ class ProductoReparacionClienteModal extends Component
 
     public function update()
     {
+        $this->exigirPermiso();
         $this->validate([
             'reparacion.costo' => 'required|numeric|min:0',
             'reparacion.costo_repuestos' => 'required|numeric|min:0',
@@ -344,12 +365,15 @@ class ProductoReparacionClienteModal extends Component
         });
 
         $this->dispatch('refreshProductoTable');
+        $this->dispatch('refreshVentaDetalleTable');
         toastr()->success($this->etiquetaTipo() . ' actualizada exitosamente');
         $this->reset();
     }
 
     public function finalizarReparacion()
     {
+        $this->exigirPermiso();
+
         DB::transaction(function () {
             $productoReparacion = ProductoReparacion::find($this->reparacion['id']);
             $productoReparacion->update([
@@ -367,6 +391,7 @@ class ProductoReparacionClienteModal extends Component
         });
 
         $this->dispatch('refreshProductoTable');
+        $this->dispatch('refreshVentaDetalleTable');
         toastr()->success('Reparacion finalizada exitosamente');
         $this->reset();
     }
