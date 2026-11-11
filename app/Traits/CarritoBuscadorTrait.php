@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Enums\ArticuloTipo;
 use App\Enums\LineaTipo;
 use App\Services\BuscadorArticulosService;
 use Livewire\Attributes\On;
@@ -123,6 +124,9 @@ trait CarritoBuscadorTrait
             excluidos: $this->clavesEnCarrito(),
             sucursalId: $this->sucursalDelDocumento(),
             soloConStock: $this->esVenta(),
+            // La venta abre en accesorios (lo de mostrador); antes abria siempre
+            // en repuestos y habia que cambiarlo cada vez. La compra, en repuestos.
+            tipo: ($this->esVenta() ? ArticuloTipo::Accesorio : ArticuloTipo::Repuesto)->value,
         );
     }
 

@@ -52,9 +52,11 @@ class ArticuloSelectorModal extends Component
     public int $porPagina = 10;
 
     #[On('openArticuloSelectorModal')]
-    public function openModal(array $excluidos = [], ?int $sucursalId = null, bool $soloConStock = false): void
+    public function openModal(array $excluidos = [], ?int $sucursalId = null, bool $soloConStock = false, ?string $tipo = null): void
     {
         $this->reset(['search', 'filtroCategoria', 'filtroModelo', 'seleccionados', 'pagina']);
+        // El tipo con el que abre lo decide la pantalla (la venta, accesorios).
+        $this->tipo = (ArticuloTipo::tryFrom((string) $tipo) ?? ArticuloTipo::Repuesto)->value;
         $this->excluidos = array_values(array_map('strval', $excluidos));
         $this->sucursalId = $sucursalId;
         $this->soloConStock = $soloConStock;

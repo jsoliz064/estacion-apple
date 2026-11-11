@@ -69,10 +69,12 @@ trait FilasDePagoFormTrait
             return;
         }
 
-        // Pasar la fila a Bs propone en Bs lo que ya decia en USD (lo que el
-        // cliente debe, al TC de la fila).
-        if ($m[2] === 'moneda' && !(float) ($fila['monto_moneda'] ?: 0)) {
-            $this->pagos[$i]['monto_moneda'] = round((float) ($fila['monto'] ?: 0) * (float) ($fila['tipo_cambio'] ?: 0), 2);
+        // Pasar la fila a Bs propone en Bs lo que decia en USD (lo que el
+        // cliente debe, al TC de la fila): 1000 USD a TC 10 = 10000 Bs. Siempre,
+        // no solo si estaba vacio: tras ir y volver de USD quedaban los Bs viejos.
+        if ($m[2] === 'moneda') {
+            $this->pagos[$i]['tipo_cambio'] = (float) ($fila['tipo_cambio'] ?: 0) ?: TipoCambio::actual();
+            $this->pagos[$i]['monto_moneda'] = round((float) ($fila['monto'] ?: 0) * (float) $this->pagos[$i]['tipo_cambio'], 2);
         }
 
         // `monto` sigue siendo el USD de la fila: es lo que suma y lo que valida

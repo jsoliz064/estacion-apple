@@ -66,6 +66,16 @@ window.capaModal = (el) => Math.max(50, ...[...document.querySelectorAll('.jetst
     .filter((m) => m !== el && m.style.display !== 'none')
     .map((m) => Number(m.style.zIndex) || 50)) + 1;
 
+// El USD de una fila de pago en Bs (Bs / TC, a 2 decimales), igual que
+// FilasDePagoFormTrait::montoBaseDe(). El parcial filas-pago lo calcula al
+// teclear para que el servidor devuelva el mismo valor y no reemplace las filas.
+window.usdDePago = (bs, tc) => {
+    const b = parseFloat(bs);
+    const t = parseFloat(tc);
+
+    return t > 0 && Number.isFinite(b) ? Math.round((b / t + Number.EPSILON) * 100) / 100 : 0;
+};
+
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('escaner', () => ({
         abierto: false,
