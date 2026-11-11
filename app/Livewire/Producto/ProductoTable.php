@@ -62,7 +62,7 @@ class ProductoTable extends DataTableComponent
     public function columns(): array
     {
         // En USD; las celdas densas no llevan el equivalente en Bs.
-        $bs = fn($value) => \App\Support\Dinero::usd($value);
+        $usd = fn($value) => \App\Support\Dinero::usd($value);
 
         return [
             Column::make("Foto")
@@ -141,27 +141,23 @@ class ProductoTable extends DataTableComponent
                     return "Compra #{$compra->id}, {$compra->proveedor?->nombre}, " . $compra->fecha?->format('d/m/Y');
                 })
                 ->collapseOnTablet(),
-            Column::make("Costo U.+Regalos")
-                ->label(fn($row) => $bs((float) $row->costo_unidad + (float) $row->costo_regalos)
-                    . ($row->cargadoEnBs()
-                        ? '<span class="block text-xs text-gray-500">' . e($row->montosEnMoneda()) . '</span>' : ''))
-                ->html()
-                ->collapseOnTablet(),
-            Column::make("Costo Total", "costo_total")
-                ->sortable()
-                ->format($bs)
-                ->collapseOnTablet(),
+            // El precio si lleva su equivalente en Bs (lo que se le dice al
+            // cliente), al TC del dia, como <x-monto>: los Bs son una vista.
             Column::make("Precio", "precio")
                 ->sortable()
-                ->format($bs)
+                ->format(fn($value) => '<span class="inline-flex flex-col leading-tight">'
+                    . '<span class="whitespace-nowrap">' . e(\App\Support\Dinero::usd($value)) . '</span>'
+                    . '<span class="whitespace-nowrap text-xs font-normal opacity-70">' . e(\App\Support\Dinero::bs($value)) . '</span>'
+                    . '</span>')
+                ->html()
                 ->collapseOnTablet(),
             Column::make("Venta")
-                ->label(function ($row) use ($bs) {
+                ->label(function ($row) use ($usd) {
                     $linea = $row->ventaDetalle;
                     if (!$linea) {
                         return '';
                     }
-                    return "Venta #{$linea->venta_id}, {$bs($linea->subtotal)}, " . $linea->created_at?->format('d/m/Y');
+                    return "Venta #{$linea->venta_id}, {$usd($linea->subtotal)}, " . $linea->created_at?->format('d/m/Y');
                 })
                 ->collapseOnTablet(),
             Column::make("Baja")
