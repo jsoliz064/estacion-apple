@@ -68,6 +68,9 @@
         @foreach ($equipos as $d)
             <div>{{ $lineaNombre($d) }}</div>
             <div class="fila chico"><span>IMEI {{ $d->producto?->imei }}</span><span>{{ $usd($d->subtotal) }}</span></div>
+            @if ($d->producto?->upc)
+                <div class="chico">Serial {{ $d->producto->upc }}</div>
+            @endif
             @foreach ($venta->detalles->where('producto_asociado_id', $d->producto_id) as $a)
                 <div class="fila sangria chico">
                     <span>+ {{ $a->cantidad > 1 ? $a->cantidad . ' x ' : '' }}{{ $lineaNombre($a) }}{{ $a->esRegalo() ? ' (regalo)' : '' }}</span>

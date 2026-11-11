@@ -42,6 +42,7 @@ class VentaDetalleTable extends DataTableComponent
                 ->html(),
             Column::make('Detalle', 'id')
                 ->format(fn($value, $row) => ($row->producto_asociado_id ? '<span class="text-gray-400">↳</span> ' : '') . e($row->descripcion())
+                    . ($row->producto_id && $row->producto?->upc ? '<span class="block text-xs text-gray-500 font-mono break-all">Serial ' . e($row->producto->upc) . '</span>' : '')
                     . ($row->producto_asociado_id ? '<span class="block text-xs text-gray-500">Con ' . e(trim(($row->productoAsociado?->modelo?->nombre ?? 'el equipo') . ' ' . $row->productoAsociado?->almacenamiento)) . '</span>' : '')
                     . ($row->esRegalo() ? '<span class="block text-xs text-pink-700">Regalo con el equipo (sin cargo; el stock salió al regalarlo)</span>' : '')
                     . ($row->esCobro() ? '<span class="block text-xs text-green-700">Cobro de taller (stock ya descontado en la reparación)</span>' : ''))

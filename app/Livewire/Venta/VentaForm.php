@@ -67,8 +67,10 @@ class VentaForm extends Component
     public array $venta = [];
 
     /**
-     * [['tipo','id','descripcion','codigo','cantidad','precio','descuento',
+     * [['tipo','id','descripcion','codigo','serial','cantidad','precio','descuento',
      *   'garantia_meses','stock','repuestos_elegibles'], ...]
+     * codigo: el IMEI del equipo o el UPC del articulo; serial: el «Serial o
+     * UPC» del equipo (null en los articulos).
      */
     public array $lineas = [];
 
@@ -186,8 +188,11 @@ class VentaForm extends Component
             $this->lineas[] = [
                 'tipo' => $d->tipo,
                 'id' => (int) $articulo->id,
-                'descripcion' => $d->descripcion(),
+                // El equipo con el mismo texto que al agregarlo: descripcion()
+                // ya trae el IMEI, y la linea lo pintaba dos veces.
+                'descripcion' => $d->producto_id ? $this->descripcionEquipo($articulo) : $d->descripcion(),
                 'codigo' => $d->producto_id ? $articulo->imei : $articulo->upc,
+                'serial' => $d->producto_id ? $articulo->upc : null,
                 'cantidad' => (int) $d->cantidad,
                 'precio' => (float) $d->precio,
                 'descuento' => (float) $d->descuento,
@@ -275,8 +280,9 @@ class VentaForm extends Component
         array_unshift($this->lineas, [
             'tipo' => LineaTipo::Producto->value,
             'id' => $producto->id,
-            'descripcion' => trim(($producto->modelo?->nombre ?? 'Equipo') . ' ' . $producto->almacenamiento . ' ' . $producto->color),
+            'descripcion' => $this->descripcionEquipo($producto),
             'codigo' => $producto->imei,
+            'serial' => $producto->upc,
             'cantidad' => 1,
             'precio' => (float) $producto->precio,
             'descuento' => 0,
@@ -293,6 +299,11 @@ class VentaForm extends Component
         if ($regalos !== []) {
             $this->regalos[$producto->id] = $regalos;
         }
+    }
+
+    private function descripcionEquipo(Producto $producto): string
+    {
+        return trim(($producto->modelo?->nombre ?? 'Equipo') . ' ' . $producto->almacenamiento . ' ' . $producto->color);
     }
 
     /** Los regalos del equipo, para mostrarlos bajo su linea. */

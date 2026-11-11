@@ -75,17 +75,29 @@
                 <div class="p-2 text-right">Subtotal</div>
                 <div class="p-2"></div>
             </div>
-            <div class="text-sm space-y-3 md:space-y-0">
+            <div class="text-sm text-gray-900 dark:text-gray-100 space-y-3 md:space-y-0">
                 @foreach ($lineas as $index => $linea)
                     @php($esEquipo = $linea['tipo'] === 'Producto')
                     {{-- wire:key con el indice: los inputs se enlazan por posicion. --}}
-                    <div class="relative grid grid-cols-2 gap-2 rounded-md border border-gray-200 p-2 md:grid-cols-[minmax(0,1fr)_5rem_8rem_7rem_5rem_7rem_2rem] md:rounded-none md:border-0 md:border-t md:p-0 dark:border-gray-700"
+                    {{-- En el celular, tres columnas: precio, descuento y garantia (o
+                         cantidad, precio y descuento) en una sola fila; en dos, cada
+                         linea ocupaba cuatro filas de alto. --}}
+                    <div class="relative grid grid-cols-3 gap-2 rounded-md border border-gray-200 p-2 md:grid-cols-[minmax(0,1fr)_5rem_8rem_7rem_5rem_7rem_2rem] md:rounded-none md:border-0 md:border-t md:p-0 dark:border-gray-700"
                         wire:key="linea-{{ $linea['tipo'] }}-{{ $linea['id'] }}-{{ $index }}">
-                        <div class="col-span-2 pr-8 md:col-span-1 md:p-2">
+                        <div class="col-span-3 pr-8 md:col-span-1 md:p-2">
                             {!! \App\Enums\LineaTipo::badge($linea['tipo']) !!}
                             <span class="text-gray-900 dark:text-gray-100">{{ $linea['descripcion'] }}</span>
-                            @if ($linea['codigo'])
-                                <span class="block text-xs text-gray-500 font-mono">{{ $esEquipo ? 'IMEI ' : 'Código ' }}{{ $linea['codigo'] }}</span>
+                            {{-- IMEI y serial uno bajo el otro (al lado en pantalla ancha);
+                                 break-all: un serial largo no ensancha la tarjeta del celular. --}}
+                            @if ($linea['codigo'] || ($linea['serial'] ?? null))
+                                <span class="mt-0.5 flex flex-col text-xs text-gray-500 dark:text-gray-400 font-mono break-all lg:flex-row lg:flex-wrap lg:gap-x-3">
+                                    @if ($linea['codigo'])
+                                        <span>{{ $esEquipo ? 'IMEI ' : 'Código ' }}{{ $linea['codigo'] }}</span>
+                                    @endif
+                                    @if ($linea['serial'] ?? null)
+                                        <span>Serial {{ $linea['serial'] }}</span>
+                                    @endif
+                                </span>
                             @endif
                             @if (!$esEquipo)
                                 <span class="block text-xs text-gray-500">Stock aquí: {{ $linea['stock'] }}</span>
@@ -127,13 +139,13 @@
                         </label>
                         @if ($esEquipo)
                             <label class="block md:p-2">
-                                <span class="md:hidden text-xs text-gray-500">Garantía (meses)</span>
+                                <span class="md:hidden text-xs text-gray-500 whitespace-nowrap">Gtía. (meses)</span>
                                 <x-input type="number" min="0" max="60" inputmode="numeric" class="w-full text-right" wire:model.live.debounce.400ms="lineas.{{ $index }}.garantia_meses" title="Meses de garantía" />
                             </label>
                         @else
                             <div class="hidden md:block md:p-2 text-right text-gray-400">—</div>
                         @endif
-                        <div class="col-span-2 flex items-center justify-between md:col-span-1 md:block md:p-2 md:text-right whitespace-nowrap">
+                        <div class="col-span-3 flex items-center justify-between md:col-span-1 md:block md:p-2 md:text-right whitespace-nowrap">
                             <span class="md:hidden text-xs text-gray-500">Subtotal USD</span>
                             <span class="font-semibold md:font-normal">{{ number_format($this->subtotalLinea($linea), 2) }}</span>
                         </div>
@@ -187,7 +199,7 @@
         <div class="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
                 <x-label value="Subtotal USD" />
-                <p class="mt-2 text-lg font-semibold">{{ number_format($t['subtotal'], 2) }}</p>
+                <p class="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">{{ number_format($t['subtotal'], 2) }}</p>
                 @if ($this->totalCobrosNuevos() > 0)
                     <p class="text-xs text-green-700 dark:text-green-300">Incluye {{ \App\Support\Dinero::usd($this->totalCobrosNuevos()) }} de repuestos de taller</p>
                 @endif

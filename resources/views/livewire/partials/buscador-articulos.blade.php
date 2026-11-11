@@ -26,9 +26,11 @@
         </div>
         <x-boton-escaner :continuo="$escanerContinuo ?? false" :disabled="!$habilitado" />
         @if ($conCatalogo ?? true)
-            <button type="button" wire:click="abrirSelectorArticulos" @disabled(!$habilitado)
+            {{-- En el celular solo el icono: con el texto, el buscador quedaba en
+                 cuatro letras («Esca...»). --}}
+            <button type="button" wire:click="abrirSelectorArticulos" @disabled(!$habilitado) title="Catálogo" aria-label="Catálogo"
                 class="px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 whitespace-nowrap">
-                <i class="fa-solid fa-list"></i> Catálogo
+                <i class="fa-solid fa-list"></i><span class="hidden sm:inline"> Catálogo</span>
             </button>
         @endif
     </div>
