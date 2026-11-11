@@ -338,6 +338,10 @@
 
 
                         <!-- Administración Submenu -->
+                        {{-- Un submenu sin ninguna opcion permitida no se muestra: el
+                             vendedor veia «Administración» y al abrirlo, nada. La lista
+                             es la de los @can de sus opciones; una opcion nueva va en las dos. --}}
+                        @canany(['user.index', 'cliente.index', 'proveedor.index', 'tecnico.index', 'sucursal.index', 'metodo-pago.index', 'rol.index'])
                         <li class="relative submenu-container">
                             <button
                                 class="submenu-toggle relative flex flex-row items-center w-full h-11 focus:outline-none hover:bg-brand-300 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 border-l-4 border-transparent hover:border-brand-800 dark:hover:border-gray-800 pr-6">
@@ -445,8 +449,10 @@
 
                             </ul>
                         </li>
+                        @endcanany
 
                         <!-- Inventario Submenu -->
+                        @canany(['producto.index', 'repuesto.index', 'accesorio.index', 'codigo.index', 'repuesto-categoria.index', 'accesorio-categoria.index', 'producto-modelo.index', 'producto-color.index', 'producto-categoria.index', 'producto-marca.index'])
                         <li class="relative submenu-container">
                             <button
                                 class="submenu-toggle relative flex flex-row items-center w-full h-11 focus:outline-none hover:bg-brand-300 dark:hover:bg-gray-600 text-white-600 hover:text-white-800 border-l-4 border-transparent hover:border-brand-800 dark:hover:border-gray-800 pr-6">
@@ -595,6 +601,7 @@
 
                             </ul>
                         </li>
+                        @endcanany
 
                         @can('compra.index')
                             <li>
