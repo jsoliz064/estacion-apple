@@ -128,19 +128,6 @@ class ProductoTable extends DataTableComponent
                         'dadoDeBaja' => $row->dado_de_baja_at !== null,
                     ]);
                 }),
-            // Antes leia productos.compra_id con un Compra::find por fila; la
-            // compra ahora sale de su linea (compras_detalles), cargada de una
-            // vez en el builder.
-            Column::make("Compra")
-                ->label(function ($row) {
-                    $compra = $row->compraDetalle?->compra;
-                    if (!$compra) {
-                        // Sin compra: lo entrego un cliente en permuta.
-                        return $row->permuta ? "Permuta, venta #{$row->permuta->venta_id}" : '';
-                    }
-                    return "Compra #{$compra->id}, {$compra->proveedor?->nombre}, " . $compra->fecha?->format('d/m/Y');
-                })
-                ->collapseOnTablet(),
             // El precio si lleva su equivalente en Bs (lo que se le dice al
             // cliente), al TC del dia, como <x-monto>: los Bs son una vista.
             Column::make("Precio", "precio")
@@ -209,9 +196,10 @@ class ProductoTable extends DataTableComponent
                     }
                     $builder->whereIn('productos.estado', $values);
                 })
-                // Por defecto, todo lo que sigue en el negocio: lo vendido se
-                // ve eligiendolo.
-                ->setFilterDefaultValue(array_values(array_diff(ProductoEstado::values(), ProductoEstado::vendidos()))),
+                // Por defecto, solo Inventario (pedido de la tienda: lo que se
+                // puede vender). Los demas estados, y lo vendido, se ven
+                // eligiendolos; quitar el filtro los muestra todos.
+                ->setFilterDefaultValue([ProductoEstado::Inventario->value]),
             // La baja archiva el equipo: por defecto NO se ve. La clave del
             // filtro (Str::snake) es 'baja'.
             SelectFilter::make('Baja')
