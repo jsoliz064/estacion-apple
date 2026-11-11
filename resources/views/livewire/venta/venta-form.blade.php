@@ -218,18 +218,16 @@
                 {{-- USD o Bs (VentaForm::monedaCabecera): en Bs se escribe lo que se le
                      dice al cliente y se guarda su USD al TC de la venta. --}}
                 <x-label value="Descuento" />
-                {{-- La moneda junto al campo y no junto al rotulo: en el celular
-                     «Mano de obra» y el selector no entraban en la misma linea. --}}
-                <div class="mt-1 flex items-stretch gap-1">
-                    @if ($descuentoEnBs)
-                        <x-input type="number" min="0" step="0.01" inputmode="decimal" class="min-w-0 flex-1" wire:model.live.debounce.400ms="descuentoBs" wire:key="descuento-bs" onfocus="this.select()" placeholder="Bs" />
-                    @else
-                        <x-input type="number" min="0" step="0.01" inputmode="decimal" class="min-w-0 flex-1" wire:model.live.debounce.400ms="venta.descuento" wire:key="descuento-usd" onfocus="this.select()" placeholder="USD" />
-                    @endif
-                    <div class="inline-flex shrink-0 flex-col overflow-hidden rounded-md border border-gray-300 text-[11px] font-semibold leading-none dark:border-gray-600">
-                        <button type="button" wire:click="monedaCabecera('descuento', 'USD')" @class(['flex-1 px-2', 'bg-brand-600 text-white' => !$descuentoEnBs, 'text-gray-600 dark:text-gray-300' => $descuentoEnBs])>USD</button>
-                        <button type="button" wire:click="monedaCabecera('descuento', 'BOB')" @class(['flex-1 px-2', 'bg-brand-600 text-white' => $descuentoEnBs, 'text-gray-600 dark:text-gray-300' => !$descuentoEnBs])>Bs</button>
-                    </div>
+                @if ($descuentoEnBs)
+                    <x-input type="number" min="0" step="0.01" inputmode="decimal" class="mt-1 w-full" wire:model.live.debounce.400ms="descuentoBs" wire:key="descuento-bs" onfocus="this.select()" placeholder="Bs" />
+                @else
+                    <x-input type="number" min="0" step="0.01" inputmode="decimal" class="mt-1 w-full" wire:model.live.debounce.400ms="venta.descuento" wire:key="descuento-usd" onfocus="this.select()" placeholder="USD" />
+                @endif
+                {{-- La moneda debajo del campo, a lo ancho: al costado eran dos botones
+                     de 20 px de alto, dificiles de tocar en el celular. --}}
+                <div class="mt-1 grid grid-cols-2 overflow-hidden rounded-md border border-gray-300 text-sm font-semibold dark:border-gray-600">
+                    <button type="button" wire:click="monedaCabecera('descuento', 'USD')" @class(['h-9', 'bg-brand-600 text-white' => !$descuentoEnBs, 'text-gray-600 dark:text-gray-300' => $descuentoEnBs])>USD</button>
+                    <button type="button" wire:click="monedaCabecera('descuento', 'BOB')" @class(['h-9 border-l border-gray-300 dark:border-gray-600', 'bg-brand-600 text-white' => $descuentoEnBs, 'text-gray-600 dark:text-gray-300' => !$descuentoEnBs])>Bs</button>
                 </div>
                 @if ($descuentoEnBs)
                     <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">= {{ \App\Support\Dinero::usd($venta['descuento'] ?: 0) }} · TC {{ \App\Support\Dinero::tc($this->tcVenta()) }}</p>
