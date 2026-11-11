@@ -39,7 +39,13 @@ trait FilasDePagoFormTrait
     public function agregarPago(): void
     {
         $this->montoTocado = true;
-        $this->pagos[] = $this->filaPago(null, max(0, $this->saldoPrevisto()));
+        $this->pagos[] = $this->filaPago(null, $this->montoFilaNueva());
+    }
+
+    /** Lo que propone una fila agregada: lo que falta. Un componente puede no proponer nada. */
+    protected function montoFilaNueva(): float
+    {
+        return max(0, $this->saldoPrevisto());
     }
 
     public function quitarPago(int $index): void

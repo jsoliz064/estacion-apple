@@ -248,7 +248,7 @@ Una compra de 50 equipos no se carga en una sola pantalla sin perderla al primer
   1. `EstadoProductoService::cambiar(EnCompra → destino)` y limpia `estado_destino`.
   2. `ingresar()` a la sucursal de cada línea.
   3. La fila `finalizada` en la bitácora de la compra.
-  4. Lo pagado al recibir (`PagoProveedorService::registrar`).
+  4. Lo pagado al recibir (`PagoProveedorService::registrar`). En `CompraFinalizarModal` la fila de pago **arranca en 0 y no sigue al saldo** (tampoco la de «Agregar método»): proponer lo debido hacía que finalizar sin mirar registrara pagada una compra impaga. La venta sí propone el total (`seguirMonto`).
 
   Rechaza una compra ya finalizada (así un reintento no mete el stock dos veces) y una sin líneas.
 - **Finalizada, se sigue corrigiendo**: los mismos métodos ven `esBorrador()` y mueven el stock al instante (`ingresar`, `ajustarEntrada`, `retirar`).

@@ -60,7 +60,7 @@
                             · <span class="font-semibold text-red-600">Se paga {{ \App\Support\Dinero::usd(-$saldo) }} de más</span>
                         @endif
                     </p>
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Pon 0 si no se pagó nada: todo queda en cuentas por pagar.</p>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Escribe lo que pagaste al recibir. Si lo dejas en 0, lo que se debe queda en cuentas por pagar.</p>
                 </div>
                 @endif
 

@@ -44,8 +44,11 @@ class CompraFinalizarModal extends Component
         $this->montoTocado = false;
         // Pagada por adelantado: no se ofrece cargar otro pago (el servicio
         // rechazaria cualquier monto por encima del saldo, que es 0).
+        // La fila arranca en 0 y no sigue al saldo (pedido de la tienda): antes
+        // proponia lo que se debia, y finalizar sin mirar el monto registraba
+        // como pagada una compra que no se habia pagado.
         $this->pagos = $compra->saldoPendiente() > 0
-            ? [$this->filaPago(MetodoPago::activos()->value('id'))]
+            ? [$this->filaPago(MetodoPago::activos()->value('id'), 0)]
             : [];
         // La clave de los pagos: se siembra al abrir, nunca en render().
         $this->nuevaClaveIdempotencia();
@@ -55,6 +58,12 @@ class CompraFinalizarModal extends Component
     private function compra(): ?Compra
     {
         return $this->compraId ? Compra::find($this->compraId) : null;
+    }
+
+    /** Una fila agregada tambien arranca en 0: el pago se escribe a proposito. */
+    protected function montoFilaNueva(): float
+    {
+        return 0;
     }
 
     /** Lo que se debe antes de estos pagos (puede haber un adelanto). */
@@ -106,10 +115,6 @@ class CompraFinalizarModal extends Component
     public function render()
     {
         $compra = $this->openModal ? Compra::with('detalles')->find($this->compraId) : null;
-
-        if ($compra) {
-            $this->seguirMonto($compra->saldoPendiente());
-        }
 
         return view('livewire.compra.modals.compra-finalizar-modal', [
             'compra' => $compra,
