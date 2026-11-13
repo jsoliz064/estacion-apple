@@ -71,6 +71,7 @@ class ProductoTable extends DataTableComponent
                 ->sortable(),
             Column::make("Version", "version")
                 ->sortable()
+                ->format(fn($v) => $v ? ProductoVersion::labelDe($v) : '')
                 ->collapseOnTablet(),
             // IMEI parcial; el UPC, exacto: es lo que lee la pistola en la caja
             // (y trae a todos los del mismo modelo) o en un sticker propio.
@@ -207,9 +208,7 @@ class ProductoTable extends DataTableComponent
                 }),
             MultiSelectDropdownFilter::make('Versión')
                 ->options(
-                    collect(ProductoVersion::cases())
-                        ->mapWithKeys(fn($case) => [$case->value => $case->value])
-                        ->toArray()
+                    ProductoVersion::toSelectArray()->toArray()
                 )
                 ->filter(function (Builder $builder, array $values) {
                     $builder->whereIn('version', $values);

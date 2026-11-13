@@ -2,8 +2,8 @@
     <div>
         <a href="{{ route('productos') }}" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full">Ir a Productos</a>
     </div>
-    <h2 class="text-center text-2xl font-bold text-gray-800 dark:text-white mb-6">Historial del Producto con Imei
-        #{{ $producto->imei }}</h2>
+    <h2 class="text-center text-2xl font-bold text-gray-800 dark:text-white mb-6">Historial del equipo
+        {{ $producto->identificador() }}</h2>
 
     @php
         $usd = fn($v) => \App\Support\Dinero::usd($v);

@@ -113,14 +113,14 @@ class ProductoRegalosService
 
         if ($producto->estaDadoDeBaja() || in_array($producto->estado, ProductoEstado::vendidos(), true)) {
             throw ValidationException::withMessages([
-                'detalles' => "El equipo {$producto->imei} ya está vendido o dado de baja: sus regalos no se pueden cambiar.",
+                'detalles' => "El equipo {$producto->identificador()} ya está vendido o dado de baja: sus regalos no se pueden cambiar.",
             ]);
         }
 
         // Todavia no se recibio: los regalos se le ponen cuando la compra se finaliza.
         if ($producto->estado === ProductoEstado::EnCompra->value) {
             throw ValidationException::withMessages([
-                'detalles' => "El equipo {$producto->imei} es de una compra sin finalizar: los regalos se agregan después de finalizarla.",
+                'detalles' => "El equipo {$producto->identificador()} es de una compra sin finalizar: los regalos se agregan después de finalizarla.",
             ]);
         }
 

@@ -15,7 +15,6 @@ use App\Models\ProductoModeloAlmacenamiento;
 use App\Models\ProductoReparacion;
 use App\Models\Sucursal;
 use App\Models\Tecnicos;
-use App\Rules\CodigoGeneradoLibre;
 use App\Services\CompraService;
 use App\Traits\MontosEnMonedaFormTrait;
 use App\Traits\NormalizaCodigosTrait;
@@ -111,10 +110,10 @@ class CompraLoteAddModelModal extends Component
             // Los colores que se ofrecen para el modelo (Color::paraModelo):
             // la misma lista que pinta el formulario.
             'color' => ['required', Rule::in($this->coloresOfrecidos()->pluck('nombre')->all())],
-            'version' => 'nullable',
-            'imei' => 'required|string|min:1|max:20|unique:productos,imei',
-            // Un sticker de Codigos de barras se asigna a un solo registro.
-            'upc' => ['nullable', 'string', 'max:50', new CodigoGeneradoLibre('Producto')],
+            'version' => ['nullable', \Illuminate\Validation\Rule::in(\App\Enums\ProductoVersion::values())],
+            // IMEI opcional (iPad Wi-Fi); sin el, el serial es obligatorio y
+            // unico entre los que no tienen IMEI (Producto::reglasIdentidad).
+            ...Producto::reglasIdentidad($this->imei),
             'bateria_porcentaje' => 'required|numeric|min:1|max:100',
             'costo_unidad' => 'required|numeric|min:0|decimal:0,2',
             'precio' => 'required|numeric|min:0|decimal:0,2|gte:costo_unidad',
@@ -139,7 +138,6 @@ class CompraLoteAddModelModal extends Component
         return [
             'required' => 'El campo :attribute es obligatorio.',
             'numeric' => 'El campo :attribute debe ser numérico.',
-            'imei.unique' => 'Este IMEI ya existe en el sistema.',
             'min' => 'El valor mínimo para :attribute es :min.',
             'max' => 'El valor máximo para :attribute es :max.',
             'decimal' => 'El campo :attribute debe tener máximo 2 decimales.',
@@ -150,13 +148,14 @@ class CompraLoteAddModelModal extends Component
             'tecnico_selected.required_if' => 'Elija el técnico de la reparación.',
             'sucursal_id.required' => 'Debe seleccionar una sucursal',
             'sucursal_id.exists' => 'La sucursal elegida no existe o está desactivada.',
-        ];
+        ] + Producto::mensajesIdentidad();
     }
 
     protected function validationAttributes()
     {
         return [
             'imei' => 'IMEI',
+            'upc' => 'serial',
             'bateria_porcentaje' => 'porcentaje de batería',
             'costo_unidad' => 'costo',
             'precio' => 'precio',
@@ -353,7 +352,7 @@ class CompraLoteAddModelModal extends Component
 
     public function updated($propertyName)
     {
-        if (in_array($propertyName, ['almacenamiento', 'color', 'imei', 'bateria_porcentaje'])) {
+        if (in_array($propertyName, ['almacenamiento', 'color', 'imei', 'upc', 'bateria_porcentaje'])) {
             $this->generateDescription();
         }
 
@@ -367,7 +366,7 @@ class CompraLoteAddModelModal extends Component
             $this->color ? "color {$this->color}" : '',
             $this->almacenamiento ? "de {$this->almacenamiento}" : '',
             isset($this->bateria_porcentaje) ? "con {$this->bateria_porcentaje}% de batería" : '',
-            $this->imei ? "IMEI: {$this->imei}" : '',
+            $this->imei ? "IMEI: {$this->imei}" : ($this->upc ? "Serial: {$this->upc}" : ''),
         ];
 
         $this->descripcion = trim(implode(' ', array_filter($parts)));
@@ -376,13 +375,15 @@ class CompraLoteAddModelModal extends Component
     protected function saveProduct()
     {
         // La pistola puede dejar espacios o un salto de linea al final.
-        $this->imei = trim((string) $this->imei);
+        // Vacio = NULL: el IMEI es opcional (un '' chocaba con el UNIQUE).
+        $this->imei = NormalizaCodigosTrait::normalizarCodigo($this->imei);
         $this->upc = NormalizaCodigosTrait::normalizarCodigo($this->upc);
         $this->sincronizarMontosEnMoneda();
         $this->validate();
 
-        // La clave natural del alta es el IMEI (productos_imei_unico): un
-        // reintento choca contra el indice en lugar de crear el equipo dos veces.
+        // La clave natural del alta es el IMEI (productos_imei_unico) o, sin
+        // IMEI, el serial (productos_serial_sin_imei_unico): un reintento choca
+        // contra el indice en lugar de crear el equipo dos veces.
         try {
             $producto = DB::transaction(function () {
                 $compra = Compra::lockForUpdate()->findOrFail($this->compra->id);
@@ -430,6 +431,12 @@ class CompraLoteAddModelModal extends Component
                 return $producto;
             });
         } catch (QueryException $e) {
+            if (($e->errorInfo[1] ?? null) === 1062 && str_contains($e->getMessage(), 'serial_sin_imei')) {
+                $this->addError('upc', "Ya hay un equipo sin IMEI con el serial {$this->upc}. Si acabas de guardarlo, revisa la lista antes de repetir.");
+
+                return null;
+            }
+
             if (($e->errorInfo[1] ?? null) === 1062 && str_contains($e->getMessage(), 'imei')) {
                 $this->addError('imei', "El IMEI {$this->imei} ya está registrado. Si acabas de guardarlo, revisa la lista antes de repetir.");
 

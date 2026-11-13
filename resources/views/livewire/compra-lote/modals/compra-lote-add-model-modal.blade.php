@@ -58,7 +58,7 @@
                                 @foreach (App\Enums\ProductoVersion::cases() as $ver)
                                     <option value="{{ $ver->value }}"
                                         @if ($version == $ver->value) selected @endif>
-                                        {{ $ver->value }}
+                                        {{ $ver->label() }}
                                     </option>
                                 @endforeach
                             </select>
@@ -104,7 +104,7 @@
                         {{-- Serial o UPC y, justo debajo, el IMEI: se cargan juntos con la
                              pistola (Enter salta de uno al otro y del IMEI a la bateria). --}}
                         <div class="animate-fade-in">
-                            <x-label for="upc" value="Serial o UPC (opcional)" />
+                            <x-label for="upc" value="Serial o UPC" />
                             <div class="mt-2 flex gap-2" data-escaner>
                                 <x-input wire:model="upc" id="upc" type="text" class="block w-full h-10" placeholder="Escanee o escriba"
                                     autocomplete="off"
@@ -115,7 +115,8 @@
                         </div>
 
                         <div class="animate-fade-in">
-                            <x-label for="imei" value="IMEI *" />
+                            <x-label for="imei" value="IMEI" />
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Opcional: si el equipo no tiene IMEI (iPad Wi‑Fi), el serial es obligatorio.</p>
                             {{-- wire:model.change y no .live: la pistola teclea 15 digitos y
                                  cada uno era una peticion (la descripcion se regenera). --}}
                             <div class="mt-2 flex gap-2" data-escaner>

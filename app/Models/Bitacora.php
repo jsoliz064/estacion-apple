@@ -117,7 +117,7 @@ class Bitacora extends Model
         }
 
         return match ($this->auditable_type) {
-            Producto::class => ['etiqueta' => "Teléfono IMEI {$modelo->imei}", 'url' => route('productos.historial', $id)],
+            Producto::class => ['etiqueta' => "Equipo " . $modelo->identificador(), 'url' => route('productos.historial', $id)],
             Repuesto::class => ['etiqueta' => $modelo->nombre, 'url' => route('repuestos.historial', $id)],
             Accesorio::class => ['etiqueta' => $modelo->nombre, 'url' => route('accesorios.historial', $id)],
             Venta::class => ['etiqueta' => "Venta #{$id}", 'url' => route('ventas.detalles', $id)],

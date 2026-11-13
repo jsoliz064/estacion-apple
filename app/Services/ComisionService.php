@@ -265,7 +265,7 @@ class ComisionService
 
         return Str::limit(
             'Reparación #' . $reparacion->id
-                . ($producto ? ' · ' . ($producto->descripcion ?: 'Equipo') . ' · IMEI ' . $producto->imei : ''),
+                . ($producto ? ' · ' . ($producto->descripcion ?: 'Equipo') . ' · ' . $producto->identificador() : ''),
             250,
         );
     }

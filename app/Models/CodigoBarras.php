@@ -94,7 +94,7 @@ class CodigoBarras extends Model
 
         $nombres = [];
         foreach (Producto::with('modelo')->whereIn('id', $ids['Producto'] ?? [])->get() as $p) {
-            $nombres['Producto'][$p->id] = trim(($p->modelo?->nombre ?? 'Equipo') . ' ' . $p->almacenamiento) . ' · IMEI ' . $p->imei;
+            $nombres['Producto'][$p->id] = trim(($p->modelo?->nombre ?? 'Equipo') . ' ' . $p->almacenamiento) . ' · ' . $p->identificador();
         }
         foreach (Repuesto::whereIn('id', $ids['Repuesto'] ?? [])->get(['id', 'nombre']) as $r) {
             $nombres['Repuesto'][$r->id] = 'Repuesto: ' . $r->nombre;

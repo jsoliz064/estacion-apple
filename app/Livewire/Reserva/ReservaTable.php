@@ -71,7 +71,7 @@ class ReservaTable extends DataTableComponent
 
             Column::make('Equipo')
                 ->label(fn($row) => e(trim(($row->producto?->modelo?->nombre ?? 'Equipo') . ' ' . $row->producto?->almacenamiento . ' ' . $row->producto?->color))
-                    . '<span class="block text-xs font-mono text-gray-500">IMEI ' . e($row->producto?->imei) . '</span>')
+                    . '<span class="block text-xs font-mono text-gray-500">' . e($row->producto?->identificador()) . '</span>')
                 ->html(),
 
             Column::make('Cliente')

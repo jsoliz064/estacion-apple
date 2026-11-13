@@ -254,7 +254,7 @@ class MovimientoStock extends Model
                     'Salida'                                  as direccion,
                     r.id                                      as referencia_id,
                     rr.created_at                             as fecha,
-                    CONCAT('IMEI ', p.imei, COALESCE(CONCAT(' - ', tc.nombre), ''))
+                    CONCAT(COALESCE(CONCAT('IMEI ', p.imei), CONCAT('Serial ', p.upc), CONCAT('Equipo #', p.id)), COALESCE(CONCAT(' - ', tc.nombre), ''))
                                                               as detalle,
                     rr.cantidad                               as cantidad,
                     rr.costo                                  as costo,
@@ -278,7 +278,7 @@ class MovimientoStock extends Model
                     'Salida'                                  as direccion,
                     p.id                                      as referencia_id,
                     g.created_at                              as fecha,
-                    CONCAT('Regalo con el IMEI ', p.imei)     as detalle,
+                    CONCAT('Regalo con el ', COALESCE(CONCAT('IMEI ', p.imei), CONCAT('serial ', p.upc), CONCAT('equipo #', p.id))) as detalle,
                     g.cantidad                                as cantidad,
                     g.costo                                   as costo,
                     NULL                                      as precio,

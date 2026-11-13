@@ -51,7 +51,7 @@
                                 @foreach (App\Enums\ProductoVersion::cases() as $version)
                                     <option value="{{ $version->value }}"
                                         @if (($producto['version'] ?? '') == $version->value) selected @endif>
-                                        {{ $version->value }}
+                                        {{ $version->label() }}
                                     </option>
                                 @endforeach
                             </select>
@@ -113,7 +113,7 @@
 
                         {{-- Serial o UPC y, justo debajo, el IMEI: se cargan juntos. --}}
                         <div class="animate-fade-in">
-                            <x-label for="upc" value="Serial o UPC (opcional)" />
+                            <x-label for="upc" value="Serial o UPC" />
                             <div class="mt-2 flex gap-2" data-escaner>
                                 <x-input wire:model="producto.upc" id="upc" type="text" class="block w-full h-10" autocomplete="off"
                                     x-on:keydown.enter.prevent="" />
@@ -123,7 +123,8 @@
                         </div>
 
                         <div class="animate-fade-in">
-                            <x-label value="IMEI *" />
+                            <x-label value="IMEI" />
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Opcional: si el equipo no tiene IMEI (iPad Wi‑Fi), el serial es obligatorio.</p>
                             {{-- .change y no .live: una peticion por digito con la pistola.
                                  El Enter que manda la pistola no hace nada. --}}
                             <div class="mt-2 flex gap-2" data-escaner>

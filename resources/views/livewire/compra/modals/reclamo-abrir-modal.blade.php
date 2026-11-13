@@ -6,7 +6,7 @@
                 <hr>
                 <p class="m-2 text-sm text-gray-700 dark:text-gray-300">
                     {{ trim(($producto->modelo?->nombre ?? 'Equipo') . ' ' . $producto->almacenamiento . ' ' . $producto->color) }}
-                    · IMEI <span class="font-mono">{{ $producto->imei }}</span>
+                    · <span class="font-mono">{{ $producto->identificador() }}</span>
                 </p>
                 <div class="m-2">
                     <x-label value="¿Qué tiene?" />

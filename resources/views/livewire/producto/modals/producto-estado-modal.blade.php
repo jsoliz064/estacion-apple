@@ -2,7 +2,7 @@
     @if ($openModal)
         <x-dialog-modal wire:model="openModal">
             <x-slot name="title">
-                <p class="text-center">Estado del equipo: {{ $producto->imei ?? '' }}</p>
+                <p class="text-center">Estado del equipo: {{ $producto?->identificador() }}</p>
             </x-slot>
 
             <x-slot name="content">

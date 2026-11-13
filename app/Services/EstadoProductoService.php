@@ -156,7 +156,7 @@ class EstadoProductoService
         // pasa por este metodo, asi que ninguna puerta puede saltarselo.
         if ($producto->estaDadoDeBaja()) {
             throw ValidationException::withMessages([
-                'detalles' => "El producto {$producto->imei} esta dado de baja. Revierte la baja antes de operar con el.",
+                'detalles' => "El producto {$producto->identificador()} esta dado de baja. Revierte la baja antes de operar con el.",
             ]);
         }
 
@@ -174,7 +174,7 @@ class EstadoProductoService
     {
         $etiqueta = ProductoEstado::tryFrom($producto->estado)?->label() ?? $producto->estado;
 
-        return "El producto {$producto->imei} ya esta en {$etiqueta}: alguien lo cambio "
+        return "El producto {$producto->identificador()} ya esta en {$etiqueta}: alguien lo cambio "
             . 'mientras tenias esta pantalla abierta, o esta operacion ya se guardo. '
             . 'Recarga para ver como quedo.';
     }

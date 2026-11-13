@@ -13,7 +13,7 @@
                     <div class="mt-4">
                         <x-label>Equipo</x-label>
                         <p class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            {{ $producto->modelo?->nombre }} {{ $producto->almacenamiento }} · IMEI {{ $producto->imei }}
+                            {{ $producto->modelo?->nombre }} {{ $producto->almacenamiento }} · {{ $producto->identificador() }}
                         </p>
                         <p class="text-xs text-gray-500 dark:text-gray-400">
                             Estado: {{ \App\Enums\ProductoEstado::labelDe($producto->estado) }}

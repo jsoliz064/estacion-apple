@@ -33,7 +33,7 @@ class BajaService
         $producto = Producto::whereKey($productoId)->lockForUpdate()->firstOrFail();
 
         if ($producto->estaDadoDeBaja()) {
-            throw ValidationException::withMessages(['motivo' => "El equipo {$producto->imei} ya está dado de baja."]);
+            throw ValidationException::withMessages(['motivo' => "El equipo {$producto->identificador()} ya está dado de baja."]);
         }
 
         // Un equipo vendido o reservado tiene un cliente detras: primero se anula
@@ -43,13 +43,13 @@ class BajaService
         // del tecnico quedaria sin poder cerrar su lote.
         if ($producto->estado === ProductoEstado::EnCompra->value) {
             throw ValidationException::withMessages([
-                'motivo' => "El equipo {$producto->imei} es de una compra sin finalizar: quítalo de la compra en vez de darlo de baja.",
+                'motivo' => "El equipo {$producto->identificador()} es de una compra sin finalizar: quítalo de la compra en vez de darlo de baja.",
             ]);
         }
 
         if (in_array($producto->estado, [...ProductoEstado::vendidos(), ProductoEstado::Reserva->value, ProductoEstado::Reparacion->value], true)) {
             throw ValidationException::withMessages([
-                'motivo' => "El equipo {$producto->imei} está en " . ProductoEstado::labelDe($producto->estado)
+                'motivo' => "El equipo {$producto->identificador()} está en " . ProductoEstado::labelDe($producto->estado)
                     . ': anula la venta, libera la reserva o termina la reparación antes de darlo de baja.',
             ]);
         }
@@ -60,7 +60,7 @@ class BajaService
         if ($enReclamo !== ($motivo === BajaMotivo::Devolucion)) {
             throw ValidationException::withMessages([
                 'motivo' => $enReclamo
-                    ? "El equipo {$producto->imei} está en reclamo al proveedor: cierra el reclamo desde la compra."
+                    ? "El equipo {$producto->identificador()} está en reclamo al proveedor: cierra el reclamo desde la compra."
                     : 'La devolución al proveedor se registra al cerrar un reclamo, no como baja suelta.',
             ]);
         }
@@ -86,12 +86,12 @@ class BajaService
         $producto = Producto::whereKey($productoId)->lockForUpdate()->firstOrFail();
 
         if (!$producto->estaDadoDeBaja()) {
-            throw ValidationException::withMessages(['motivo' => "El equipo {$producto->imei} no está dado de baja."]);
+            throw ValidationException::withMessages(['motivo' => "El equipo {$producto->identificador()} no está dado de baja."]);
         }
 
         // Devuelto al proveedor: ya no esta en el negocio y su costo quedo en 0.
         if ($producto->motivo_baja === BajaMotivo::Devolucion->value) {
-            throw ValidationException::withMessages(['motivo' => "El equipo {$producto->imei} se devolvió al proveedor: esa baja no se revierte."]);
+            throw ValidationException::withMessages(['motivo' => "El equipo {$producto->identificador()} se devolvió al proveedor: esa baja no se revierte."]);
         }
 
         $producto->anotar('baja-revertida', 'Baja revertida: el equipo vuelve al inventario vigente.');

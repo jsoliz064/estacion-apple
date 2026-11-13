@@ -70,9 +70,7 @@ class CompraLoteTable extends DataTableComponent
                 }),
             MultiSelectDropdownFilter::make('Versión')
                 ->options(
-                    collect(ProductoVersion::cases())
-                        ->mapWithKeys(fn($case) => [$case->value => $case->value])
-                        ->toArray()
+                    ProductoVersion::toSelectArray()->toArray()
                 )
                 ->filter(function (Builder $builder, array $values) {
                     $builder->whereIn('version', $values);
@@ -97,6 +95,7 @@ class CompraLoteTable extends DataTableComponent
                 ->sortable(),
             Column::make("Version", "version")
                 ->sortable()
+                ->format(fn($v) => $v ? ProductoVersion::labelDe($v) : '')
                 ->collapseOnTablet(),
             // IMEI parcial; UPC exacto, que es lo que lee la pistola.
             Column::make("Imei", "imei")

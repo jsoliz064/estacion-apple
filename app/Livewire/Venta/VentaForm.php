@@ -373,7 +373,7 @@ class VentaForm extends Component
     public function equiposEnLaVenta(): array
     {
         return collect($this->lineas)->where('tipo', LineaTipo::Producto->value)
-            ->mapWithKeys(fn($l) => [$l['id'] => $l['descripcion'] . ' · ' . substr((string) $l['codigo'], -5)])
+            ->mapWithKeys(fn($l) => [$l['id'] => $l['descripcion'] . ' · ' . substr((string) ($l['codigo'] ?: ($l['serial'] ?? '')), -5)])
             ->all();
     }
 
@@ -502,7 +502,7 @@ class VentaForm extends Component
         $this->conPermuta = true;
         $this->montoTocado = false;
         $this->permuta = [
-            'producto_modelo_id' => '', 'imei' => '', 'almacenamiento' => '128GB', 'color' => '',
+            'producto_modelo_id' => '', 'imei' => '', 'upc' => '', 'almacenamiento' => '128GB', 'color' => '',
             'estado_grado' => ProductoGrado::SemiNuevo->value, 'bateria_porcentaje' => 85, 'valor' => '',
         ];
     }

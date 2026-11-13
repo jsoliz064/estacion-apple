@@ -12,7 +12,7 @@
                     <p class="truncate font-semibold">
                         {{ $producto->modelo?->nombre }} {{ $producto->almacenamiento }}
                     </p>
-                    <p class="truncate text-xs text-gray-400">IMEI {{ $producto->imei }}</p>
+                    <p class="truncate text-xs text-gray-400">{{ $producto->identificador() }}</p>
                 </div>
                 @if (count($fotos) > 0)
                     <span class="text-sm tabular-nums text-gray-300" x-text="`${actual + 1} / ${fotos.length}`"></span>

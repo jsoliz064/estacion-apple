@@ -11,7 +11,6 @@ use App\Models\Color;
 use App\Models\Producto;
 use App\Models\ProductoImagen;
 use App\Models\Sucursal;
-use App\Rules\CodigoGeneradoLibre;
 use App\Services\CompraService;
 use App\Services\EstadoProductoService;
 use App\Traits\NormalizaCodigosTrait;
@@ -152,7 +151,7 @@ class CompraLoteProductoEditModal extends Component
             "color {$this->producto['color']}",
             "de {$this->producto['almacenamiento']}",
             "con {$this->producto['bateria_porcentaje']}% de batería",
-            "IMEI: {$this->producto['imei']}",
+            !empty($this->producto['imei']) ? "IMEI: {$this->producto['imei']}" : (!empty($this->producto['upc']) ? "Serial: {$this->producto['upc']}" : ''),
         ];
 
         $this->descripcion = trim(implode(' ', array_filter($parts)));
@@ -167,37 +166,32 @@ class CompraLoteProductoEditModal extends Component
         // errores por campo en un unico addError('general'). El usuario veia
         // "Error: The given data was invalid" sin saber que campo arreglar.
         $this->producto['upc'] = NormalizaCodigosTrait::normalizarCodigo($this->producto['upc'] ?? null);
+        $this->producto['imei'] = NormalizaCodigosTrait::normalizarCodigo($this->producto['imei'] ?? null);
         $this->sincronizarMontosEnMoneda();
 
         $this->validate([
             'producto.almacenamiento' => 'required',
             'producto.color' => ['required', Rule::in($this->coloresOfrecidos()->pluck('nombre')->all())],
-            'producto.version' => 'nullable',
+            'producto.version' => ['nullable', \Illuminate\Validation\Rule::in(\App\Enums\ProductoVersion::values())],
             'producto.bateria_porcentaje' => 'required|numeric|min:0|max:100',
             'producto.costo_unidad' => 'required|numeric|min:0',
-            // Un sticker de Codigos de barras se asigna a un solo registro.
-            'producto.upc' => ['nullable', 'string', 'max:50', new CodigoGeneradoLibre('Producto', $this->producto['id'] ?? null)],
             'producto.tipo_venta' => ['required', Rule::in(ProductoTipoVenta::values())],
             'producto.precio' => 'required|numeric|min:0',
             // Vendido y Credito solo los escribe una venta.
             'producto.status' => ['required', Rule::in($this->enBorrador
                 ? CompraService::estadosDestinoBorrador()
                 : array_diff(ProductoEstado::values(), ProductoEstado::soloPorDocumento()))],
-            // La unicidad del IMEI tambien al EDITAR: aqui era un 'required' a
-            // secas, asi que ponerle a un producto el IMEI de otro se guardaba
-            // sin protestar. El ignore del propio id es para que reguardar sin
-            // cambiar el IMEI no choque consigo mismo.
-            'producto.imei' => [
-                'required',
-                'string',
-                'max:20',
-                Rule::unique('productos', 'imei')->ignore($this->producto['id'] ?? null),
-            ],
+            // IMEI y serial (Producto::reglasIdentidad): el IMEI es opcional y
+            // unico, tambien al EDITAR (antes era un 'required' a secas y se
+            // le podia poner a un producto el IMEI de otro); sin IMEI, el
+            // serial es obligatorio. El ignore del propio id es para que
+            // reguardar sin cambiarlos no choque consigo mismo.
+            ...Producto::reglasIdentidad($this->producto['imei'] ?? null, $this->producto['id'] ?? null, 'producto.'),
             'producto.disponible_catalogo' => 'required',
             'producto.sucursal_id' => 'required',
             'producto.estado_grado' => ['required', Rule::in(ProductoGrado::values())],
-        ] + $this->reglasMontosEnMoneda(), [
-        ], $this->atributosMontosEnMoneda());
+        ] + $this->reglasMontosEnMoneda(), Producto::mensajesIdentidad('producto.'),
+            ['producto.imei' => 'IMEI', 'producto.upc' => 'serial'] + $this->atributosMontosEnMoneda());
 
         // Sin editar-costo / editar-precio, la plata no cambia (la pantalla ya
         // los bloquea; esto cubre una peticion armada a mano).

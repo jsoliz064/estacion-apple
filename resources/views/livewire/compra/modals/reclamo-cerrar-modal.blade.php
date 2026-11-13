@@ -6,7 +6,7 @@
                 <hr>
                 <p class="m-2 text-sm text-gray-700 dark:text-gray-300">
                     {{ trim(($reclamo->producto?->modelo?->nombre ?? 'Equipo') . ' ' . $reclamo->producto?->almacenamiento . ' ' . $reclamo->producto?->color) }}
-                    · IMEI <span class="font-mono">{{ $reclamo->producto?->imei }}</span>
+                    · <span class="font-mono">{{ $reclamo->producto?->identificador() }}</span>
                     · costo {{ \App\Support\Dinero::usd((float) $reclamo->producto?->costo_unidad) }}
                     <span class="block text-xs text-gray-500">«{{ $reclamo->motivo }}» · {{ $reclamo->compra?->proveedor?->nombre }} · desde el {{ $reclamo->created_at->format('d/m/Y') }}</span>
                 </p>
@@ -40,6 +40,15 @@
                                 <x-boton-escaner modo="input" />
                             </div>
                             <x-input-error for="imei" />
+                        </div>
+                        <div class="sm:col-span-3">
+                            <x-label value="Serial o UPC del reemplazo" />
+                            <div class="mt-1 flex gap-2" data-escaner>
+                                <x-input type="text" class="w-full" wire:model="upc" autocomplete="off"
+                                    placeholder="Obligatorio si no tiene IMEI" x-on:keydown.enter.prevent="" />
+                                <x-boton-escaner modo="input" />
+                            </div>
+                            <x-input-error for="upc" />
                         </div>
                         <div>
                             <x-label value="Batería (%)" />

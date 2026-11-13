@@ -332,6 +332,16 @@
                                 </div>
                                 <x-input-error for="permuta.imei" />
                             </div>
+                            {{-- Un equipo sin IMEI (iPad Wi-Fi) se identifica por su serial. --}}
+                            <div class="sm:col-span-2">
+                                <x-label value="Serial o UPC" />
+                                <div class="mt-1 flex gap-2" data-escaner>
+                                    <x-input type="text" class="w-full" wire:model="permuta.upc" autocomplete="off"
+                                        placeholder="Obligatorio si no tiene IMEI" x-on:keydown.enter.prevent="" />
+                                    <x-boton-escaner modo="input" />
+                                </div>
+                                <x-input-error for="permuta.upc" />
+                            </div>
                             <div>
                                 <x-label value="Grado" />
                                 <select wire:model="permuta.estado_grado" class="mt-1 block w-full h-10 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm">

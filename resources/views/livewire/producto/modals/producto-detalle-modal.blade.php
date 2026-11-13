@@ -24,7 +24,9 @@
                         {{ trim(($producto->modelo?->nombre ?? 'Equipo') . ' ' . $producto->almacenamiento . ' ' . $producto->color) }}
                     </p>
                     <div class="mt-2">
-                        <div class="{{ $fila }}"><span class="{{ $rotulo }}">IMEI</span><span class="{{ $valor }} font-mono">{{ $producto->imei }}</span></div>
+                        @if ($producto->imei)
+                            <div class="{{ $fila }}"><span class="{{ $rotulo }}">IMEI</span><span class="{{ $valor }} font-mono">{{ $producto->imei }}</span></div>
+                        @endif
                         @if ($producto->upc)
                             <div class="{{ $fila }}"><span class="{{ $rotulo }}">Serial</span><span class="{{ $valor }} font-mono break-all">{{ $producto->upc }}</span></div>
                         @endif

@@ -7,7 +7,7 @@
 
             <x-slot name="title">
                 <p class="text-center">
-                    {{ $esExterno ? 'Trabajo Externo' : 'Garantia' }} de Producto: {{ $producto->imei ?? '' }}
+                    {{ $esExterno ? 'Trabajo Externo' : 'Garantia' }} de Producto: {{ $producto?->identificador() }}
                 </p>
             </x-slot>
 

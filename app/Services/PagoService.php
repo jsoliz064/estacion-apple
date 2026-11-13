@@ -112,7 +112,7 @@ class PagoService
 
         $venta->anotar(
             BitacoraEvento::Pago->value,
-            'Permuta: recibido el equipo IMEI ' . $recibido->imei . ' por ' . Dinero::usd($valor) . '.',
+            'Permuta: recibido el equipo ' . $recibido->identificador() . ' por ' . Dinero::usd($valor) . '.',
             ['venta_id' => $venta->id],
         );
 

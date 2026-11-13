@@ -97,11 +97,11 @@
                 @foreach ($compra->reclamos as $reclamo)
                     <li class="py-2 flex flex-wrap items-center justify-between gap-2" wire:key="reclamo-{{ $reclamo->id }}">
                         <span>
-                            <span class="font-mono">IMEI {{ $reclamo->producto?->imei }}</span>
+                            <span class="font-mono">{{ $reclamo->producto?->identificador() }}</span>
                             · {{ trim(($reclamo->producto?->modelo?->nombre ?? '') . ' ' . $reclamo->producto?->almacenamiento) }}
                             <span class="block text-xs text-gray-500">«{{ $reclamo->motivo }}» · {{ $reclamo->created_at->format('d/m/Y') }}
                                 @if ($reclamo->resolucion) · {{ $reclamo->resolucion->label() }}@endif
-                                @if ($reclamo->reemplazo) · reemplazo IMEI {{ $reclamo->reemplazo->imei }}@endif
+                                @if ($reclamo->reemplazo) · reemplazo {{ $reclamo->reemplazo->identificador() }}@endif
                             </span>
                         </span>
                         <span class="flex items-center gap-2">

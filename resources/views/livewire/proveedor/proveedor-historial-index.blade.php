@@ -59,7 +59,7 @@
                         <li class="py-2 flex flex-wrap items-center justify-between gap-2" wire:key="reclamo-prov-{{ $reclamo->id }}">
                             <span>
                                 <span class="font-semibold">{{ trim(($reclamo->producto?->modelo?->nombre ?? 'Equipo') . ' ' . $reclamo->producto?->almacenamiento) }}</span>
-                                <span class="font-mono text-xs text-gray-500">IMEI {{ $reclamo->producto?->imei }}</span>
+                                <span class="font-mono text-xs text-gray-500">{{ $reclamo->producto?->identificador() }}</span>
                                 <span class="block text-xs text-gray-500">«{{ $reclamo->motivo }}» · {{ $reclamo->created_at->format('d/m/Y') }}
                                     @if ($reclamo->resolucion) · {{ $reclamo->resolucion->label() }}@endif
                                 </span>

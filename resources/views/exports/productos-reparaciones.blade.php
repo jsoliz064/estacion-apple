@@ -28,7 +28,7 @@
                 <td>{{ $index + 1 }}</td>
                 <td>{{ $reparacion->tecnico->nombre }}</td>
                 <td>{{ $modelo->nombre }} {{ $producto->color }}, {{ $producto->bateria_porcentaje }}% -
-                    {{ $producto->imei }}</td>
+                    {{ $producto->imei ?: $producto->identificador() }}</td>
                 <td>{{ $reparacion->costo }}</td>
                 <td>{{ $reparacion->costo_repuestos }}</td>
                 <td>{{ $reparacion->costo_total }}</td>

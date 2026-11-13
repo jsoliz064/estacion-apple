@@ -25,6 +25,8 @@ class ReclamoCerrarModal extends Component
 
     public string $resolucion = '';
     public string $imei = '';
+    /** Serial del reemplazo: obligatorio si no tiene IMEI (iPad Wi-Fi). */
+    public string $upc = '';
     public $bateria_porcentaje = 100;
     public string $color = '';
     public string $destino = 'Inventario';
@@ -33,7 +35,7 @@ class ReclamoCerrarModal extends Component
     #[On('openReclamoCerrarModal')]
     public function openModal($id): void
     {
-        $this->reset(['resolucion', 'imei', 'bateria_porcentaje', 'color', 'destino', 'nota']);
+        $this->reset(['resolucion', 'imei', 'upc', 'bateria_porcentaje', 'color', 'destino', 'nota']);
         $this->resetErrorBag();
         $this->reclamoId = CompraReclamo::findOrFail($id)->id;
         $this->openModal = true;
@@ -54,6 +56,7 @@ class ReclamoCerrarModal extends Component
             ReclamoResolucion::from($this->resolucion),
             [
                 'imei' => $this->imei,
+                'upc' => $this->upc,
                 'bateria_porcentaje' => $this->bateria_porcentaje,
                 'color' => $this->color,
                 'destino' => $this->destino,

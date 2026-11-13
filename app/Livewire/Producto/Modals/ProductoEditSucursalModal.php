@@ -119,20 +119,20 @@ class ProductoEditSucursalModal extends Component
         }
 
         if (in_array($producto->id, $idsExistentes)) {
-            return "El IMEI {$producto->imei} ya está en la lista de abajo.";
+            return "El equipo {$producto->identificador()} ya está en la lista de abajo.";
         }
 
         if ($producto->estaDadoDeBaja()) {
-            return "El IMEI {$producto->imei} está dado de baja y no se transfiere.";
+            return "El equipo {$producto->identificador()} está dado de baja y no se transfiere.";
         }
 
         if (!in_array($producto->estado, $this->estadosTransferibles())) {
-            return "El IMEI {$producto->imei} está en estado \"" . ProductoEstado::labelDe($producto->estado) . "\" y no se transfiere.";
+            return "El equipo {$producto->identificador()} está en estado \"" . ProductoEstado::labelDe($producto->estado) . "\" y no se transfiere.";
         }
 
         $sucursal = $producto->sucursal?->nombre ?? 'ninguna';
 
-        return "El IMEI {$producto->imei} está en la sucursal \"{$sucursal}\", no en \"{$this->sucursal1->nombre}\".";
+        return "El equipo {$producto->identificador()} está en la sucursal \"{$sucursal}\", no en \"{$this->sucursal1->nombre}\".";
     }
 
     public function updatedSucursal1Id()
@@ -174,7 +174,7 @@ class ProductoEditSucursalModal extends Component
         );
 
         if ($producto) {
-            $this->selectProducto($producto->imei);
+            $this->selectProducto($producto->id);
 
             return;
         }
@@ -187,13 +187,14 @@ class ProductoEditSucursalModal extends Component
         }
     }
 
-    public function selectProducto($imei)
+    public function selectProducto($id)
     {
         // Se revalida contra el conjunto de origen. Con el `where('imei', ...)`
         // a secas de antes, buscar, cambiar la sucursal de origen y pulsar una
         // sugerencia vieja colaba en la transferencia un equipo de otra
         // sucursal. Es el agujero que ya se tapo en el modal masivo.
-        $productoFound = $this->baseQuery()->where('imei', $imei)->first();
+        // Por id, no por IMEI: un equipo sin IMEI (iPad Wi-Fi) no se podia elegir.
+        $productoFound = $this->baseQuery()->whereKey((int) $id)->first();
         if (!$productoFound) return;
 
         foreach ($this->productos as $producto) {
@@ -202,7 +203,7 @@ class ProductoEditSucursalModal extends Component
 
         array_unshift($this->productos, [
             'id' => $productoFound->id,
-            'imei' => $productoFound->imei,
+            'imei' => $productoFound->identificador(),
             'descripcion' => $productoFound->descripcion,
             'estado' => $productoFound->estado
         ]);
@@ -239,7 +240,7 @@ class ProductoEditSucursalModal extends Component
 
                 if (!$productoFound) {
                     throw \Illuminate\Validation\ValidationException::withMessages([
-                        'productos' => "El IMEI {$producto['imei']} ya no está disponible para transferir en esa sucursal. No se movió ningún equipo.",
+                        'productos' => "El equipo {$producto['imei']} ya no está disponible para transferir en esa sucursal. No se movió ningún equipo.",
                     ]);
                 }
 

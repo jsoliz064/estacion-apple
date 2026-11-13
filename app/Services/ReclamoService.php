@@ -96,7 +96,7 @@ class ReclamoService
         switch ($resolucion) {
             case ReclamoResolucion::Reemplazo:
                 $reemplazo = $this->agregarReemplazo($compra, $fallado, $datos, $reclamo);
-                $this->devolver($compra, $fallado, "reemplazado por el IMEI {$reemplazo->imei}");
+                $this->devolver($compra, $fallado, "reemplazado por el equipo {$reemplazo->identificador()}");
                 break;
 
             case ReclamoResolucion::Descuento:
@@ -132,20 +132,23 @@ class ReclamoService
         return $reclamo;
     }
 
-    /** El equipo que manda el proveedor: los datos del fallado, con su IMEI y su costo. */
+    /** El equipo que manda el proveedor: los datos del fallado, con su IMEI (o serial) y su costo. */
     private function agregarReemplazo(Compra $compra, Producto $fallado, array $datos, CompraReclamo $reclamo): Producto
     {
-        $datos['imei'] = trim((string) ($datos['imei'] ?? ''));
+        // IMEI opcional (iPad Wi-Fi); sin el, el serial (Producto::reglasIdentidad).
+        $datos['imei'] = Producto::normalizarCodigo($datos['imei'] ?? null);
+        $datos['upc'] = Producto::normalizarCodigo($datos['upc'] ?? null);
 
         $v = Validator::make($datos, [
-            'imei' => 'required|string|max:20|unique:productos,imei',
+            ...Producto::reglasIdentidad($datos['imei']),
             'bateria_porcentaje' => 'required|integer|min:1|max:100',
             // Vacio = el del fallado; si no, uno de la tabla de colores.
             'color' => 'nullable|string|exists:colores,nombre',
         ], [
-            'imei.required' => 'Escribe el IMEI del equipo de reemplazo.',
             'imei.unique' => 'Ese IMEI ya está registrado en el sistema.',
-        ], ['bateria_porcentaje' => 'batería']);
+            'upc.required' => 'Escribe el IMEI del equipo de reemplazo o, si no tiene (iPad Wi‑Fi), su serial.',
+            'upc.unique' => 'Ya hay un equipo sin IMEI con ese serial.',
+        ], ['bateria_porcentaje' => 'batería', 'upc' => 'serial']);
 
         if ($v->fails()) {
             throw ValidationException::withMessages($v->errors()->messages());
@@ -159,6 +162,7 @@ class ReclamoService
             'version' => $fallado->version,
             'color' => $color,
             'imei' => $datos['imei'],
+            'upc' => $datos['upc'],
             'bateria_porcentaje' => (int) $datos['bateria_porcentaje'],
             'estado_grado' => $fallado->estado_grado,
             'tipo_venta' => $fallado->tipo_venta,
@@ -172,7 +176,8 @@ class ReclamoService
             'disponible_catalogo' => (bool) $fallado->disponible_catalogo,
             'sucursal_id' => $fallado->sucursal_id,
             'descripcion' => trim(($fallado->modelo?->nombre ?? '') . " color {$color} de {$fallado->almacenamiento} con "
-                . (int) $datos['bateria_porcentaje'] . "% de batería IMEI: {$datos['imei']}"),
+                . (int) $datos['bateria_porcentaje'] . '% de batería '
+                . ($datos['imei'] ? "IMEI: {$datos['imei']}" : "Serial: {$datos['upc']}")),
         ]);
     }
 

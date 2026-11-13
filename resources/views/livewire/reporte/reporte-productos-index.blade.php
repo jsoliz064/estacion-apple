@@ -111,7 +111,7 @@
                                     @else
                                         <span class="font-semibold">{{ trim(($p->modelo ?? 'Equipo') . ' ' . $p->almacenamiento . ' ' . $p->color) }}</span>
                                     @endcan
-                                    <span class="block text-xs text-gray-500 font-mono">IMEI {{ $p->imei }}</span>
+                                    <span class="block text-xs text-gray-500 font-mono">{{ $p->imei ? 'IMEI ' . $p->imei : 'Serial ' . $p->upc }}</span>
                                 </td>
                                 <td class="p-2">{{ $p->estado_grado ?? '—' }}</td>
                                 <td class="p-2">{{ $p->sucursal ?? '—' }}</td>

@@ -89,7 +89,7 @@ class BuscadorArticulosService
                 'tipo' => LineaTipo::Producto->value,
                 'id' => $p->id,
                 'etiqueta' => trim(($p->modelo?->nombre ?? 'Equipo') . ' ' . $p->almacenamiento . ' ' . $p->color),
-                'detalle' => 'IMEI ' . $p->imei . ($p->upc ? ' · ' . $p->upc : ''),
+                'detalle' => $p->identificador() . ($p->imei && $p->upc ? ' · ' . $p->upc : ''),
                 'codigos' => array_values(array_filter([$p->imei, $p->upc])),
                 'precio' => (float) $p->precio,
                 'costo' => (float) $p->costo_total,

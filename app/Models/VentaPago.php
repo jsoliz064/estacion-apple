@@ -79,7 +79,7 @@ class VentaPago extends Model
         if ($this->esPermuta()) {
             $p = $this->producto;
 
-            return 'Permuta' . ($p ? ' · ' . trim(($p->modelo?->nombre ?? 'Equipo') . ' ' . $p->almacenamiento) . ' IMEI ' . $p->imei : '');
+            return 'Permuta' . ($p ? ' · ' . trim(($p->modelo?->nombre ?? 'Equipo') . ' ' . $p->almacenamiento) . ' ' . $p->identificador() : '');
         }
 
         $texto = $this->metodo?->nombre ?? 'Pago';

@@ -6,9 +6,11 @@ use App\Enums\ProductoEstado;
 use App\Enums\ReparacionTipo;
 use App\Traits\Auditable;
 use App\Traits\MontosEnMonedaTrait;
+use App\Rules\CodigoGeneradoLibre;
 use App\Traits\NormalizaCodigosTrait;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\Rule;
 
 class Producto extends Model
 {
@@ -17,7 +19,8 @@ class Producto extends Model
     use NormalizaCodigosTrait;
 
     protected $table = 'productos';
-    protected $guarded = ['id'];
+    // serial_sin_imei es una columna generada: MySQL rechaza escribirla.
+    protected $guarded = ['id', 'serial_sin_imei'];
 
     protected $casts = [
         'dado_de_baja_at' => 'datetime',
@@ -31,6 +34,61 @@ class Producto extends Model
     public static function columnasEnMoneda(): array
     {
         return ['costo_unidad' => 'costo_moneda_monto', 'precio' => 'precio_moneda_monto'];
+    }
+
+    /**
+     * El IMEI es opcional (un iPad Wi-Fi no tiene): vacio se guarda NULL, como
+     * el UPC. Un '' chocaba con productos_imei_unico al segundo equipo sin IMEI.
+     */
+    public function setImeiAttribute($value): void
+    {
+        $this->attributes['imei'] = self::normalizarCodigo($value);
+    }
+
+    /**
+     * Como se nombra el equipo en pantallas, notas y bitacora: su IMEI o, si no
+     * tiene, su serial (todo equipo tiene uno de los dos: CHECK
+     * productos_imei_o_serial). Antes cada vista escribia «IMEI {{ $p->imei }}»
+     * y un iPad quedaba en «IMEI » a secas.
+     */
+    public function identificador(): string
+    {
+        return $this->imei ? 'IMEI ' . $this->imei : ($this->upc ? 'Serial ' . $this->upc : 'Equipo #' . $this->id);
+    }
+
+    /**
+     * Las reglas del IMEI y el serial de un equipo, una sola copia para el alta,
+     * la edicion, la permuta y el reemplazo de un reclamo. Decision del
+     * usuario: el IMEI es opcional, pero sin IMEI el serial es obligatorio y no
+     * lo puede tener otro equipo sin IMEI (la garantia de verdad es el UNIQUE
+     * de la columna generada serial_sin_imei; esto da el mensaje).
+     *
+     * @param  string|null  $imei  el IMEI que llega (decide si el serial es obligatorio)
+     * @param  string  $prefijo  'producto.' / 'permuta.' segun el componente
+     */
+    public static function reglasIdentidad(?string $imei, ?int $ignorarId = null, string $prefijo = ''): array
+    {
+        $sinImei = self::normalizarCodigo($imei) === null;
+
+        return [
+            $prefijo . 'imei' => ['nullable', 'string', 'max:20', Rule::unique('productos', 'imei')->ignore($ignorarId)],
+            $prefijo . 'upc' => array_values(array_filter([
+                $sinImei ? 'required' : 'nullable',
+                'string',
+                'max:50',
+                $sinImei ? Rule::unique('productos', 'upc')->whereNull('imei')->ignore($ignorarId) : null,
+                new CodigoGeneradoLibre('Producto', $ignorarId),
+            ])),
+        ];
+    }
+
+    public static function mensajesIdentidad(string $prefijo = ''): array
+    {
+        return [
+            $prefijo . 'imei.unique' => 'Este IMEI ya existe en el sistema.',
+            $prefijo . 'upc.required' => 'Carga el IMEI o el serial: un equipo sin IMEI (iPad Wi‑Fi) se identifica por su serial.',
+            $prefijo . 'upc.unique' => 'Ya hay un equipo sin IMEI con este serial.',
+        ];
     }
 
     /**

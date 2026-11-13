@@ -125,7 +125,7 @@ class ProductoEstadoMasivoModal extends Component
     {
         return [
             'id' => $producto->id,
-            'imei' => $producto->imei,
+            'imei' => $producto->identificador(),
             'descripcion' => $producto->descripcion,
             'estado' => $this->modo === 'tipo_venta' ? $producto->tipo_venta : ProductoEstado::labelDe($producto->estado),
         ];
@@ -226,24 +226,24 @@ class ProductoEstadoMasivoModal extends Component
         }
 
         if (in_array($producto->id, $idsExistentes)) {
-            return "El IMEI {$producto->imei} ya está en la lista de abajo.";
+            return "El equipo {$producto->identificador()} ya está en la lista de abajo.";
         }
 
         if ($this->compraId && $producto->compraDetalle?->compra_id != $this->compraId) {
-            return "El IMEI {$producto->imei} no pertenece a esta compra.";
+            return "El equipo {$producto->identificador()} no pertenece a esta compra.";
         }
 
         if ($producto->estaDadoDeBaja()) {
-            return "El IMEI {$producto->imei} está dado de baja.";
+            return "El equipo {$producto->identificador()} está dado de baja.";
         }
 
         if ($this->modo === 'tipo_venta') {
             return in_array($producto->estado, ProductoEstado::vendidos(), true)
-                ? "El IMEI {$producto->imei} ya está vendido."
-                : "El IMEI {$producto->imei} existe, pero su tipo de venta es \"{$producto->tipo_venta}\" y el origen es \"{$this->origen}\".";
+                ? "El equipo {$producto->identificador()} ya está vendido."
+                : "El equipo {$producto->identificador()} existe, pero su tipo de venta es \"{$producto->tipo_venta}\" y el origen es \"{$this->origen}\".";
         }
 
-        return "El IMEI {$producto->imei} existe, pero su estado es \"" . ProductoEstado::labelDe($producto->estado) . "\" y el origen es \"" . ProductoEstado::labelDe($this->origen) . "\".";
+        return "El equipo {$producto->identificador()} existe, pero su estado es \"" . ProductoEstado::labelDe($producto->estado) . "\" y el origen es \"" . ProductoEstado::labelDe($this->origen) . "\".";
     }
 
     /**
@@ -268,7 +268,7 @@ class ProductoEstadoMasivoModal extends Component
         );
 
         if ($producto) {
-            $this->selectProducto($producto->imei);
+            $this->selectProducto($producto->id);
 
             return;
         }
@@ -281,12 +281,13 @@ class ProductoEstadoMasivoModal extends Component
         }
     }
 
-    public function selectProducto($imei)
+    public function selectProducto($id)
     {
         // Se revalida contra el conjunto de origen. Antes era un
         // `where('imei', ...)` a secas, asi que buscar, cambiar el origen y
         // pulsar una sugerencia vieja colaba un producto que no pertenecia.
-        $productoFound = $this->baseQuery()->where('imei', $imei)->first();
+        // Por id, no por IMEI: un equipo sin IMEI (iPad Wi-Fi) no se podia elegir.
+        $productoFound = $this->baseQuery()->whereKey((int) $id)->first();
 
         if (!$productoFound)
             return;
@@ -396,7 +397,7 @@ class ProductoEstadoMasivoModal extends Component
                     || in_array($producto->estado, ProductoEstado::vendidos(), true)
                     || $producto->tipo_venta !== $this->origen) {
                     throw ValidationException::withMessages([
-                        'productos' => "El equipo {$producto->imei} cambió mientras el modal estaba abierto"
+                        'productos' => "El equipo {$producto->identificador()} cambió mientras el modal estaba abierto"
                             . " (tipo de venta \"{$producto->tipo_venta}\", estado " . ProductoEstado::labelDe($producto->estado) . '). No se aplicó ningún cambio.',
                     ]);
                 }

@@ -41,7 +41,7 @@ class ProductoRepuestosVentaModal extends Component
         }
 
         $this->productoId = $producto->id;
-        $this->productoImei = $producto->imei;
+        $this->productoImei = $producto->identificador();
         $this->productoDescripcion = $producto->descripcion;
 
         // Se restaura lo que el vendedor ya habia marcado y el precio que le

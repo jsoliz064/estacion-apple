@@ -93,7 +93,7 @@
                     <td class="centro">1</td>
                     <td>
                         <strong>{{ $lineaNombre($d) }}</strong>
-                        <div class="chico gris">IMEI {{ $d->producto?->imei }}@if ($d->producto?->upc) · Serial {{ $d->producto->upc }}@endif</div>
+                        <div class="chico gris">{{ $d->producto?->identificador() }}@if ($d->producto?->imei && $d->producto?->upc) · Serial {{ $d->producto->upc }}@endif</div>
                         @if ($d->garantia_meses)
                             <div class="chico gris">Garantía {{ $d->garantia_meses }} mes(es), hasta el {{ $d->garantia_fecha_exp?->format('d/m/Y') }}</div>
                         @endif

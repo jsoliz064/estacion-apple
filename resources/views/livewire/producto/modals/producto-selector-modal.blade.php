@@ -67,7 +67,7 @@
                             <tr>
                                 <th class="p-2 border-b w-10"></th>
                                 <th class="p-2 border-b text-left">Modelo</th>
-                                <th class="p-2 border-b text-left">IMEI</th>
+                                <th class="p-2 border-b text-left">IMEI / Serial</th>
                                 <th class="p-2 border-b text-center">Capacidad</th>
                                 <th class="p-2 border-b text-center">Version</th>
                                 <th class="p-2 border-b text-left">Color</th>
@@ -89,7 +89,7 @@
                                         <x-checkbox wire:model.live="seleccionados" value="{{ $p->id }}" />
                                     </td>
                                     <td class="p-2 border">{{ $p->modelo?->nombre ?? 'Sin modelo' }}</td>
-                                    <td class="p-2 border font-mono">{{ $p->imei }}</td>
+                                    <td class="p-2 border font-mono">{{ $p->imei ?: 'Serial ' . $p->upc }}</td>
                                     <td class="p-2 border text-center">{{ $p->almacenamiento }}</td>
                                     <td class="p-2 border text-center">{{ $p->version ?: '-' }}</td>
                                     <td class="p-2 border">{{ $p->color }}</td>

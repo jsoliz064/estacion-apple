@@ -67,8 +67,8 @@
         {{-- Cada equipo con su IMEI y, debajo, lo que se vendio con el. --}}
         @foreach ($equipos as $d)
             <div>{{ $lineaNombre($d) }}</div>
-            <div class="fila chico"><span>IMEI {{ $d->producto?->imei }}</span><span>{{ $usd($d->subtotal) }}</span></div>
-            @if ($d->producto?->upc)
+            <div class="fila chico"><span>{{ $d->producto?->identificador() }}</span><span>{{ $usd($d->subtotal) }}</span></div>
+            @if ($d->producto?->imei && $d->producto?->upc)
                 <div class="chico">Serial {{ $d->producto->upc }}</div>
             @endif
             @foreach ($venta->detalles->where('producto_asociado_id', $d->producto_id) as $a)

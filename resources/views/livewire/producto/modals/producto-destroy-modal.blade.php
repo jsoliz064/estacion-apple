@@ -2,7 +2,7 @@
     @if ($openModal)
         <x-dialog-modal wire:model="openModal">
             <x-slot name="title">
-                Eliminar Producto: {{ $producto->imei }}
+                Eliminar Producto: {{ $producto->identificador() }}
             </x-slot>
 
             <x-slot name="content">

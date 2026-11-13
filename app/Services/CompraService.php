@@ -280,7 +280,7 @@ class CompraService
 
         if ($producto->estado !== ProductoEstado::EnCompra->value || !$detalle || !$detalle->compra->esBorrador()) {
             throw ValidationException::withMessages([
-                'detalles' => "El equipo {$producto->imei} ya no está en una compra en borrador.",
+                'detalles' => "El equipo {$producto->identificador()} ya no está en una compra en borrador.",
             ]);
         }
 
@@ -333,20 +333,20 @@ class CompraService
         // En reclamo, o reemplazo de un reclamo: es parte de ese tramite.
         if (\App\Models\CompraReclamo::where('producto_id', $producto->id)->orWhere('producto_reemplazo_id', $producto->id)->exists()) {
             throw ValidationException::withMessages([
-                'detalles' => "El equipo {$producto->imei} tiene un reclamo al proveedor (o es el reemplazo de uno): no se puede quitar de la compra.",
+                'detalles' => "El equipo {$producto->identificador()} tiene un reclamo al proveedor (o es el reemplazo de uno): no se puede quitar de la compra.",
             ]);
         }
 
         // Recibido en permuta: es el pago de una venta. Se va anulando esa venta.
         if ($producto->permuta()->exists()) {
             throw ValidationException::withMessages([
-                'detalles' => "El equipo {$producto->imei} se recibió en permuta: para quitarlo, anula la venta #{$producto->permuta->venta_id}.",
+                'detalles' => "El equipo {$producto->identificador()} se recibió en permuta: para quitarlo, anula la venta #{$producto->permuta->venta_id}.",
             ]);
         }
 
         if ($producto->ventaDetalle()->exists() || $producto->reparaciones()->exists() || $producto->regalos()->exists()) {
             throw ValidationException::withMessages([
-                'detalles' => "El equipo {$producto->imei} ya tiene ventas, reparaciones o regalos: no se puede quitar de la compra. Dalo de baja si ya no existe.",
+                'detalles' => "El equipo {$producto->identificador()} ya tiene ventas, reparaciones o regalos: no se puede quitar de la compra. Dalo de baja si ya no existe.",
             ]);
         }
 

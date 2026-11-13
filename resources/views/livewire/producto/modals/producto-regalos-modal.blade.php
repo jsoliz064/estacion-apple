@@ -12,7 +12,7 @@
                 @else
                     <div class="mt-4 flex flex-wrap items-baseline justify-between gap-2">
                         <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            {{ $producto->modelo?->nombre }} {{ $producto->almacenamiento }} · IMEI {{ $producto->imei }}
+                            {{ $producto->modelo?->nombre }} {{ $producto->almacenamiento }} · {{ $producto->identificador() }}
                         </p>
                         <p class="text-sm text-gray-600 dark:text-gray-400">
                             Regalos: <span class="font-semibold">{{ \App\Support\Dinero::usd((float) $producto->costo_regalos) }}</span>

@@ -87,8 +87,8 @@
                             class="absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                             @forelse ($filteredProductos as $producto)
                                 <li class="cursor-pointer px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
-                                    wire:click="selectProducto('{{ $producto->imei }}')">
-                                    {{ $producto->imei }} - {{ $producto->modelo?->nombre }} - {{ $modo === 'tipo_venta' ? $producto->tipo_venta : \App\Enums\ProductoEstado::labelDe($producto->estado) }}
+                                    wire:click="selectProducto({{ $producto->id }})">
+                                    {{ $producto->identificador() }} - {{ $producto->modelo?->nombre }} - {{ $modo === 'tipo_venta' ? $producto->tipo_venta : \App\Enums\ProductoEstado::labelDe($producto->estado) }}
                                 </li>
                             @empty
                                 {{-- El motivo concreto cuando lo hay: "no existe" y "existe

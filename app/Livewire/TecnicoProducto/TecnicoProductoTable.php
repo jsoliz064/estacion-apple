@@ -41,7 +41,7 @@ class TecnicoProductoTable extends DataTableComponent
                 ->format(function ($value, $row) {
                     $producto = $row->producto;
                     $modelo = $producto->modelo;
-                    $imei = substr($producto->imei, -4);
+                    $imei = substr((string) ($producto->imei ?: $producto->upc), -4);
                     return "{$modelo->nombre} {$producto->color}, {$producto->bateria_porcentaje}% - {$imei}";
                 }),
             Column::make("Descripcion", "repuestos_tecnico")

@@ -34,16 +34,18 @@ class PermutaService
     /**
      * Da de alta el equipo recibido y registra el pago.
      *
-     * @param  array  $datos  producto_modelo_id, imei, almacenamiento, color,
+     * @param  array  $datos  producto_modelo_id, imei, upc, almacenamiento, color,
      *                        estado_grado, bateria_porcentaje, valor
      */
     public function recibir(Venta $venta, array $datos, User $user, ?string $clave = null): Producto
     {
-        $datos['imei'] = trim((string) ($datos['imei'] ?? ''));
+        // IMEI opcional (iPad Wi-Fi); sin el, el serial (Producto::reglasIdentidad).
+        $datos['imei'] = Producto::normalizarCodigo($datos['imei'] ?? null);
+        $datos['upc'] = Producto::normalizarCodigo($datos['upc'] ?? null);
 
         $v = Validator::make($datos, [
             'producto_modelo_id' => 'required|integer|exists:productos_modelos,id',
-            'imei' => 'required|string|max:20|unique:productos,imei',
+            ...Producto::reglasIdentidad($datos['imei']),
             'almacenamiento' => 'required|string|max:20',
             // De la tabla de colores: un nombre fuera de ella no entra.
             'color' => 'required|string|exists:colores,nombre',
@@ -52,10 +54,11 @@ class PermutaService
             'valor' => 'required|numeric|min:0.01',
         ], [
             'imei.unique' => 'El IMEI del equipo recibido ya está registrado en el sistema.',
-            'imei.required' => 'Escribe el IMEI del equipo recibido.',
+            'upc.required' => 'Escribe el IMEI del equipo recibido o, si no tiene (iPad Wi‑Fi), su serial.',
+            'upc.unique' => 'Ya hay un equipo sin IMEI con ese serial.',
             'valor.min' => 'Indica el valor que se le reconoce al equipo recibido.',
         ], [
-            'producto_modelo_id' => 'modelo', 'estado_grado' => 'grado', 'bateria_porcentaje' => 'batería',
+            'producto_modelo_id' => 'modelo', 'estado_grado' => 'grado', 'bateria_porcentaje' => 'batería', 'upc' => 'serial',
         ]);
 
         if ($v->fails()) {
@@ -72,6 +75,7 @@ class PermutaService
         $producto = new Producto([
             'producto_modelo_id' => $modelo->id,
             'imei' => $datos['imei'],
+            'upc' => $datos['upc'],
             'almacenamiento' => $datos['almacenamiento'],
             'color' => $datos['color'],
             'estado_grado' => $datos['estado_grado'],
@@ -85,7 +89,8 @@ class PermutaService
             'disponible_catalogo' => false,
             'sucursal_id' => $venta->sucursal_id,
             'descripcion' => trim($modelo->nombre . ' color ' . $datos['color'] . ' de ' . $datos['almacenamiento']
-                . ' con ' . (int) $datos['bateria_porcentaje'] . '% de batería IMEI: ' . $datos['imei']),
+                . ' con ' . (int) $datos['bateria_porcentaje'] . '% de batería '
+                . ($datos['imei'] ? 'IMEI: ' . $datos['imei'] : 'Serial: ' . $datos['upc'])),
         ]);
         $producto->anotar(
             ProductoEstado::Inventario->value,
@@ -125,7 +130,7 @@ class PermutaService
 
         if ($motivo) {
             throw ValidationException::withMessages([
-                'detalles' => "El equipo recibido en permuta (IMEI {$producto->imei}) {$motivo}: no se puede anular la venta #{$venta->id}.",
+                'detalles' => "El equipo recibido en permuta ({$producto->identificador()}) {$motivo}: no se puede anular la venta #{$venta->id}.",
             ]);
         }
 

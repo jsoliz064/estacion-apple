@@ -80,7 +80,7 @@
                                 <span class="font-semibold text-gray-900 dark:text-gray-100">
                                     {{ trim(($reserva->producto?->modelo?->nombre ?? 'Equipo') . ' ' . $reserva->producto?->almacenamiento . ' ' . $reserva->producto?->color) }}
                                 </span>
-                                <span class="block text-xs text-gray-500 font-mono">IMEI {{ $reserva->producto?->imei }}</span>
+                                <span class="block text-xs text-gray-500 font-mono">{{ $reserva->producto?->identificador() }}</span>
                                 <span class="block text-xs text-gray-500">
                                     {{ $reserva->created_at->format('d/m/Y') }} · seña {{ \App\Support\Dinero::usd((float) $reserva->sena) }} en {{ $reserva->metodo?->nombre }}
                                     @if ($reserva->sena_destino) · {{ $reserva->sena_destino->label() }} @endif
@@ -110,7 +110,7 @@
                         <li class="py-2 flex flex-wrap items-center justify-between gap-2" wire:key="garantia-{{ $linea->id }}">
                             <span>
                                 <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $linea->descripcion() }}</span>
-                                <span class="block text-xs text-gray-500 font-mono">IMEI {{ $linea->producto?->imei }}</span>
+                                <span class="block text-xs text-gray-500 font-mono">{{ $linea->producto?->identificador() }}</span>
                                 <a href="{{ route('ventas.detalles', $linea->venta_id) }}" class="text-xs text-brand-600 hover:underline">Venta #{{ $linea->venta_id }}</a>
                             </span>
                             <span class="text-right">

@@ -227,7 +227,10 @@ class AuditarProductos extends Command
     /** Lo que impide el indice unico de productos.imei. */
     private function imeiDuplicados(): void
     {
+        // Sin los NULL: el IMEI es opcional (iPad Wi-Fi) y los sin IMEI no son
+        // «repetidos». Su serial lo cuida productos_serial_sin_imei_unico.
         $filas = DB::table('productos')
+            ->whereNotNull('imei')
             ->selectRaw('imei, COUNT(*) as veces, GROUP_CONCAT(id) as ids')
             ->groupBy('imei')
             ->havingRaw('COUNT(*) > 1')

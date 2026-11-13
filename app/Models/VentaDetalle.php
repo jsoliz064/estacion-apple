@@ -153,7 +153,7 @@ class VentaDetalle extends Model
         if ($this->producto_id) {
             $p = $this->producto;
 
-            return trim(($p?->modelo?->nombre ?? 'Equipo') . ' ' . ($p?->almacenamiento ?? '')) . ' · IMEI ' . ($p?->imei ?? '');
+            return trim(($p?->modelo?->nombre ?? 'Equipo') . ' ' . ($p?->almacenamiento ?? '')) . ' · ' . ($p?->identificador() ?? '');
         }
 
         return $this->articulo()?->nombre ?? 'Artículo';
