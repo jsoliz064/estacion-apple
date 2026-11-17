@@ -181,9 +181,11 @@ class CompraLoteTable extends DataTableComponent
 
     public function openCompraLoteProductoEditModal($id)
     {
-        $producto = Producto::find($id);
-        if (in_array($producto->estado, ProductoEstado::vendidos(), true) || $producto->estaDadoDeBaja()) {
-            toastr()->error('El equipo ya está vendido o dado de baja: no se edita desde la compra.');
+        // La misma regla que Productos (Producto::puedeEditarlo): antes aqui se
+        // editaba todo lo no vendido y alli solo Inventario.
+        $producto = Producto::findOrFail($id);
+        if ($motivo = $producto->puedeEditarlo(auth()->user())) {
+            toastr()->error($motivo);
             return;
         }
         $this->dispatch('openCompraLoteProductoEditModal', $id);

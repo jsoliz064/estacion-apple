@@ -91,6 +91,7 @@ class CatalogoPermisos
         'producto.edit' => ['Editar los datos de un equipo: IMEI, color, batería, grado, sucursal, fotos y estado.', []],
         'producto.editar-costo' => ['Cambiar el costo de un equipo ya cargado.', []],
         'producto.editar-precio' => ['Cambiar el precio de venta de un equipo ya cargado.', []],
+        'producto.editar-no-disponible' => ['Editar los datos de un equipo que no está en Inventario: vendido, a crédito, en reparación, fuera, roto, reservado o en reclamo. El costo y el precio siguen pidiendo su propio permiso.', []],
         'producto.delete' => ['Eliminar un equipo.', []],
         'producto.historial' => ['Ver el historial de un equipo: todo lo que le pasó, quién y cuándo.', [self::VENDEDOR, self::TECNICOS]],
         'producto.detalle' => ['Ver el detalle de un equipo: de qué compra vino, a quién se vendió y su garantía, si tiene una garantía o un trabajo externo en curso, y su baja.', [self::VENDEDOR, self::TECNICOS]],

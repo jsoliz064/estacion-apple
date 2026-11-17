@@ -7,6 +7,11 @@
             </x-slot>
             <x-slot name="content">
                 <div class="space-y-6">
+                    @if ($avisoEstado)
+                        <p class="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200">
+                            <i class="fa-solid fa-circle-info mr-1"></i>{{ $avisoEstado }}
+                        </p>
+                    @endif
                     <div class="grid grid-cols-1 gap-6">
 
                         <div class="animate-fade-in">

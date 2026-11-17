@@ -277,9 +277,11 @@ class ProductoTable extends DataTableComponent
 
     public function openProductoEditModal($id)
     {
-        $producto = Producto::find($id);
-        if (!$producto->estaDisponible()) {
-            toastr()->error('El producto debe estar en inventario');
+        // La regla de quien edita que (Inventario, o cualquier estado con
+        // producto.editar-no-disponible) vive en Producto::puedeEditarlo().
+        $producto = Producto::findOrFail($id);
+        if ($motivo = $producto->puedeEditarlo(auth()->user())) {
+            toastr()->error($motivo);
             return;
         }
         $this->dispatch('openCompraLoteProductoEditModal', $id);

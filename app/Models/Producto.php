@@ -176,6 +176,38 @@ class Producto extends Model
         return $this->dado_de_baja_at !== null;
     }
 
+    /**
+     * Si $user puede editar este equipo: null si puede, o el motivo si no. La
+     * unica copia de la regla (Productos, el detalle de la compra y el modal de
+     * edicion). Antes Productos solo dejaba Inventario, la compra todo lo no
+     * vendido y el modal no miraba nada.
+     *
+     *  - Dado de baja: no se edita (esta archivado).
+     *  - En Inventario o En compra: alcanza producto.edit.
+     *  - En otro estado (vendido, a credito, en reparacion, fuera, roto,
+     *    reservado, en reclamo): ademas producto.editar-no-disponible (pedido
+     *    de la tienda: corregir los datos de un equipo ya vendido).
+     */
+    public function puedeEditarlo(?User $user): ?string
+    {
+        if ($this->estaDadoDeBaja()) {
+            return 'El equipo está dado de baja: revierte la baja para editarlo.';
+        }
+
+        if (!$user?->can('producto.edit')) {
+            return 'No tienes permiso para editar equipos.';
+        }
+
+        $libres = [ProductoEstado::Inventario->value, ProductoEstado::EnCompra->value];
+
+        if (!in_array($this->estado, $libres, true) && !$user->can('producto.editar-no-disponible')) {
+            return 'El equipo está en estado «' . ProductoEstado::labelDe($this->estado)
+                . '»: editarlo requiere el permiso «Editar los datos de un equipo que no está en Inventario».';
+        }
+
+        return null;
+    }
+
     public function imagenes()
     {
         // Por id: la primera es la de la miniatura de las tablas (MIN(id)).

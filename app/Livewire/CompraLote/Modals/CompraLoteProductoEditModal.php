@@ -65,7 +65,32 @@ class CompraLoteProductoEditModal extends Component
             'colores' => $this->openModal ? $this->coloresOfrecidos() : collect(),
             'puedeCosto' => $this->puedeEditarCosto(),
             'puedePrecio' => $this->puedeEditarPrecio(),
+            'avisoEstado' => $this->openModal ? $this->avisoEstado() : null,
         ]);
+    }
+
+    /**
+     * Un equipo que no esta en Inventario (se edita con
+     * producto.editar-no-disponible): que se note, y que tocar la plata de uno
+     * vendido no cambia la venta, cuya linea congelo su precio y su costo.
+     */
+    private function avisoEstado(): ?string
+    {
+        $estado = $this->producto['estado'] ?? null;
+
+        if (!$estado || $this->enBorrador || $estado === ProductoEstado::Inventario->value) {
+            return null;
+        }
+
+        $texto = 'Este equipo está en estado «' . ProductoEstado::labelDe($estado) . '».';
+
+        if (in_array($estado, ProductoEstado::vendidos(), true)) {
+            $ventaId = \App\Models\VentaDetalle::where('producto_id', $this->producto['id'])->value('venta_id');
+            $texto = 'Este equipo está en estado «' . ProductoEstado::labelDe($estado) . '»' . ($ventaId ? " (venta #{$ventaId})" : '')
+                . ': cambiar su costo o su precio ajusta la ficha y la compra, no la venta ya hecha.';
+        }
+
+        return $texto;
     }
 
     /** Los permisos de la plata: sin ellos, se editan los datos pero no el costo o el precio. */
@@ -91,10 +116,11 @@ class CompraLoteProductoEditModal extends Component
     #[On('openCompraLoteProductoEditModal')]
     public function openModal($id)
     {
-        // Antes solo lo pedia el @can del boton: el servidor no comprobaba nada.
-        abort_unless(Auth::user()?->can('producto.edit'), 403);
-
-        $producto = Producto::with(['modelo', 'modelo.almacenamientos', 'imagenes',])->find($id);
+        $producto = Producto::with(['modelo', 'modelo.almacenamientos', 'imagenes',])->findOrFail($id);
+        // La red del servidor: las tablas ya avisan, pero el evento se puede
+        // disparar a mano (antes solo se pedia producto.edit, sin mirar el
+        // estado ni la baja). Producto::puedeEditarlo es la unica regla.
+        abort_if($producto->puedeEditarlo(Auth::user()) !== null, 403);
         $this->producto = $producto->toArray();
         $this->producto['nombre'] = $producto->modelo->nombre;
         $this->colorOriginal = $producto->color;
@@ -159,7 +185,8 @@ class CompraLoteProductoEditModal extends Component
 
     public function updateProduct()
     {
-        abort_unless(Auth::user()?->can('producto.edit'), 403);
+        $guardado = Producto::findOrFail($this->producto['id']);
+        abort_if($guardado->puedeEditarlo(Auth::user()) !== null, 403);
 
         // FUERA de la transaccion y antes del try: ValidationException extiende
         // Exception, asi que el catch de abajo la atrapaba y convertia los
@@ -178,9 +205,15 @@ class CompraLoteProductoEditModal extends Component
             'producto.tipo_venta' => ['required', Rule::in(ProductoTipoVenta::values())],
             'producto.precio' => 'required|numeric|min:0',
             // Vendido y Credito solo los escribe una venta.
-            'producto.status' => ['required', Rule::in($this->enBorrador
-                ? CompraService::estadosDestinoBorrador()
-                : array_diff(ProductoEstado::values(), ProductoEstado::soloPorDocumento()))],
+            // Un equipo Vendido, a Credito, en Reserva o en Reclamo (estados
+            // que solo escribe su documento) conserva el suyo: antes fallaba
+            // aqui al guardar, y aceptar otro dejaria pasar a Inventario un
+            // equipo vendido con un status enviado a mano.
+            'producto.status' => ['required', Rule::in(match (true) {
+                $this->enBorrador => CompraService::estadosDestinoBorrador(),
+                in_array($guardado->estado, ProductoEstado::soloPorDocumento(), true) => [$guardado->estado],
+                default => array_diff(ProductoEstado::values(), ProductoEstado::soloPorDocumento()),
+            })],
             // IMEI y serial (Producto::reglasIdentidad): el IMEI es opcional y
             // unico, tambien al EDITAR (antes era un 'required' a secas y se
             // le podia poner a un producto el IMEI de otro); sin IMEI, el
