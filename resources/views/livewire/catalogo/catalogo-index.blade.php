@@ -160,8 +160,10 @@
                         <div class="flex flex-1 flex-col p-3">
                             <h3 class="line-clamp-2 text-sm font-semibold leading-snug">{{ $e->modelo?->nombre ?? 'Equipo' }}</h3>
                             <p class="mt-1 flex min-w-0 items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                                <span class="shrink-0">{{ $e->almacenamiento }}</span>
-                                <span aria-hidden="true">·</span>
+                                @if ($e->almacenamiento)
+                                    <span class="shrink-0">{{ $e->almacenamiento }}</span>
+                                    <span aria-hidden="true">·</span>
+                                @endif
                                 <span class="h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-black/10 dark:ring-white/20"
                                     style="background-color: {{ $hexColores[$e->color] ?? '#9CA3AF' }}"></span>
                                 <span class="truncate">{{ $e->color }}</span>
@@ -279,14 +281,14 @@
                                 @endif
                             </div>
                             <h3 class="mt-2 text-xl font-bold leading-tight">{{ $equipo->modelo?->nombre ?? 'Equipo' }}</h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ $equipo->almacenamiento }} · {{ $equipo->color }}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ implode(' · ', array_filter([$equipo->almacenamiento, $equipo->color])) }}</p>
                             <x-monto :valor="$equipo->precio" class="mt-3 text-3xl font-bold" />
                         </div>
 
                         <dl class="grid grid-cols-2 gap-3 text-sm">
                             <div class="rounded-2xl bg-gray-50 p-3 dark:bg-gray-800">
                                 <dt class="text-xs text-gray-500 dark:text-gray-400">Almacenamiento</dt>
-                                <dd class="mt-0.5 font-semibold">{{ $equipo->almacenamiento }}</dd>
+                                <dd class="mt-0.5 font-semibold">{{ $equipo->almacenamiento ?: '—' }}</dd>
                             </div>
                             <div class="rounded-2xl bg-gray-50 p-3 dark:bg-gray-800">
                                 <dt class="text-xs text-gray-500 dark:text-gray-400">Color</dt>

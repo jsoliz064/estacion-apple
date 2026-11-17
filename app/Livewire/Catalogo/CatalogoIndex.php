@@ -166,7 +166,10 @@ class CatalogoIndex extends Component
             return [];
         }
 
+        // Sin el NULL: un Apple Watch no tiene almacenamiento, y un chip vacio
+        // no diria nada.
         $hay = $this->consulta(['almacenamiento'])
+            ->whereNotNull('productos.almacenamiento')
             ->groupBy('productos.almacenamiento')
             ->selectRaw('productos.almacenamiento AS valor, COUNT(*) AS cantidad')
             ->pluck('cantidad', 'valor');
@@ -222,7 +225,7 @@ class CatalogoIndex extends Component
 
     private function nombre(Producto $p): string
     {
-        return trim(($p->modelo?->nombre ?? 'Equipo') . ' ' . $p->almacenamiento . ' ' . $p->color);
+        return $p->nombreCorto();
     }
 
     /** El link de WhatsApp: general, o la consulta por un equipo con su link. */

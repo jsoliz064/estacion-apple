@@ -9,6 +9,7 @@ use Rappasoft\LaravelLivewireTables\Views\Column;
 use App\Models\Producto;
 use App\Models\ProductoModelo;
 use App\Models\Sucursal;
+use App\Support\ColumnasEquipo;
 use Livewire\Attributes\On;
 use Illuminate\Database\Eloquent\Builder;
 use Rappasoft\LaravelLivewireTables\Views\Filters\MultiSelectDropdownFilter;
@@ -29,8 +30,8 @@ class CompraLoteTable extends DataTableComponent
     public function configure(): void
     {
         $this->setPrimaryKey('id')
-            ->setSearchPlaceholder('Buscar por modelo, IMEI o código de barras...');
-        $this->setAdditionalSelects(['productos.dado_de_baja_at', 'productos.motivo_baja',
+            ->setSearchPlaceholder('Buscar por modelo, IMEI o serial...');
+        $this->setAdditionalSelects(['productos.upc', 'productos.dado_de_baja_at', 'productos.motivo_baja',
             'productos.costo_unidad', 'productos.moneda', 'productos.costo_moneda_monto', 'productos.precio_moneda_monto', 'productos.tipo_cambio']);
     }
 
@@ -40,7 +41,9 @@ class CompraLoteTable extends DataTableComponent
             MultiSelectDropdownFilter::make('Estado')
                 ->options(ProductoEstado::toSelectArray()->toArray())
                 ->filter(function (Builder $builder, array $values) {
-                    if (empty($values)) {
+                    // Con texto en el buscador, en todos los estados: buscar el
+                    // IMEI de uno vendido no lo encontraba (el filtro lo oculta).
+                    if (empty($values) || $this->hasSearch()) {
                         return;
                     }
                     $builder->whereIn('estado', $values);
@@ -91,18 +94,12 @@ class CompraLoteTable extends DataTableComponent
             Column::make("Modelo", "modelo.nombre")
                 ->sortable()
                 ->searchable(),
-            Column::make("Capacidad", "almacenamiento")
-                ->sortable(),
+            ColumnasEquipo::capacidad(),
             Column::make("Version", "version")
                 ->sortable()
                 ->format(fn($v) => $v ? ProductoVersion::labelDe($v) : '')
                 ->collapseOnTablet(),
-            // IMEI parcial; UPC exacto, que es lo que lee la pistola.
-            Column::make("Imei", "imei")
-                ->sortable()
-                ->searchable(fn(Builder $q, $term) => $q
-                    ->orWhere('productos.imei', 'like', '%' . $term . '%')
-                    ->orWhere('productos.upc', trim($term))),
+            ColumnasEquipo::imeiSerial(),
             Column::make("Batería(%)", "bateria_porcentaje")
                 ->sortable()
                 ->format(function ($value) {

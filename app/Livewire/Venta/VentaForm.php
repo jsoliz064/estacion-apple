@@ -325,7 +325,7 @@ class VentaForm extends Component
 
     private function descripcionEquipo(Producto $producto): string
     {
-        return trim(($producto->modelo?->nombre ?? 'Equipo') . ' ' . $producto->almacenamiento . ' ' . $producto->color);
+        return $producto->nombreCorto();
     }
 
     /** Los regalos del equipo, para mostrarlos bajo su linea. */

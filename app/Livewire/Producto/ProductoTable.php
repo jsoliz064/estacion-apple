@@ -9,6 +9,7 @@ use App\Enums\ProductoVersion;
 use App\Enums\ReparacionTipo;
 use App\Models\Producto;
 use App\Models\Sucursal;
+use App\Support\ColumnasEquipo;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use Livewire\Attributes\On;
@@ -41,11 +42,12 @@ class ProductoTable extends DataTableComponent
     public function configure(): void
     {
         $this->setPrimaryKey('id')
-            ->setSearchPlaceholder('Buscar por modelo, IMEI o código de barras...');
+            ->setSearchPlaceholder('Buscar por modelo, IMEI o serial...');
 
         // Las columnas con ->label() se excluyen del SELECT que arma el paquete,
         // así que los campos que usan sus callbacks hay que pedirlos aquí.
         $this->setAdditionalSelects([
+            'productos.upc',
             'productos.costo_unidad',
             'productos.costo_regalos',
             'productos.moneda',
@@ -67,19 +69,12 @@ class ProductoTable extends DataTableComponent
             Column::make("Modelo", "modelo.nombre")
                 ->sortable()
                 ->searchable(),
-            Column::make("Capacidad", "almacenamiento")
-                ->sortable(),
+            ColumnasEquipo::capacidad(),
             Column::make("Version", "version")
                 ->sortable()
                 ->format(fn($v) => $v ? ProductoVersion::labelDe($v) : '')
                 ->collapseOnTablet(),
-            // IMEI parcial; el UPC, exacto: es lo que lee la pistola en la caja
-            // (y trae a todos los del mismo modelo) o en un sticker propio.
-            Column::make("Imei", "imei")
-                ->sortable()
-                ->searchable(fn(Builder $q, $term) => $q
-                    ->orWhere('productos.imei', 'like', '%' . $term . '%')
-                    ->orWhere('productos.upc', trim($term))),
+            ColumnasEquipo::imeiSerial(),
             Column::make("Batería %", "bateria_porcentaje")
                 ->sortable()
                 ->format(function ($value) {
@@ -153,7 +148,10 @@ class ProductoTable extends DataTableComponent
             MultiSelectDropdownFilter::make('Estado')
                 ->options(ProductoEstado::toSelectArray()->toArray())
                 ->filter(function (Builder $builder, array $values) {
-                    if (empty($values)) {
+                    // Con texto en el buscador se busca en todos los estados
+                    // (pedido de la tienda): el filtro arranca en Inventario, y
+                    // escribir el IMEI de un equipo vendido no lo encontraba.
+                    if (empty($values) || $this->hasSearch()) {
                         return;
                     }
                     // Un telefono en trabajo externo esta SIEMPRE vendido, que

@@ -175,7 +175,7 @@ class CompraLoteProductoEditModal extends Component
         $parts = [
             $this->selectedModel->nombre ?? '',
             "color {$this->producto['color']}",
-            "de {$this->producto['almacenamiento']}",
+            !empty($this->producto['almacenamiento']) ? "de {$this->producto['almacenamiento']}" : '',
             "con {$this->producto['bateria_porcentaje']}% de batería",
             !empty($this->producto['imei']) ? "IMEI: {$this->producto['imei']}" : (!empty($this->producto['upc']) ? "Serial: {$this->producto['upc']}" : ''),
         ];
@@ -197,7 +197,8 @@ class CompraLoteProductoEditModal extends Component
         $this->sincronizarMontosEnMoneda();
 
         $this->validate([
-            'producto.almacenamiento' => 'required',
+            // Opcional: un Apple Watch no tiene (vacio se guarda NULL).
+            'producto.almacenamiento' => 'nullable|string|max:20',
             'producto.color' => ['required', Rule::in($this->coloresOfrecidos()->pluck('nombre')->all())],
             'producto.version' => ['nullable', \Illuminate\Validation\Rule::in(\App\Enums\ProductoVersion::values())],
             'producto.bateria_porcentaje' => 'required|numeric|min:0|max:100',

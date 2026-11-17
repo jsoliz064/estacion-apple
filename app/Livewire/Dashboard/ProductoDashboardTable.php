@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard;
 
 use App\Enums\ProductoEstado;
 use App\Models\Producto;
+use App\Support\ColumnasEquipo;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use Livewire\Attributes\On;
@@ -17,6 +18,8 @@ class ProductoDashboardTable extends DataTableComponent
     public function configure(): void
     {
         $this->setPrimaryKey('id');
+        // ColumnasEquipo::imeiSerial() lee el serial en su format().
+        $this->setAdditionalSelects(['productos.upc']);
     }
 
     public function columns(): array
@@ -25,11 +28,8 @@ class ProductoDashboardTable extends DataTableComponent
             Column::make("Modelo", "modelo.nombre")
                 ->sortable()
                 ->searchable(),
-            Column::make("Capacidad", "almacenamiento")
-                ->sortable(),
-            Column::make("Imei", "imei")
-                ->sortable()
-                ->searchable(),
+            ColumnasEquipo::capacidad(),
+            ColumnasEquipo::imeiSerial(),
             Column::make("Batería(%)", "bateria_porcentaje")
                 ->sortable()
                 ->format(function ($value) {

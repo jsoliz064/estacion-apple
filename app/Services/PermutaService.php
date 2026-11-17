@@ -46,7 +46,8 @@ class PermutaService
         $v = Validator::make($datos, [
             'producto_modelo_id' => 'required|integer|exists:productos_modelos,id',
             ...Producto::reglasIdentidad($datos['imei']),
-            'almacenamiento' => 'required|string|max:20',
+            // Opcional: un Apple Watch no tiene.
+            'almacenamiento' => 'nullable|string|max:20',
             // De la tabla de colores: un nombre fuera de ella no entra.
             'color' => 'required|string|exists:colores,nombre',
             'estado_grado' => ['required', Rule::in(ProductoGrado::values())],
@@ -76,7 +77,7 @@ class PermutaService
             'producto_modelo_id' => $modelo->id,
             'imei' => $datos['imei'],
             'upc' => $datos['upc'],
-            'almacenamiento' => $datos['almacenamiento'],
+            'almacenamiento' => $datos['almacenamiento'] ?? null,
             'color' => $datos['color'],
             'estado_grado' => $datos['estado_grado'],
             'bateria_porcentaje' => (int) $datos['bateria_porcentaje'],
@@ -88,8 +89,8 @@ class PermutaService
             'precio' => $valor,
             'disponible_catalogo' => false,
             'sucursal_id' => $venta->sucursal_id,
-            'descripcion' => trim($modelo->nombre . ' color ' . $datos['color'] . ' de ' . $datos['almacenamiento']
-                . ' con ' . (int) $datos['bateria_porcentaje'] . '% de batería '
+            'descripcion' => trim($modelo->nombre . ' color ' . $datos['color']
+                . (!empty($datos['almacenamiento']) ? ' de ' . $datos['almacenamiento'] : '') . ' con ' . (int) $datos['bateria_porcentaje'] . '% de batería '
                 . ($datos['imei'] ? 'IMEI: ' . $datos['imei'] : 'Serial: ' . $datos['upc'])),
         ]);
         $producto->anotar(

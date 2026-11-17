@@ -106,7 +106,8 @@ class CompraLoteAddModelModal extends Component
     protected function rules()
     {
         return [
-            'almacenamiento' => 'required',
+            // Opcional: un Apple Watch no tiene (vacio se guarda NULL).
+            'almacenamiento' => 'nullable|string|max:20',
             // Los colores que se ofrecen para el modelo (Color::paraModelo):
             // la misma lista que pinta el formulario.
             'color' => ['required', Rule::in($this->coloresOfrecidos()->pluck('nombre')->all())],
@@ -142,7 +143,6 @@ class CompraLoteAddModelModal extends Component
             'max' => 'El valor máximo para :attribute es :max.',
             'decimal' => 'El campo :attribute debe tener máximo 2 decimales.',
             'gte' => 'El precio debe ser mayor o igual al costo.',
-            'almacenamiento.required' => 'Debe seleccionar un almacenamiento.',
             'color.required' => 'Debe seleccionar un color.',
             'estado_grado.required' => 'Debe seleccionar el grado.',
             'tecnico_selected.required_if' => 'Elija el técnico de la reparación.',
@@ -249,9 +249,8 @@ class CompraLoteAddModelModal extends Component
         $this->openModal = true;
 
         // 128GB por defecto y, si el modelo no lo tiene, su primer almacenamiento.
-        // El select no tiene opcion vacia: el navegador muestra elegida la
-        // primera, y si la propiedad quedaba en null el guardado decia «Debe
-        // seleccionar un almacenamiento» con uno a la vista (hasta cambiarlo).
+        // Un modelo sin almacenamientos (un Apple Watch) arranca en «Sin
+        // almacenamiento» (null): es opcional.
         $almacenamientos = $this->selectedModel->almacenamientos;
         $this->almacenamiento = ($almacenamientos->firstWhere('almacenamiento', '128GB') ?? $almacenamientos->first())?->almacenamiento;
 

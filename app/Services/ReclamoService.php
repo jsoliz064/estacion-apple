@@ -175,7 +175,8 @@ class ReclamoService
             'tipo_cambio' => $fallado->tipo_cambio,
             'disponible_catalogo' => (bool) $fallado->disponible_catalogo,
             'sucursal_id' => $fallado->sucursal_id,
-            'descripcion' => trim(($fallado->modelo?->nombre ?? '') . " color {$color} de {$fallado->almacenamiento} con "
+            'descripcion' => trim(($fallado->modelo?->nombre ?? '') . " color {$color}"
+                . ($fallado->almacenamiento ? " de {$fallado->almacenamiento}" : '') . ' con '
                 . (int) $datos['bateria_porcentaje'] . '% de batería '
                 . ($datos['imei'] ? "IMEI: {$datos['imei']}" : "Serial: {$datos['upc']}")),
         ]);

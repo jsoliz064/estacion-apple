@@ -21,7 +21,7 @@
 
                     {{-- El equipo --}}
                     <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                        {{ trim(($producto->modelo?->nombre ?? 'Equipo') . ' ' . $producto->almacenamiento . ' ' . $producto->color) }}
+                        {{ $producto->nombreCorto() }}
                     </p>
                     <div class="mt-2">
                         @if ($producto->imei)

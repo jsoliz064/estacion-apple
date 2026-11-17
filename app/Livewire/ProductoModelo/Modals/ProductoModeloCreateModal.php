@@ -15,6 +15,13 @@ class ProductoModeloCreateModal extends Component
     public $openModal = false;
     public $productomodelo = [];
 
+    /**
+     * Si el modelo tiene capacidades (iPhone, iPad, Mac). Un Apple Watch no:
+     * sin la casilla no se le crean los 7 almacenamientos, y el alta de sus
+     * equipos ofrece solo «Sin almacenamiento».
+     */
+    public bool $llevaAlmacenamiento = true;
+
     protected $rules = [
         'productomodelo.nombre' => 'required|string|max:255',
         'productomodelo.producto_categoria_id' => 'required',
@@ -37,7 +44,7 @@ class ProductoModeloCreateModal extends Component
             $this->validate();
             DB::transaction(function () {
                 $productoModelo = ProductoModelo::create($this->productomodelo);
-                $almacenamientos = ProductoAlmacenamiento::cases();
+                $almacenamientos = $this->llevaAlmacenamiento ? ProductoAlmacenamiento::cases() : [];
                 foreach ($almacenamientos as $almacenamiento) {
                     ProductoModeloAlmacenamiento::create([
                         'almacenamiento' => $almacenamiento->value,

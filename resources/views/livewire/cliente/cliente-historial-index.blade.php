@@ -78,7 +78,7 @@
                         <li class="py-2 flex flex-wrap items-center justify-between gap-2" wire:key="reserva-{{ $reserva->id }}">
                             <span>
                                 <span class="font-semibold text-gray-900 dark:text-gray-100">
-                                    {{ trim(($reserva->producto?->modelo?->nombre ?? 'Equipo') . ' ' . $reserva->producto?->almacenamiento . ' ' . $reserva->producto?->color) }}
+                                    {{ $reserva->producto?->nombreCorto() ?? 'Equipo' }}
                                 </span>
                                 <span class="block text-xs text-gray-500 font-mono">{{ $reserva->producto?->identificador() }}</span>
                                 <span class="block text-xs text-gray-500">

@@ -5,7 +5,7 @@
             <x-slot name="content">
                 <hr>
                 <p class="m-2 text-sm text-gray-700 dark:text-gray-300">
-                    {{ trim(($producto->modelo?->nombre ?? 'Equipo') . ' ' . $producto->almacenamiento . ' ' . $producto->color) }}
+                    {{ $producto->nombreCorto() }}
                     · <span class="font-mono">{{ $producto->identificador() }}</span>
                 </p>
                 <div class="m-2">

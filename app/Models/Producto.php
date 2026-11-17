@@ -46,6 +46,28 @@ class Producto extends Model
     }
 
     /**
+     * «iPhone 15 128GB Negro»: modelo, almacenamiento y color, sin huecos. El
+     * almacenamiento es opcional (un Apple Watch no tiene), y el
+     * trim(modelo . ' ' . almacenamiento . ' ' . color) de cada vista dejaba un
+     * doble espacio en medio. Estatico para las consultas que no traen el modelo.
+     */
+    public static function componerNombre(?string $modelo, ?string $almacenamiento, ?string $color): string
+    {
+        return implode(' ', array_filter([$modelo ?: 'Equipo', $almacenamiento, $color], fn($p) => $p !== null && $p !== ''));
+    }
+
+    public function nombreCorto(): string
+    {
+        return self::componerNombre($this->modelo?->nombre, $this->almacenamiento, $this->color);
+    }
+
+    /** Opcional (un Apple Watch no tiene): vacio se guarda NULL, no ''. */
+    public function setAlmacenamientoAttribute($value): void
+    {
+        $this->attributes['almacenamiento'] = self::normalizarCodigo($value);
+    }
+
+    /**
      * Como se nombra el equipo en pantallas, notas y bitacora: su IMEI o, si no
      * tiene, su serial (todo equipo tiene uno de los dos: CHECK
      * productos_imei_o_serial). Antes cada vista escribia «IMEI {{ $p->imei }}»

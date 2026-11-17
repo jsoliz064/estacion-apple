@@ -28,20 +28,19 @@
                         </div>
 
                         <div class="animate-fade-in">
-                            <x-label value="Almacenamiento *" />
+                            <x-label value="Almacenamiento" />
                             <select wire:model.live="producto.almacenamiento"
                                 class="mt-2 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200
                                focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm transition-all duration-200 h-10">
-                                @if ($selectedModel && $selectedModel->almacenamientos)
-                                    @foreach ($selectedModel->almacenamientos as $storage)
-                                        <option value="{{ $storage->almacenamiento }}"
-                                            @if ($producto['almacenamiento'] == $storage->almacenamiento) selected @endif>
-                                            {{ $storage->almacenamiento }} - {{ \App\Support\Dinero::usd($storage->precio) }}
-                                        </option>
-                                    @endforeach
-                                @else
-                                    <option value="">No hay opciones de almacenamiento disponibles</option>
-                                @endif
+                                {{-- Opcional: un Apple Watch no tiene. Un modelo sin almacenamientos
+                                     (creado sin «Lleva almacenamiento») solo ofrece esta opcion. --}}
+                                <option value="" @if (!($producto['almacenamiento'] ?? null)) selected @endif>Sin almacenamiento</option>
+                                @foreach ($selectedModel?->almacenamientos ?? [] as $storage)
+                                    <option value="{{ $storage->almacenamiento }}"
+                                        @if (($producto['almacenamiento'] ?? null) == $storage->almacenamiento) selected @endif>
+                                        {{ $storage->almacenamiento }} - {{ \App\Support\Dinero::usd($storage->precio) }}
+                                    </option>
+                                @endforeach
                             </select>
                             <x-input-error for="producto.almacenamiento" class="mt-1" />
                         </div>

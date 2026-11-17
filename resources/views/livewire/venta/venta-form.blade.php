@@ -307,6 +307,7 @@
                             <div>
                                 <x-label value="Almacenamiento" />
                                 <select wire:model="permuta.almacenamiento" class="mt-1 block w-full h-10 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:border-brand-500 focus:ring-brand-500 rounded-md shadow-sm">
+                                    <option value="">Sin almacenamiento</option>
                                     @foreach ($almacenamientos as $a)
                                         <option value="{{ $a->value }}">{{ $a->label() }}</option>
                                     @endforeach

@@ -107,9 +107,9 @@
                             <tr class="border-t border-gray-200 dark:border-gray-700" wire:key="rp-par-{{ $p->id }}">
                                 <td class="p-2">
                                     @can('producto.historial')
-                                        <a href="{{ route('productos.historial', $p->id) }}" class="font-semibold text-brand-600 hover:underline dark:text-brand-400">{{ trim(($p->modelo ?? 'Equipo') . ' ' . $p->almacenamiento . ' ' . $p->color) }}</a>
+                                        <a href="{{ route('productos.historial', $p->id) }}" class="font-semibold text-brand-600 hover:underline dark:text-brand-400">{{ \App\Models\Producto::componerNombre($p->modelo, $p->almacenamiento, $p->color) }}</a>
                                     @else
-                                        <span class="font-semibold">{{ trim(($p->modelo ?? 'Equipo') . ' ' . $p->almacenamiento . ' ' . $p->color) }}</span>
+                                        <span class="font-semibold">{{ \App\Models\Producto::componerNombre($p->modelo, $p->almacenamiento, $p->color) }}</span>
                                     @endcan
                                     <span class="block text-xs text-gray-500 font-mono">{{ $p->imei ? 'IMEI ' . $p->imei : 'Serial ' . $p->upc }}</span>
                                 </td>
