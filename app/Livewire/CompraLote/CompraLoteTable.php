@@ -13,6 +13,7 @@ use App\Support\ColumnasEquipo;
 use Livewire\Attributes\On;
 use Illuminate\Database\Eloquent\Builder;
 use Rappasoft\LaravelLivewireTables\Views\Filters\MultiSelectDropdownFilter;
+use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 
 class CompraLoteTable extends DataTableComponent
 {
@@ -49,6 +50,18 @@ class CompraLoteTable extends DataTableComponent
                     $builder->whereIn('estado', $values);
                 })
                 ->setFilterDefaultValue(array_values(array_diff(ProductoEstado::values(), ProductoEstado::vendidos()))),
+            // Por la ficha «Dados de baja» del resumen: un equipo dado de baja
+            // conserva su estado, asi que el filtro Estado no lo separa.
+            SelectFilter::make('Baja')
+                ->options(['todos' => 'Todos', 'vigentes' => 'Vigentes', 'baja' => 'Dados de baja'])
+                ->filter(function (Builder $builder, string $valor) {
+                    match ($valor) {
+                        'vigentes' => $builder->whereNull('productos.dado_de_baja_at'),
+                        'baja' => $builder->whereNotNull('productos.dado_de_baja_at'),
+                        default => null,
+                    };
+                })
+                ->setFilterDefaultValue('todos'),
             MultiSelectDropdownFilter::make('Modelos')
                 ->options(
                     ProductoModelo::orderBy('nombre', 'asc')
@@ -166,6 +179,27 @@ class CompraLoteTable extends DataTableComponent
         abort_unless(auth()->user()->can('compra.reclamo'), 403);
 
         $this->dispatch('openReclamoAbrirModal', (int) $id);
+    }
+
+    /**
+     * Una ficha del resumen de la compra (CompraLoteIndex::filtrarFicha):
+     * «vendidos» (Vendido y Credito), un estado, «baja» o «todos». Los
+     * vigentes de un estado excluyen los dados de baja, que tienen su ficha.
+     */
+    #[On('filtrarEquiposCompra')]
+    public function filtrarPorFicha(string $clave): void
+    {
+        [$estados, $baja] = match (true) {
+            $clave === 'todos' => [[], 'todos'],
+            $clave === 'baja' => [[], 'baja'],
+            $clave === 'vendidos' => [ProductoEstado::vendidos(), 'vigentes'],
+            ProductoEstado::tryFrom($clave) !== null => [[$clave], 'vigentes'],
+            default => [[], 'todos'],
+        };
+
+        $this->setFilter('estado', $estados);
+        $this->setFilter('baja', $baja);
+        $this->resetPage();
     }
 
     #[On('refreshProductoTable')]

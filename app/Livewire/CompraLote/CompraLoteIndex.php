@@ -18,6 +18,12 @@ class CompraLoteIndex extends Component
     #[Locked]
     public int $compraId;
 
+    /**
+     * La ficha del resumen por estado que filtra la tabla de equipos (null:
+     * ninguna; la tabla arranca con su filtro de siempre, sin lo vendido).
+     */
+    public ?string $fichaActiva = null;
+
     public function mount($compra)
     {
         $this->compraId = $compra->id;
@@ -55,6 +61,19 @@ class CompraLoteIndex extends Component
         $this->dispatch('openReclamoCerrarModal', (int) $reclamoId);
     }
 
+    /**
+     * Tocar una ficha del resumen filtra la tabla de abajo (CompraLoteTable
+     * escucha filtrarEquiposCompra); tocar la elegida, o «Todos», la suelta.
+     */
+    public function filtrarFicha(string $clave): void
+    {
+        $this->fichaActiva = $clave === 'todos' || $clave === $this->fichaActiva ? 'todos' : $clave;
+        $this->dispatch('filtrarEquiposCompra', clave: $this->fichaActiva);
+    }
+
+    // refreshProductoTable: un cambio de estado o una venta desde el modal
+    // mueve las cifras del resumen.
+    #[On('refreshProductoTable')]
     #[On('refreshCompraDetalle')]
     #[On('pagosProveedorActualizados')]
     #[On('reclamosActualizados')]
@@ -75,6 +94,7 @@ class CompraLoteIndex extends Component
             'compra' => $compra,
             'articulos' => $compra->detalles->whereNull('producto_id')->values(),
             'equipos' => $compra->detalles->whereNotNull('producto_id')->count(),
+            'resumen' => $compra->resumenEquipos(),
         ]);
     }
 }

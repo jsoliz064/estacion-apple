@@ -36,6 +36,9 @@
         <div class="bg-brand-100 dark:bg-brand-900 p-3 rounded-xl border border-brand-200 dark:border-brand-700">
             <p class="text-xs text-brand-700 dark:text-brand-300">Equipos</p>
             <p class="text-xl font-semibold text-brand-900 dark:text-brand-100">{{ $equipos }}</p>
+            @if ($resumen['total'] > 0)
+                <p class="text-xs text-brand-700 dark:text-brand-300">{{ $resumen['vendidos'] }} vendido{{ $resumen['vendidos'] === 1 ? '' : 's' }}</p>
+            @endif
         </div>
         <div class="bg-blue-100 dark:bg-blue-900 p-3 rounded-xl border border-blue-200 dark:border-blue-700">
             <p class="text-xs text-blue-700 dark:text-blue-300">Artículos</p>
@@ -48,6 +51,34 @@
             <p class="text-xs text-desert-700 dark:text-desert-200">Equivalente: {{ \App\Support\Dinero::bs($compra->total, $compra->tipo_cambio) }} (TC {{ \App\Support\Dinero::tc($compra->tipo_cambio) }})</p>
         </div>
     </div>
+
+    {{-- Los equipos de la compra por estado (Compra::resumenEquipos): cuantos se
+         vendieron y que paso con el resto. Tocar una ficha filtra la tabla de
+         equipos de abajo; tocarla otra vez, o «Todos», la suelta. Colores en
+         linea (ProductoEstado::color): Tailwind no tiene safelist. --}}
+    @if ($resumen['total'] > 0)
+        <div class="-mt-1 mb-4 flex flex-wrap gap-2" aria-label="Equipos por estado">
+            <button type="button" wire:click="filtrarFicha('todos')"
+                @class([
+                    'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm',
+                    'border-gray-800 bg-gray-800 text-white dark:border-gray-100 dark:bg-gray-100 dark:text-gray-900' => $fichaActiva === 'todos',
+                    'border-gray-300 text-gray-700 dark:border-gray-600 dark:text-gray-200' => $fichaActiva !== 'todos',
+                ])>
+                Todos <strong>{{ $resumen['total'] }}</strong>
+            </button>
+            @foreach ($resumen['fichas'] as $ficha)
+                @php($activa = $fichaActiva === $ficha['clave'])
+                <button type="button" wire:click="filtrarFicha('{{ $ficha['clave'] }}')" wire:key="ficha-{{ $ficha['clave'] }}"
+                    @class(['inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm', 'dark:brightness-150' => !$activa])
+                    style="border-color: {{ $ficha['color'] }}; {{ $activa ? 'background-color: ' . $ficha['color'] . '; color: #fff;' : 'color: ' . $ficha['color'] . ';' }}">
+                    {{ $ficha['etiqueta'] }} <strong>{{ $ficha['cantidad'] }}</strong>
+                    @if ($ficha['detalle'])
+                        <span class="text-xs opacity-80">({{ $ficha['detalle'] }})</span>
+                    @endif
+                </button>
+            @endforeach
+        </div>
+    @endif
 
     {{-- Cuentas por pagar: lo pagado al proveedor y lo que se le debe. --}}
     <div class="mb-4 bg-white dark:bg-gray-800 shadow rounded-lg p-4">

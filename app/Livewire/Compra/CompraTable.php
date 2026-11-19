@@ -37,6 +37,7 @@ class CompraTable extends DataTableComponent
         // eso seria una consulta por fila.
         return Compra::query()
             ->conConteoReclamos()
+            ->conConteoVendidos()
             ->withCount([
                 'detalles as equipos' => fn($q) => $q->where('tipo', LineaTipo::Producto->value),
                 'detalles as articulos' => fn($q) => $q->where('tipo', '!=', LineaTipo::Producto->value),
@@ -58,8 +59,11 @@ class CompraTable extends DataTableComponent
             Column::make('Sucursal', 'sucursal.nombre')
                 ->sortable()
                 ->collapseOnTablet(),
+            // El total y, debajo, cuantos se vendieron (Compra::scopeConConteoVendidos).
             Column::make('Equipos', 'id')
-                ->label(fn($row) => (int) $row->equipos)
+                ->label(fn($row) => (int) $row->equipos
+                    . ((int) $row->equipos > 0 ? '<span class="block text-xs text-gray-500 whitespace-nowrap">' . (int) $row->equipos_vendidos . ' vendido' . ((int) $row->equipos_vendidos === 1 ? '' : 's') . '</span>' : ''))
+                ->html()
                 ->setCustomSlug('equipos'),
             Column::make('Artículos', 'id')
                 ->label(fn($row) => (int) $row->articulos)

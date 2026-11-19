@@ -271,6 +271,7 @@ Una compra de 50 equipos no se carga en una sola pantalla sin perderla al primer
 
   Una tabla que pinta `estado()` con `label()` necesita `compras.finalizada_at` en `setAdditionalSelects`, o toda compra sale Borrador.
 - **Eliminar un borrador** lo borra entero, con sus equipos. Solo lo impiden los pagos.
+- **El resumen por estado de los equipos de una compra lo cuenta solo `Compra::resumenEquipos()`**: «Vendidos» (Vendido y Crédito, con «n a crédito»), cada otro estado que tenga equipos y «Dados de baja» primero (un dado de baja conserva su estado: así no se cuenta dos veces); las fichas suman el total. En el detalle (`CompraLoteIndex::filtrarFicha`) cada ficha filtra la tabla de equipos (`CompraLoteTable::filtrarPorFicha`, evento `filtrarEquiposCompra`, con el filtro nuevo «Baja»); la lista de compras pinta «n vendidos» con `scopeConConteoVendidos()`.
 
 ### Cuentas por pagar y reclamos al proveedor
 

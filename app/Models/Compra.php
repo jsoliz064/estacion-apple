@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\CompraEstado;
 use App\Enums\LineaTipo;
+use App\Enums\ProductoEstado;
 use App\Enums\ReclamoEstado;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Builder;
@@ -148,6 +149,63 @@ class Compra extends Model
             $total > 0 => CompraEstado::Resuelta,
             default => CompraEstado::Recibida,
         };
+    }
+
+    /**
+     * Cuantos equipos de esta compra hay en cada estado (pedido de la tienda:
+     * saber cuantos se vendieron y que paso con el resto). El unico conteo: lo
+     * pintan las fichas del detalle, que filtran su tabla.
+     *
+     * Los grupos suman el total sin contar dos veces: un dado de baja (tambien
+     * el devuelto al proveedor) va a «Dados de baja» aunque conserve su estado,
+     * y Vendido y Credito van juntos en «Vendidos».
+     *
+     * @return array{total: int, vendidos: int, fichas: list<array{clave: string, etiqueta: string, cantidad: int, color: string, detalle: ?string}>}
+     */
+    public function resumenEquipos(): array
+    {
+        $grupos = \Illuminate\Support\Facades\DB::table('compras_detalles as cd')
+            ->join('productos as p', 'p.id', '=', 'cd.producto_id')
+            ->where('cd.compra_id', $this->id)
+            ->selectRaw("CASE WHEN p.dado_de_baja_at IS NOT NULL THEN 'baja' ELSE p.estado END AS grupo, COUNT(*) AS cantidad")
+            ->groupBy('grupo')
+            ->pluck('cantidad', 'grupo')
+            ->map(fn($n) => (int) $n);
+
+        $vendido = $grupos[ProductoEstado::Vendido->value] ?? 0;
+        $credito = $grupos[ProductoEstado::Credito->value] ?? 0;
+        $fichas = [];
+
+        if ($vendido + $credito > 0) {
+            $fichas[] = ['clave' => 'vendidos', 'etiqueta' => 'Vendidos', 'cantidad' => $vendido + $credito,
+                'color' => ProductoEstado::Vendido->color(), 'detalle' => $credito ? "{$credito} a crédito" : null];
+        }
+
+        foreach ([ProductoEstado::Inventario, ProductoEstado::EnCompra, ProductoEstado::Reparacion, ProductoEstado::Fuera,
+            ProductoEstado::Roto, ProductoEstado::Reserva, ProductoEstado::Reclamo] as $estado) {
+            if ($n = $grupos[$estado->value] ?? 0) {
+                $fichas[] = ['clave' => $estado->value, 'etiqueta' => $estado->label(), 'cantidad' => $n, 'color' => $estado->color(), 'detalle' => null];
+            }
+        }
+
+        if ($n = $grupos['baja'] ?? 0) {
+            $fichas[] = ['clave' => 'baja', 'etiqueta' => 'Dados de baja', 'cantidad' => $n, 'color' => 'gray', 'detalle' => null];
+        }
+
+        return ['total' => $grupos->sum(), 'vendidos' => $vendido + $credito, 'fichas' => $fichas];
+    }
+
+    /**
+     * Cuantos equipos de cada compra se vendieron (Vendido o Credito, sin baja),
+     * como subconsulta: la lista de compras lo pinta en cada fila.
+     */
+    public function scopeConConteoVendidos(Builder $query): Builder
+    {
+        return $query->withCount([
+            'detalles as equipos_vendidos' => fn($q) => $q->whereHas('producto', fn($p) => $p
+                ->whereIn('productos.estado', ProductoEstado::vendidos())
+                ->whereNull('productos.dado_de_baja_at')),
+        ]);
     }
 
     /** Los conteos que estado() necesita, en el mismo SELECT. */
