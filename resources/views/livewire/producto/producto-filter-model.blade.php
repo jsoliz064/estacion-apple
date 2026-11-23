@@ -190,13 +190,44 @@
                         </div>
                         @endif
 
+                        @if(!empty($modelDetailsData['tipos']))
+                        <div>
+                            <span class="font-semibold text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-1 mb-2 block">Por Tipo:</span>
+                            <div class="grid grid-cols-2 gap-2">
+                                @foreach($modelDetailsData['tipos'] as $tipo)
+                                    <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-2 rounded">
+                                        <span>{{ $tipo['etiqueta'] }}</span>
+                                        <span class="font-semibold badge bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full text-xs">{{ $tipo['total'] }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="font-semibold text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-1 mb-2 block">Por Capacidad según Tipo:</span>
+                            @foreach($modelDetailsData['capacidadesPorTipo'] as $tipo => $capacidades)
+                                <div class="mb-3">
+                                    <span class="text-xs font-bold text-gray-500 uppercase block mb-1">Tipo: {{ $tipo }}</span>
+                                    <div class="grid grid-cols-2 gap-2 mt-1">
+                                        @foreach($capacidades as $capacidad)
+                                            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-2 rounded">
+                                                <span>{{ $capacidad['etiqueta'] }}</span>
+                                                <span class="font-semibold badge bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full text-xs">{{ $capacidad['total'] }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        @endif
+
                         @if($modelDetailsData['almacenamientos']->count() > 0)
                         <div>
                             <span class="font-semibold text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-1 mb-2 block">Por Almacenamiento:</span>
                             <div class="grid grid-cols-2 gap-2">
                                 @foreach($modelDetailsData['almacenamientos'] as $almac)
                                     <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-2 rounded">
-                                        <span>{{ $almac->almacenamiento ?: 'Sin definir' }}</span>
+                                        <span>{{ $almac->almacenamiento ?: 'Sin almacenamiento' }}</span>
                                         <span class="font-semibold badge bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full text-xs">{{ $almac->total }}</span>
                                     </div>
                                 @endforeach

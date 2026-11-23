@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Producto;
 
+use App\Enums\ProductoAlmacenamiento;
 use App\Enums\ProductoEstado;
 use App\Enums\ProductoTipoVenta;
+use App\Enums\ProductoVersion;
 use App\Models\Producto;
 use App\Models\ProductoModelo;
 use App\Models\Sucursal;
@@ -118,11 +120,48 @@ class ProductoFilterModel extends Component
             ->orderByDesc('total')
             ->get();
 
+        // Las capacidades en el orden del enum (128GB antes que 1TB), no por
+        // cantidad: se leen como una escala. Sin almacenamiento (un Apple
+        // Watch), al final.
+        $orden = array_column(ProductoAlmacenamiento::cases(), 'value');
+        $posicion = fn($almacenamiento) => $almacenamiento === null ? 999
+            : (($i = array_search($almacenamiento, $orden, true)) === false ? 998 : $i);
+        $nombreCapacidad = fn($almacenamiento) => $almacenamiento ?: 'Sin almacenamiento';
+
         $almacenamientos = (clone $query)
             ->select('almacenamiento', DB::raw('count(*) as total'))
             ->groupBy('almacenamiento')
+            ->get()
+            ->sortBy(fn($a) => $posicion($a->almacenamiento))
+            ->values();
+
+        // El tipo es la version (Chip, eSIM, Solo Wi-Fi), y dentro de cada uno
+        // sus capacidades: lo que la tienda pregunta al ofrecer un equipo.
+        $nombreTipo = fn($version) => $version ? ProductoVersion::labelDe($version) : 'Sin definir';
+
+        $tipos = (clone $query)
+            ->select('version', DB::raw('count(*) as total'))
+            ->groupBy('version')
             ->orderByDesc('total')
-            ->get();
+            ->get()
+            ->map(fn($t) => ['etiqueta' => $nombreTipo($t->version), 'total' => (int) $t->total])
+            ->all();
+
+        $porTipo = (clone $query)
+            ->select('version', 'almacenamiento', DB::raw('count(*) as total'))
+            ->groupBy('version', 'almacenamiento')
+            ->get()
+            ->groupBy(fn($c) => $nombreTipo($c->version));
+
+        // Los grupos en el orden de «Por Tipo» (el de mas equipos primero).
+        $capacidadesPorTipo = [];
+        foreach ($tipos as $tipo) {
+            $capacidadesPorTipo[$tipo['etiqueta']] = $porTipo->get($tipo['etiqueta'], collect())
+                ->sortBy(fn($c) => $posicion($c->almacenamiento))
+                ->map(fn($c) => ['etiqueta' => $nombreCapacidad($c->almacenamiento), 'total' => (int) $c->total])
+                ->values()
+                ->all();
+        }
 
         $colorsByEstado = (clone $query)
             ->select('color', 'estado_grado', DB::raw('count(*) as total'))
@@ -138,6 +177,8 @@ class ProductoFilterModel extends Component
             'estados' => $estados,
             'almacenamientos' => $almacenamientos,
             'colorsByEstado' => $colorsByEstado,
+            'tipos' => $tipos,
+            'capacidadesPorTipo' => $capacidadesPorTipo,
         ];
 
         // Generar texto para copiar
@@ -178,10 +219,25 @@ class ProductoFilterModel extends Component
             $text .= "\n";
         }
 
+        if ($tipos) {
+            $text .= "*Tipo:*\n";
+            foreach ($tipos as $t) {
+                $text .= "- {$t['etiqueta']}: {$t['total']}\n";
+            }
+            $text .= "\n*Capacidad según Tipo:*\n";
+            foreach ($capacidadesPorTipo as $tipo => $capacidades) {
+                $text .= "- {$tipo}:\n";
+                foreach ($capacidades as $c) {
+                    $text .= "  • {$c['etiqueta']}: {$c['total']}\n";
+                }
+            }
+            $text .= "\n";
+        }
+
         if ($almacenamientos->isNotEmpty()) {
             $text .= "*Almacenamiento:*\n";
             foreach ($almacenamientos as $a) {
-                $val = $a->almacenamiento ?: 'Sin especificar';
+                $val = $nombreCapacidad($a->almacenamiento);
                 $text .= "- {$val}: {$a->total}\n";
             }
         }
