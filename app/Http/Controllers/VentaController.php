@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Moneda;
+use App\Models\TipoCambio;
 use App\Models\Venta;
+use App\Models\VentaPago;
+use App\Support\Dinero;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 /** Ventas: una sola para equipos, repuestos y accesorios. */
@@ -64,7 +68,43 @@ class VentaController extends Controller
         $sueltos = $venta->detalles->whereNull('producto_id')
             ->filter(fn($d) => !$d->producto_asociado_id || !$equipos->contains('producto_id', $d->producto_asociado_id));
 
-        return compact('venta', 'equipos', 'sueltos');
+        return compact('venta', 'equipos', 'sueltos') + $this->montosEnBs($venta);
+    }
+
+    /**
+     * El recibo es todo en Bs, sin USD ni tipo de cambio (pedido de la tienda:
+     * es lo que se le dice y se le cobra al cliente). Al TC CONGELADO de la
+     * venta, no al del dia. Todo se sigue guardando en USD: esto es la vista.
+     *
+     *  - $bs($usd): una linea (precio, descuento, subtotal), formateada.
+     *  - $totalesBs: el total es el de la venta en Bs (el que mostro el
+     *    formulario al vender y el que se cobro), y el descuento es la
+     *    diferencia, para que «Subtotal - Descuento + Mano de obra = TOTAL»
+     *    cuadre al centavo: convertido por su lado, un descuento cargado como
+     *    200 Bs salia 200.03.
+     *  - $pagoBs($pago): un pago en Bs muestra lo que se escribio
+     *    (monto_moneda); uno en USD, la permuta o la seña, su USD en Bs.
+     */
+    private function montosEnBs(Venta $venta): array
+    {
+        $tc = (float) $venta->tipo_cambio ?: TipoCambio::actual();
+        $subtotal = Dinero::aBs($venta->subtotal, $tc);
+        $manoObra = Dinero::aBs($venta->mano_obra, $tc);
+        $total = Dinero::aBs($venta->total, $tc);
+
+        return [
+            'bs' => fn($usd) => number_format(Dinero::aBs((float) $usd, $tc), 2),
+            'totalesBs' => [
+                'subtotal' => $subtotal,
+                'mano_obra' => $manoObra,
+                'total' => $total,
+                'descuento' => round($subtotal + $manoObra - $total, 2),
+                'saldo' => $venta->saldoPendiente() > 0 ? Dinero::aBs($venta->saldoPendiente(), $tc) : 0.0,
+            ],
+            'pagoBs' => fn(VentaPago $pago) => $pago->moneda === Moneda::alterna() && $pago->monto_moneda !== null
+                ? round((float) $pago->monto_moneda, 2)
+                : Dinero::aBs($pago->monto, $tc),
+        ];
     }
 
     public function create()

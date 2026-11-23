@@ -16,7 +16,7 @@
                     url: @js(route('ventas.pdf', $venta->id)),
                     archivo: @js('Recibo-' . $numeroRecibo . '.pdf'),
                     telefono: @js($venta->fichaCliente?->telefonoWhatsapp()),
-                    texto: @js('Estación Apple - Recibo Nº ' . $numeroRecibo . '. Total ' . \App\Support\Dinero::usd($venta->total)),
+                    texto: @js('Estación Apple - Recibo Nº ' . $numeroRecibo . '. Total ' . \App\Support\Dinero::bs($venta->total, $venta->tipo_cambio)),
                 })"
                 x-on:click="compartir()" :disabled="generando"
                 class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest shadow-sm hover:bg-green-700 disabled:opacity-60">

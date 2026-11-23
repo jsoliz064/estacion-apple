@@ -74,6 +74,21 @@ class VentaPago extends Model
      * Como se lee el pago en el detalle y en la nota: «Efectivo», «QR · USD 100
      * a 6,96», «Permuta · iPhone 11 IMEI ...». Necesita metodo y producto.modelo.
      */
+    /**
+     * El texto de un pago en el recibo: el metodo (o la permuta con su
+     * equipo, o la seña), sin monto ni tipo de cambio. El recibo es todo en Bs
+     * y el monto va en su columna; descripcion() sigue con el TC para las
+     * pantallas internas.
+     */
+    public function descripcionRecibo(): string
+    {
+        if ($this->esPermuta()) {
+            return 'Permuta' . ($this->producto ? ' · ' . $this->producto->nombreCorto() : '');
+        }
+
+        return ($this->metodo?->nombre ?? 'Pago') . ($this->esSena() ? ' · seña de la reserva' : '');
+    }
+
     public function descripcion(): string
     {
         if ($this->esPermuta()) {
