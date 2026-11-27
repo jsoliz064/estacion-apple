@@ -10,13 +10,13 @@
                  (Alpine compartirRecibo, en app.js). --}}
             {{-- @php en bloque: mezclar @php(...) con un @php ... @endphp mas abajo
                  hace que Blade se trague todo lo de en medio. --}}
-            @php $numeroRecibo = str_pad($venta->id, 6, '0', STR_PAD_LEFT); @endphp
+            @php $numeroRecibo = str_pad($venta->id, 6, '0', STR_PAD_LEFT); $totalBs = $venta->importes()['total_bs']; @endphp
             <button type="button"
                 x-data="compartirRecibo({
                     url: @js(route('ventas.pdf', $venta->id)),
                     archivo: @js('Recibo-' . $numeroRecibo . '.pdf'),
                     telefono: @js($venta->fichaCliente?->telefonoWhatsapp()),
-                    texto: @js('Estación Apple - Recibo Nº ' . $numeroRecibo . '. Total ' . \App\Support\Dinero::bs($venta->total, $venta->tipo_cambio)),
+                    texto: @js('Estación Apple - Recibo Nº ' . $numeroRecibo . '. Total ' . \App\Support\Dinero::soloBs($totalBs)),
                 })"
                 x-on:click="compartir()" :disabled="generando"
                 class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest shadow-sm hover:bg-green-700 disabled:opacity-60">
@@ -58,8 +58,8 @@
         <div>
             <h3 class="text-xs font-medium text-gray-500 dark:text-gray-400">Total</h3>
             <p class="text-xl font-bold text-brand-700 dark:text-brand-300">{{ \App\Support\Dinero::usd((float) $venta->total) }}</p>
-            {{-- Al tipo de cambio que congelo la venta, no al de hoy. --}}
-            <p class="text-xs text-gray-500 dark:text-gray-400">Equivalente: {{ \App\Support\Dinero::bs($venta->total, $venta->tipo_cambio) }} (TC {{ \App\Support\Dinero::tc($venta->tipo_cambio) }})</p>
+            {{-- Al tipo de cambio que congelo la venta, no al de hoy; con lo escrito en Bs, exacto (Venta::importes). --}}
+            <p class="text-xs text-gray-500 dark:text-gray-400">Equivalente: {{ \App\Support\Dinero::soloBs($totalBs) }} (TC {{ \App\Support\Dinero::tc($venta->tipo_cambio) }})</p>
         </div>
     </div>
 

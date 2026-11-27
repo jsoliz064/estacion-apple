@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Moneda;
-use App\Models\TipoCambio;
 use App\Models\Venta;
+use App\Models\VentaDetalle;
 use App\Models\VentaPago;
 use App\Support\Dinero;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -76,34 +76,42 @@ class VentaController extends Controller
      * es lo que se le dice y se le cobra al cliente). Al TC CONGELADO de la
      * venta, no al del dia. Todo se sigue guardando en USD: esto es la vista.
      *
-     *  - $bs($usd): una linea (precio, descuento, subtotal), formateada.
-     *  - $totalesBs: el total es el de la venta en Bs (el que mostro el
-     *    formulario al vender y el que se cobro), y el descuento es la
-     *    diferencia, para que «Subtotal - Descuento + Mano de obra = TOTAL»
-     *    cuadre al centavo: convertido por su lado, un descuento cargado como
-     *    200 Bs salia 200.03.
+     *  - $precioBs($linea) / $subtotalBs($linea): lo escrito en Bs si la linea
+     *    se cargo en Bs (precio_bs), o su USD al TC. $bs($usd): el resto (el
+     *    descuento por linea de ventas viejas). Formateados.
+     *  - $totalesBs: los de Venta::importes() (MontosVentaBs), la misma cuenta
+     *    del formulario: el TOTAL es el que se le dijo y se le cobro al cliente
+     *    («te lo dejo en 11500 Bs» sale 11500.00, no 11499.96) y el recuadro
+     *    «Subtotal - Descuento + Mano de obra = TOTAL» cuadra al centavo.
      *  - $pagoBs($pago): un pago en Bs muestra lo que se escribio
      *    (monto_moneda); uno en USD, la permuta o la seña, su USD en Bs.
      */
     private function montosEnBs(Venta $venta): array
     {
-        $tc = (float) $venta->tipo_cambio ?: TipoCambio::actual();
-        $subtotal = Dinero::aBs($venta->subtotal, $tc);
-        $manoObra = Dinero::aBs($venta->mano_obra, $tc);
-        $total = Dinero::aBs($venta->total, $tc);
+        $tc = $venta->tcDeBs();
+        $importes = $venta->importes();
+        $pagoBs = fn(VentaPago $pago) => $pago->moneda === Moneda::alterna() && $pago->monto_moneda !== null
+            ? round((float) $pago->monto_moneda, 2)
+            : Dinero::aBs($pago->monto, $tc);
+
+        // Lo que falta en Bs: el total en Bs menos lo pagado en Bs. Solo si la
+        // venta tiene saldo de verdad (en USD, la que manda).
+        $saldo = $venta->saldoPendiente() > 0
+            ? max(0, round($importes['total_bs'] - $venta->pagos->sum(fn($p) => $pagoBs($p)), 2))
+            : 0.0;
 
         return [
             'bs' => fn($usd) => number_format(Dinero::aBs((float) $usd, $tc), 2),
+            'precioBs' => fn(VentaDetalle $d) => number_format($d->precioBs($tc), 2),
+            'subtotalBs' => fn(VentaDetalle $d) => number_format($d->subtotalBs($tc), 2),
             'totalesBs' => [
-                'subtotal' => $subtotal,
-                'mano_obra' => $manoObra,
-                'total' => $total,
-                'descuento' => round($subtotal + $manoObra - $total, 2),
-                'saldo' => $venta->saldoPendiente() > 0 ? Dinero::aBs($venta->saldoPendiente(), $tc) : 0.0,
+                'subtotal' => $importes['subtotal_bs'],
+                'mano_obra' => $importes['mano_obra_bs'],
+                'total' => $importes['total_bs'],
+                'descuento' => $importes['descuento_bs'],
+                'saldo' => $saldo,
             ],
-            'pagoBs' => fn(VentaPago $pago) => $pago->moneda === Moneda::alterna() && $pago->monto_moneda !== null
-                ? round((float) $pago->monto_moneda, 2)
-                : Dinero::aBs($pago->monto, $tc),
+            'pagoBs' => $pagoBs,
         ];
     }
 

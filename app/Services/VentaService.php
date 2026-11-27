@@ -8,12 +8,14 @@ use App\Enums\Moneda;
 use App\Enums\PagoMomento;
 use App\Enums\ProductoEstado;
 use App\Models\Producto;
+use App\Models\TipoCambio;
 use App\Models\User;
 use App\Models\Venta;
 use App\Models\VentaDetalle;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use App\Support\Dinero;
+use App\Support\MontosVentaBs;
 
 /**
  * El UNICO escritor de ventas_detalles (los cobros de taller los agrega
@@ -43,7 +45,11 @@ use App\Support\Dinero;
  *
  * Formato de una linea que llega de la pantalla:
  *   ['tipo' => 'Producto'|'Repuesto'|'Accesorio', 'id' => int, 'cantidad' => int,
- *    'precio' => float, 'descuento' => float, 'garantia_meses' => ?int]
+ *    'precio' => float, 'precio_bs' => ?float, 'descuento' => float, 'garantia_meses' => ?int]
+ *
+ * Con precio_bs (el precio escrito en Bs) el USD lo calcula normalizar() con el
+ * TC de la venta: el que llega de la pantalla no manda. La cabecera puede traer
+ * descuento_bs; Venta::recalcularTotales() saca de ahi el total (MontosVentaBs).
  */
 class VentaService
 {
@@ -67,7 +73,10 @@ class VentaService
      */
     public function registrar(array $cabecera, array $lineas, array $cobros, array $pagos, User $user, ?string $clave = null, ?array $permuta = null): Venta
     {
-        $lineas = $this->normalizar($lineas);
+        // El TC que la venta congelara (el hook creating de Venta pone el mismo):
+        // con el se pasan a USD los precios escritos en Bs.
+        $tc = TipoCambio::actual();
+        $lineas = $this->normalizar($lineas, $tc);
         $sucursalId = (int) $cabecera['sucursal_id'];
 
         // La reserva primero: es la primera en el orden de bloqueo. Su equipo
@@ -96,9 +105,10 @@ class VentaService
             'cliente_id' => $cabecera['cliente_id'] ?? null,
             'cliente' => $cabecera['cliente'] ?? null,
             'user_id' => $user->id,
-            'descuento' => round((float) ($cabecera['descuento'] ?? 0), 2),
+            'tipo_cambio' => $tc,
+            'descuento_bs' => $this->descuentoBs($cabecera),
             'mano_obra' => round((float) ($cabecera['mano_obra'] ?? 0), 2),
-        ] + $this->totalesPrevios($lineas, $equipos, $articulos, $cabecera));
+        ] + $this->totalesPrevios($lineas, $equipos, $articulos, $cabecera, $tc));
 
         // A credito si lo cobrado no cubre el total (con los cobros de taller):
         // los pagos de la pantalla, la seña de la reserva y la permuta.
@@ -159,7 +169,7 @@ class VentaService
      */
     public function actualizar(Venta $venta, array $cabecera, array $lineas, array $cobros): Venta
     {
-        $lineas = $this->normalizar($lineas)->keyBy(fn($l) => $l['tipo'] . ':' . $l['id']);
+        $lineas = $this->normalizar($lineas, $venta->tcDeBs())->keyBy(fn($l) => $l['tipo'] . ':' . $l['id']);
         // Ni los cobros ni los regalos entran en el diff: no llegan del formulario.
         $actuales = $venta->detalles()->whereNull('producto_reparacion_repuesto_id')->whereNull('producto_regalo_id')->get()
             ->keyBy(fn($d) => $d->tipo . ':' . $d->{LineaTipo::from($d->tipo)->columna()});
@@ -220,6 +230,7 @@ class VentaService
             'cliente_id' => $cabecera['cliente_id'] ?? null,
             'cliente' => $cabecera['cliente'] ?? $venta->cliente,
             'descuento' => round((float) ($cabecera['descuento'] ?? 0), 2),
+            'descuento_bs' => $this->descuentoBs($cabecera),
             'mano_obra' => round((float) ($cabecera['mano_obra'] ?? 0), 2),
         ]);
 
@@ -336,6 +347,7 @@ class VentaService
             'cantidad' => 1,
             'costo' => $costo,
             'precio' => $precio,
+            'precio_bs' => $linea['precio_bs'] ?? null,
             'descuento' => $descuento,
             'subtotal' => round($precio - $descuento, 2),
             'subtotal_costo' => $costo,
@@ -353,6 +365,7 @@ class VentaService
             'cantidad' => $cantidad,
             'costo' => $costo,
             'precio' => $precio,
+            'precio_bs' => $linea['precio_bs'] ?? null,
             'descuento' => $descuento,
             'subtotal' => round($bruto - $descuento, 2),
             'subtotal_costo' => round($costo * $cantidad, 2),
@@ -375,9 +388,9 @@ class VentaService
      * Valida y normaliza las lineas que llegan de la pantalla. Un equipo
      * siempre tiene cantidad 1 (tambien lo exige un CHECK en la base).
      */
-    private function normalizar(array $lineas): Collection
+    private function normalizar(array $lineas, float $tc): Collection
     {
-        $lineas = collect($lineas)->map(function ($l) {
+        $lineas = collect($lineas)->map(function ($l) use ($tc) {
             $tipo = LineaTipo::tryFrom((string) ($l['tipo'] ?? ''));
             $id = (int) ($l['id'] ?? 0);
 
@@ -391,10 +404,12 @@ class VentaService
                 throw ValidationException::withMessages(['detalles' => 'Cada línea tiene que tener al menos una unidad.']);
             }
 
-            $precio = (float) ($l['precio'] ?? 0);
+            $precioBs = isset($l['precio_bs']) && $l['precio_bs'] !== '' ? round((float) $l['precio_bs'], 2) : null;
+            // Escrito en Bs: su USD sale de aqui, al TC de la venta.
+            $precio = $precioBs !== null ? MontosVentaBs::aUsd($precioBs, $tc) : (float) ($l['precio'] ?? 0);
             $descuento = (float) ($l['descuento'] ?? 0);
 
-            if ($precio < 0 || $descuento < 0) {
+            if ($precio < 0 || $descuento < 0 || ($precioBs !== null && $precioBs < 0)) {
                 throw ValidationException::withMessages(['detalles' => 'Los precios y descuentos no pueden ser negativos.']);
             }
 
@@ -403,6 +418,7 @@ class VentaService
                 'id' => $id,
                 'cantidad' => $cantidad,
                 'precio' => $precio,
+                'precio_bs' => $precioBs,
                 'descuento' => $descuento,
                 'garantia_meses' => $tipo === LineaTipo::Producto ? ($l['garantia_meses'] ?? null) : null,
                 'con_producto_id' => $tipo === LineaTipo::Producto ? null : ((int) ($l['con_producto_id'] ?? 0) ?: null),
@@ -455,10 +471,19 @@ class VentaService
         return [$equipos, $articulos];
     }
 
-    private function totalesPrevios(Collection $lineas, array $equipos, array $articulos, array $cabecera): array
+    /** El descuento escrito en Bs (o derivado de un total en Bs); null si fue en USD. */
+    private function descuentoBs(array $cabecera): ?float
+    {
+        $bs = $cabecera['descuento_bs'] ?? null;
+
+        return $bs === null || $bs === '' ? null : max(0, round((float) $bs, 2));
+    }
+
+    private function totalesPrevios(Collection $lineas, array $equipos, array $articulos, array $cabecera, float $tc): array
     {
         $subtotal = 0.0;
         $costo = 0.0;
+        $lineasBs = [];
 
         foreach ($lineas as $linea) {
             if ($linea['tipo'] === LineaTipo::Producto->value) {
@@ -468,13 +493,22 @@ class VentaService
             }
             $subtotal += $i['subtotal'];
             $costo += $i['subtotal_costo'];
+            $lineasBs[] = MontosVentaBs::lineaBs($i['precio_bs'], $i['precio'], (int) $i['cantidad'], $i['descuento'], $tc);
         }
 
         $manoObra = round((float) ($cabecera['mano_obra'] ?? 0), 2);
+        $descuentoBs = $this->descuentoBs($cabecera);
+
+        // La misma cuenta que recalcularTotales() hara despues desde la base.
+        $importes = MontosVentaBs::calcular(
+            $subtotal, (float) ($cabecera['descuento'] ?? 0), $manoObra, $lineasBs, $descuentoBs,
+            $descuentoBs !== null || $lineas->contains(fn($l) => $l['precio_bs'] !== null), $tc,
+        );
 
         return [
-            'subtotal' => round($subtotal, 2),
-            'total' => round($subtotal - (float) ($cabecera['descuento'] ?? 0) + $manoObra, 2),
+            'subtotal' => $importes['subtotal'],
+            'descuento' => $importes['descuento'],
+            'total' => $importes['total'],
             'costo_total' => round($costo + $manoObra, 2),
         ];
     }

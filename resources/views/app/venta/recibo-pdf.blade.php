@@ -3,7 +3,7 @@
      simple: dompdf no entiende flex ni grid. DejaVu Sans por las tildes y la ñ.
      Comprobante interno, sin datos fiscales, igual que la nota. --}}
 @php
-    // Todo en Bs, sin USD ni tipo de cambio (pedido de la tienda): $bs,
+    // Todo en Bs, sin USD ni tipo de cambio (pedido de la tienda): $precioBs, $subtotalBs, $bs,
     // $totalesBs y $pagoBs los arma VentaController::montosEnBs(), al TC
     // congelado de la venta. Formato 1,234.50, como el resto del sistema.
     $lineaNombre = fn($d) => $d->producto_id
@@ -98,17 +98,17 @@
                             <div class="chico gris">Garantía {{ $d->garantia_meses }} mes(es), hasta el {{ $d->garantia_fecha_exp?->format('d/m/Y') }}</div>
                         @endif
                     </td>
-                    <td class="der">{{ $bs($d->precio) }}</td>
+                    <td class="der">{{ $precioBs($d) }}</td>
                     <td class="der">{{ (float) $d->descuento > 0 ? $bs($d->descuento) : '' }}</td>
-                    <td class="der">{{ $bs($d->subtotal) }}</td>
+                    <td class="der">{{ $subtotalBs($d) }}</td>
                 </tr>
                 @foreach ($venta->detalles->where('producto_asociado_id', $d->producto_id) as $a)
                     <tr>
                         <td class="centro">{{ $a->cantidad }}</td>
                         <td class="sangria">+ {{ $lineaNombre($a) }}{{ $a->esRegalo() ? ' (regalo)' : '' }}</td>
-                        <td class="der">{{ $bs($a->precio) }}</td>
+                        <td class="der">{{ $precioBs($a) }}</td>
                         <td class="der">{{ (float) $a->descuento > 0 ? $bs($a->descuento) : '' }}</td>
-                        <td class="der">{{ $bs($a->subtotal) }}</td>
+                        <td class="der">{{ $subtotalBs($a) }}</td>
                     </tr>
                 @endforeach
             @endforeach
@@ -116,9 +116,9 @@
                 <tr>
                     <td class="centro">{{ $d->cantidad }}</td>
                     <td>{{ $lineaNombre($d) }}{{ $d->esCobro() ? ' (taller)' : '' }}</td>
-                    <td class="der">{{ $bs($d->precio) }}</td>
+                    <td class="der">{{ $precioBs($d) }}</td>
                     <td class="der">{{ (float) $d->descuento > 0 ? $bs($d->descuento) : '' }}</td>
-                    <td class="der">{{ $bs($d->subtotal) }}</td>
+                    <td class="der">{{ $subtotalBs($d) }}</td>
                 </tr>
             @endforeach
         </tbody>

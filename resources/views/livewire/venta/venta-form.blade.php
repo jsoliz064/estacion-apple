@@ -69,7 +69,7 @@
             <div class="hidden md:grid md:grid-cols-[minmax(0,1fr)_5rem_9rem_5rem_7rem_2rem] gap-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-t-md">
                 <div class="p-2 text-left">Detalle</div>
                 <div class="p-2 text-right">Cant.</div>
-                <div class="p-2 text-right">Precio USD</div>
+                <div class="p-2 text-right">Precio</div>
                 <div class="p-2 text-right">Garantía</div>
                 <div class="p-2 text-right">Subtotal</div>
                 <div class="p-2"></div>
@@ -128,18 +128,35 @@
                                     wire:model.live.debounce.400ms="lineas.{{ $index }}.cantidad" onfocus="this.select()" />
                             </label>
                         @endif
-                        <label class="block md:p-2">
-                            <span class="md:hidden text-xs text-gray-500">Precio USD</span>
-                            {{-- Sin venta.editar-precio, el precio es el del articulo (VentaForm::exigirPermisoDePrecio). --}}
-                            <x-input type="number" min="0" step="0.01" inputmode="decimal" class="w-full text-right" wire:model.live.debounce.400ms="lineas.{{ $index }}.precio" onfocus="this.select()"
-                                :disabled="!$puedeEditarPrecio" :title="$puedeEditarPrecio ? null : 'No tienes permiso para cambiar el precio: usa el descuento de la venta'" />
-                            {{-- Lo que se le dice al cliente, al TC de la venta. --}}
-                            <span class="mt-0.5 block text-right text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ \App\Support\Dinero::bs((float) ($linea['precio'] ?: 0), $this->tcVenta()) }}</span>
+                        @php($lineaEnBs = !empty($linea['en_bs']))
+                        <div class="block md:p-2">
+                            <span class="md:hidden text-xs text-gray-500">Precio {{ $lineaEnBs ? 'Bs' : 'USD' }}</span>
+                            {{-- Sin venta.editar-precio, el precio es el del articulo (VentaForm::exigirPermisoDePrecio).
+                                 En Bs se escribe lo que se le dice al cliente y su USD lo saca el
+                                 servidor (VentaForm::precioUsdLinea); wire:key por moneda: sin el,
+                                 el morph reusaba el input de USD como el de Bs. --}}
+                            @if ($lineaEnBs)
+                                <x-input type="number" min="0" step="0.01" inputmode="decimal" class="w-full text-right" wire:model.live.debounce.400ms="lineas.{{ $index }}.precio_bs" wire:key="precio-bs-{{ $index }}" onfocus="this.select()" placeholder="Bs"
+                                    :disabled="!$puedeEditarPrecio" :title="$puedeEditarPrecio ? null : 'No tienes permiso para cambiar el precio: usa el descuento de la venta'" />
+                            @else
+                                <x-input type="number" min="0" step="0.01" inputmode="decimal" class="w-full text-right" wire:model.live.debounce.400ms="lineas.{{ $index }}.precio" wire:key="precio-usd-{{ $index }}" onfocus="this.select()" placeholder="USD"
+                                    :disabled="!$puedeEditarPrecio" :title="$puedeEditarPrecio ? null : 'No tienes permiso para cambiar el precio: usa el descuento de la venta'" />
+                            @endif
+                            @if ($puedeEditarPrecio)
+                                <div class="mt-1 grid grid-cols-2 overflow-hidden rounded-md border border-gray-300 text-xs font-semibold dark:border-gray-600">
+                                    <button type="button" wire:click="monedaLinea({{ $index }}, 'USD')" @class(['h-8', 'bg-brand-600 text-white' => !$lineaEnBs, 'text-gray-600 dark:text-gray-300' => $lineaEnBs])>USD</button>
+                                    <button type="button" wire:click="monedaLinea({{ $index }}, 'BOB')" @class(['h-8 border-l border-gray-300 dark:border-gray-600', 'bg-brand-600 text-white' => $lineaEnBs, 'text-gray-600 dark:text-gray-300' => !$lineaEnBs])>Bs</button>
+                                </div>
+                            @endif
+                            {{-- La otra moneda, al TC de la venta. --}}
+                            <span class="mt-0.5 block text-right text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                                {{ $lineaEnBs ? '= ' . \App\Support\Dinero::usd($this->precioUsdLinea($linea)) : \App\Support\Dinero::bs((float) ($linea['precio'] ?: 0), $this->tcVenta()) }}
+                            </span>
                             {{-- Una venta vieja con descuento por linea lo conserva (ya no se escribe). --}}
                             @if ((float) ($linea['descuento'] ?? 0) > 0)
                                 <span class="block text-right text-xs text-amber-700 dark:text-amber-300 whitespace-nowrap">Desc. {{ \App\Support\Dinero::usd($linea['descuento']) }}</span>
                             @endif
-                        </label>
+                        </div>
                         @if ($esEquipo)
                             <label class="block md:p-2">
                                 <span class="md:hidden text-xs text-gray-500 whitespace-nowrap">Gtía. (meses)</span>
@@ -206,43 +223,53 @@
 
         {{-- Totales --}}
         @php($t = $this->totales())
-        <div class="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow p-4 grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div>
-                <x-label value="Subtotal USD" />
-                <p class="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">{{ number_format($t['subtotal'], 2) }}</p>
-                @if ($this->totalCobrosNuevos() > 0)
-                    <p class="text-xs text-green-700 dark:text-green-300">Incluye {{ \App\Support\Dinero::usd($this->totalCobrosNuevos()) }} de repuestos de taller</p>
-                @endif
-            </div>
-            <div>
-                {{-- USD o Bs (VentaForm::monedaCabecera): en Bs se escribe lo que se le
-                     dice al cliente y se guarda su USD al TC de la venta. --}}
-                <x-label value="Descuento" />
-                @if ($descuentoEnBs)
-                    <x-input type="number" min="0" step="0.01" inputmode="decimal" class="mt-1 w-full" wire:model.live.debounce.400ms="descuentoBs" wire:key="descuento-bs" onfocus="this.select()" placeholder="Bs" />
-                @else
-                    <x-input type="number" min="0" step="0.01" inputmode="decimal" class="mt-1 w-full" wire:model.live.debounce.400ms="venta.descuento" wire:key="descuento-usd" onfocus="this.select()" placeholder="USD" />
-                @endif
-                {{-- La moneda debajo del campo, a lo ancho: al costado eran dos botones
-                     de 20 px de alto, dificiles de tocar en el celular. --}}
-                <div class="mt-1 grid grid-cols-2 overflow-hidden rounded-md border border-gray-300 text-sm font-semibold dark:border-gray-600">
+        <div class="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+            {{-- USD o Bs para el descuento y el total juntos (VentaForm::monedaCabecera):
+                 en Bs se escribe lo que se le dice al cliente y se guarda su USD al TC
+                 de la venta. A lo ancho: al costado eran botones de 20 px, dificiles
+                 de tocar en el celular. --}}
+            <div class="mb-3 flex flex-wrap items-center gap-2">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Descuento y total en</span>
+                <div class="grid w-40 grid-cols-2 overflow-hidden rounded-md border border-gray-300 text-sm font-semibold dark:border-gray-600">
                     <button type="button" wire:click="monedaCabecera('descuento', 'USD')" @class(['h-9', 'bg-brand-600 text-white' => !$descuentoEnBs, 'text-gray-600 dark:text-gray-300' => $descuentoEnBs])>USD</button>
                     <button type="button" wire:click="monedaCabecera('descuento', 'BOB')" @class(['h-9 border-l border-gray-300 dark:border-gray-600', 'bg-brand-600 text-white' => $descuentoEnBs, 'text-gray-600 dark:text-gray-300' => !$descuentoEnBs])>Bs</button>
                 </div>
-                @if ($descuentoEnBs)
-                    <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">= {{ \App\Support\Dinero::usd($venta['descuento'] ?: 0) }} · TC {{ \App\Support\Dinero::tc($this->tcVenta()) }}</p>
-                @endif
-                <x-input-error for="venta.descuento" />
+                <span class="text-xs text-gray-500 dark:text-gray-400">TC {{ \App\Support\Dinero::tc($this->tcVenta()) }}</span>
             </div>
-            <div class="col-span-2 md:col-span-1">
-                <x-label value="Total USD" />
-                {{-- El equivalente en Bs, al tipo de cambio de hoy, solo al crear: la
-                     venta editada ya tiene el suyo congelado. --}}
-                <p class="mt-2 text-2xl font-bold text-brand-700 dark:text-brand-300"><x-monto :valor="$t['total']" :sinBs="$this->esEdicion()" /></p>
-                {{-- La mano de obra ya no se escribe aqui; una venta vieja que la tenia la conserva. --}}
-                @if ((float) ($venta['mano_obra'] ?? 0) > 0)
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Incluye mano de obra {{ \App\Support\Dinero::usd($venta['mano_obra']) }}</p>
-                @endif
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div>
+                    <x-label value="Subtotal" />
+                    <p class="mt-2 text-lg font-semibold text-gray-900 dark:text-gray-100">{{ \App\Support\Dinero::usd($t['subtotal']) }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ \App\Support\Dinero::soloBs($t['subtotal_bs']) }}</p>
+                    @if ($this->totalCobrosNuevos() > 0)
+                        <p class="text-xs text-green-700 dark:text-green-300">Incluye {{ \App\Support\Dinero::usd($this->totalCobrosNuevos()) }} de repuestos de taller</p>
+                    @endif
+                </div>
+                <div>
+                    <x-label value="Descuento {{ $descuentoEnBs ? 'Bs' : 'USD' }}" />
+                    @if ($descuentoEnBs)
+                        <x-input type="number" min="0" step="0.01" inputmode="decimal" class="mt-1 w-full" wire:model.live.debounce.400ms="descuentoBs" wire:key="descuento-bs" onfocus="this.select()" placeholder="Bs" />
+                        <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">= {{ \App\Support\Dinero::usd($t['descuento']) }}</p>
+                    @else
+                        <x-input type="number" min="0" step="0.01" inputmode="decimal" class="mt-1 w-full" wire:model.live.debounce.400ms="venta.descuento" wire:key="descuento-usd" onfocus="this.select()" placeholder="USD" />
+                        <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{{ \App\Support\Dinero::soloBs($t['descuento_bs']) }}</p>
+                    @endif
+                    <x-input-error for="venta.descuento" />
+                </div>
+                <div class="col-span-2 md:col-span-1">
+                    {{-- Escribir el total calcula el descuento (VentaForm::updatedTotalEscrito). --}}
+                    <x-label value="Total {{ $descuentoEnBs ? 'Bs' : 'USD' }}" />
+                    <x-input type="number" min="0" step="0.01" inputmode="decimal" class="mt-1 w-full text-xl font-bold text-brand-700 dark:text-brand-300"
+                        wire:model.live.debounce.500ms="totalEscrito" wire:key="total-{{ $descuentoEnBs ? 'bs' : 'usd' }}" onfocus="this.select()" placeholder="{{ $descuentoEnBs ? 'Bs' : 'USD' }}" />
+                    <p class="mt-0.5 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                        {{ $descuentoEnBs ? '= ' . \App\Support\Dinero::usd($t['total']) : \App\Support\Dinero::soloBs($t['total_bs']) }}
+                    </p>
+                    <x-input-error for="totalEscrito" />
+                    {{-- La mano de obra ya no se escribe aqui; una venta vieja que la tenia la conserva. --}}
+                    @if ((float) ($venta['mano_obra'] ?? 0) > 0)
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Incluye mano de obra {{ \App\Support\Dinero::usd($venta['mano_obra']) }}</p>
+                    @endif
+                </div>
             </div>
         </div>
 

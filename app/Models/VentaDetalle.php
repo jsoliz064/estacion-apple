@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\LineaTipo;
+use App\Support\MontosVentaBs;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -32,6 +33,7 @@ class VentaDetalle extends Model
         'cantidad',
         'costo',
         'precio',
+        'precio_bs',
         'descuento',
         'subtotal',
         'subtotal_costo',
@@ -98,6 +100,24 @@ class VentaDetalle extends Model
     public function articulo(): ?Model
     {
         return $this->producto ?? $this->repuesto ?? $this->accesorio;
+    }
+
+    /** El precio unitario en Bs: el escrito (precio_bs) o su USD al TC de la venta. */
+    public function precioBs(float $tc): float
+    {
+        return MontosVentaBs::precioBs($this->precio_bs !== null ? (float) $this->precio_bs : null, (float) $this->precio, $tc);
+    }
+
+    /** El subtotal en Bs de la linea (MontosVentaBs::lineaBs). */
+    public function subtotalBs(float $tc): float
+    {
+        return MontosVentaBs::lineaBs(
+            $this->precio_bs !== null ? (float) $this->precio_bs : null,
+            (float) $this->precio,
+            (int) $this->cantidad,
+            (float) $this->descuento,
+            $tc,
+        );
     }
 
     public function esProducto(): bool

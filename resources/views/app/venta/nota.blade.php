@@ -3,7 +3,7 @@
      (el papel de 80 mm tiene unos 4 mm de margen fisico por lado). Comprobante
      interno: sin datos fiscales (decision del usuario). --}}
 @php
-    // Todo en Bs, sin USD ni tipo de cambio (pedido de la tienda): $bs,
+    // Todo en Bs, sin USD ni tipo de cambio (pedido de la tienda): $precioBs, $subtotalBs, $bs,
     // $totalesBs y $pagoBs los arma VentaController::montosEnBs(), al TC
     // congelado de la venta. Formato 1,234.50, como el resto del sistema.
     $lineaNombre = fn($d) => $d->producto_id
@@ -67,21 +67,21 @@
         {{-- Cada equipo con su IMEI y, debajo, lo que se vendio con el. --}}
         @foreach ($equipos as $d)
             <div>{{ $lineaNombre($d) }}</div>
-            <div class="fila chico"><span>{{ $d->producto?->identificador() }}</span><span>{{ $bs($d->subtotal) }}</span></div>
+            <div class="fila chico"><span>{{ $d->producto?->identificador() }}</span><span>{{ $subtotalBs($d) }}</span></div>
             @if ($d->producto?->imei && $d->producto?->upc)
                 <div class="chico">Serial {{ $d->producto->upc }}</div>
             @endif
             @foreach ($venta->detalles->where('producto_asociado_id', $d->producto_id) as $a)
                 <div class="fila sangria chico">
                     <span>+ {{ $a->cantidad > 1 ? $a->cantidad . ' x ' : '' }}{{ $lineaNombre($a) }}{{ $a->esRegalo() ? ' (regalo)' : '' }}</span>
-                    <span>{{ $bs($a->subtotal) }}</span>
+                    <span>{{ $subtotalBs($a) }}</span>
                 </div>
             @endforeach
         @endforeach
         @foreach ($sueltos as $d)
             <div class="fila">
                 <span>{{ $d->cantidad > 1 ? $d->cantidad . ' x ' : '' }}{{ $lineaNombre($d) }}{{ $d->esCobro() ? ' (taller)' : '' }}</span>
-                <span>{{ $bs($d->subtotal) }}</span>
+                <span>{{ $subtotalBs($d) }}</span>
             </div>
         @endforeach
 

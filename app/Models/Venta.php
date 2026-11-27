@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
 use App\Support\Dinero;
+use App\Support\MontosVentaBs;
 
 /**
  * Una venta: equipos, repuestos y accesorios en un solo documento, en USD. Lo
@@ -32,6 +33,7 @@ class Venta extends Model
     protected $fillable = [
         'subtotal',
         'descuento',
+        'descuento_bs',
         'mano_obra',
         'total',
         'costo_total',
@@ -139,12 +141,52 @@ class Venta extends Model
         return round((float) $this->total - (float) $this->costo_total, 2);
     }
 
+    /** El TC de sus Bs: el congelado al nacer (el del dia, si una venta vieja no lo tuviera). */
+    public function tcDeBs(): float
+    {
+        return (float) $this->tipo_cambio ?: TipoCambio::actual();
+    }
+
+    /**
+     * Los importes en USD y en Bs (MontosVentaBs::calcular), con los Bs que se
+     * escribieron: el recibo, la nota y el detalle muestran estos. Usa las
+     * lineas cargadas si ya vienen con la venta.
+     *
+     * @return array{subtotal: float, descuento: float, mano_obra: float, total: float, subtotal_bs: float, descuento_bs: float, mano_obra_bs: float, total_bs: float, con_bs: bool}
+     */
+    public function importes(): array
+    {
+        $detalles = $this->relationLoaded('detalles') ? $this->detalles : $this->detalles()->get();
+
+        return $this->importesDe($detalles, (float) $this->subtotal);
+    }
+
+    private function importesDe($detalles, float $subtotalUsd): array
+    {
+        $tc = $this->tcDeBs();
+        $descuentoBs = $this->descuento_bs !== null ? (float) $this->descuento_bs : null;
+
+        return MontosVentaBs::calcular(
+            $subtotalUsd,
+            (float) $this->descuento,
+            (float) $this->mano_obra,
+            $detalles->map(fn(VentaDetalle $d) => $d->subtotalBs($tc))->all(),
+            $descuentoBs,
+            $descuentoBs !== null || $detalles->contains(fn(VentaDetalle $d) => $d->precio_bs !== null),
+            $tc,
+        );
+    }
+
     /**
      * Recalcula los totales DESDE LA BASE, nunca desde el formulario:
      *   subtotal    = SUM(lineas.subtotal)
      *   total       = subtotal - descuento + mano_obra
      *   costo_total = SUM(lineas.subtotal_costo) + mano_obra
      * mano_obra suma al total Y al costo para que se cancele en la ganancia.
+     *
+     * Con montos escritos en Bs, el total USD sale del total en Bs y el
+     * descuento absorbe el redondeo (MontosVentaBs): la identidad de arriba se
+     * sigue cumpliendo.
      */
     public function recalcularTotales(): void
     {
@@ -155,7 +197,9 @@ class Venta extends Model
         $manoObra = (float) $this->mano_obra;
 
         $subtotal = round((float) $sumas->subtotal, 2);
-        $total = round($subtotal - (float) $this->descuento + $manoObra, 2);
+        $importes = $this->importesDe($this->detalles()->get(['id', 'precio', 'precio_bs', 'cantidad', 'descuento']), $subtotal);
+        $this->descuento = $importes['descuento'];
+        $total = $importes['total'];
 
         // Un solo sitio para "no se puede bajar el total por debajo de lo ya
         // cobrado": editar, quitar una linea, descontar... Sin esto, el CHECK

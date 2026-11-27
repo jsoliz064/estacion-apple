@@ -104,12 +104,21 @@ trait FilasDePagoFormTrait
 
         if ($m[2] === 'moneda') {
             $this->pagos[$i]['tipo_cambio'] = (float) ($this->pagos[$i]['tipo_cambio'] ?: 0) ?: TipoCambio::actual();
-            $this->pagos[$i]['monto_moneda'] = round((float) ($fila['monto'] ?: 0) * (float) $this->pagos[$i]['tipo_cambio'], 2);
+            $this->pagos[$i]['monto_moneda'] = $this->bsPropuesto((float) ($fila['monto'] ?: 0), (float) $this->pagos[$i]['tipo_cambio']);
         }
 
         // `monto` sigue siendo el USD de la fila: es lo que suma y lo que valida
         // el servidor contra Bs / TC.
         $this->pagos[$i]['monto'] = $this->montoBaseDe($this->pagos[$i]);
+    }
+
+    /**
+     * Los Bs que propone una fila al pasar a Bs: su USD x TC. La venta lo
+     * cambia por su total en Bs exacto cuando la fila cubre lo que falta.
+     */
+    protected function bsPropuesto(float $usd, float $tc): float
+    {
+        return round($usd * $tc, 2);
     }
 
     /** Lo que vale una fila en USD (en Bs, bolivianos / tasa). */

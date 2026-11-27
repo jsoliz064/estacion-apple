@@ -35,8 +35,12 @@ class VentaTable extends DataTableComponent
     public function configure(): void
     {
         $this->setTableName('ventas');
+        // La mas nueva primero. 'id' y no 'ventas.id': rappasoft busca la columna
+        // del orden por su nombre sin tabla (el de Column::make('Nº', 'id')), y
+        // con 'ventas.id' no encontraba ninguna y el orden se ignoraba en
+        // silencio: la lista salia de la mas vieja a la mas nueva.
         $this->setPrimaryKey('id')
-            ->setDefaultSort('ventas.id', 'desc')
+            ->setDefaultSort('id', 'desc')
             ->setSearchPlaceholder('Buscar por nº de venta, cliente o vendedor...');
     }
 

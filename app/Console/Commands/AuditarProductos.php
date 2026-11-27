@@ -6,6 +6,7 @@ use App\Enums\ArticuloTipo;
 use App\Enums\ProductoEstado;
 use App\Models\CodigoBarras;
 use App\Models\Producto;
+use App\Models\Venta;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -55,6 +56,7 @@ class AuditarProductos extends Command
         $this->costoTotalDescuadrado();
         $this->costoCompraDescuadrado();
         $this->montosEnBsDescuadrados();
+        $this->ventasBsDescuadradas();
         $this->totalVentaDescuadrado();
         $this->totalCompraDescuadrado();
         $this->pagadoDescuadrado();
@@ -363,6 +365,33 @@ class AuditarProductos extends Command
             $this->reportar("Montos en Bs que no cuadran con su tipo de cambio ({$tabla})", $filas,
                 ['id', 'costo', 'costo_moneda_monto', 'precio', 'precio_moneda_monto', 'tipo_cambio']);
         }
+    }
+
+    /**
+     * Lo escrito en Bs en una venta (precio_bs, descuento_bs) contra su USD: la
+     * linea vale precio_bs / TC de la venta, y la venta con algo en Bs vale su
+     * total en Bs / TC (MontosVentaBs). Si no cuadran, el recibo diria una cosa
+     * y el saldo otra.
+     */
+    private function ventasBsDescuadradas(): void
+    {
+        $lineas = DB::table('ventas_detalles as d')
+            ->join('ventas as v', 'v.id', '=', 'd.venta_id')
+            ->whereNotNull('d.precio_bs')
+            ->whereRaw('ABS(d.precio - ROUND(d.precio_bs / v.tipo_cambio, 2)) > 0.009')
+            ->select('d.id', 'd.venta_id', 'd.precio', 'd.precio_bs', 'v.tipo_cambio')
+            ->get();
+
+        $this->reportar('Lineas de venta con precio en Bs que no cuadra con su USD', $lineas, ['id', 'venta_id', 'precio', 'precio_bs', 'tipo_cambio']);
+
+        $ventas = Venta::with('detalles')
+            ->where(fn($q) => $q->whereNotNull('descuento_bs')->orWhereHas('detalles', fn($d) => $d->whereNotNull('precio_bs')))
+            ->get()
+            ->map(fn(Venta $v) => (object) ['id' => $v->id, 'total' => (float) $v->total, 'descuento' => (float) $v->descuento, 'calculado' => $v->importes()['total']])
+            ->filter(fn($f) => abs($f->total - $f->calculado) > 0.009)
+            ->values();
+
+        $this->reportar('Ventas con montos en Bs cuyo total USD no sale de su total en Bs', $ventas, ['id', 'total', 'descuento', 'calculado']);
     }
 
     private function totalVentaDescuadrado(): void

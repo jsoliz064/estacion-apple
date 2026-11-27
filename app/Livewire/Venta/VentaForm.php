@@ -33,6 +33,7 @@ use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use App\Support\Dinero;
+use App\Support\MontosVentaBs;
 
 /**
  * Registrar o editar una venta: equipos, repuestos y accesorios en el mismo
@@ -119,6 +120,17 @@ class VentaForm extends Component
     public bool $descuentoEnBs = false;
     public $descuentoBs = '';
 
+    /**
+     * El total, escrito (pedido de la tienda: «te lo dejo en 11500 Bs»): en la
+     * moneda de la cabecera ($descuentoEnBs manda las dos). Escribirlo calcula
+     * el descuento; si se toca otra cosa, render() lo vuelve a llenar con el
+     * total. En la peticion en que se escribe NO se reescribe
+     * ($totalRecienEscrito, que no persiste): pisaria lo que se sigue tecleando.
+     */
+    public $totalEscrito = '';
+
+    protected bool $totalRecienEscrito = false;
+
     /** El TC congelado de la venta que se edita (al crear, null: el del dia). */
     #[Locked]
     public ?float $tcVentaGuardada = null;
@@ -188,6 +200,12 @@ class VentaForm extends Component
             'mano_obra' => (float) $venta->mano_obra,
         ];
 
+        // Lo que se escribio en Bs vuelve en Bs.
+        if ($venta->descuento_bs !== null) {
+            $this->descuentoEnBs = true;
+            $this->descuentoBs = (float) $venta->descuento_bs;
+        }
+
         foreach ($venta->detalles as $d) {
             if ($d->esRegalo()) {
                 $this->regalos[$d->producto_asociado_id][] = [
@@ -217,6 +235,8 @@ class VentaForm extends Component
                 'serial' => $d->producto_id ? $articulo->upc : null,
                 'cantidad' => (int) $d->cantidad,
                 'precio' => (float) $d->precio,
+                'precio_bs' => $d->precio_bs !== null ? (float) $d->precio_bs : null,
+                'en_bs' => $d->precio_bs !== null,
                 'descuento' => (float) $d->descuento,
                 'garantia_meses' => $d->garantia_meses,
                 // En edicion, lo que ya tiene la linea tambien esta disponible.
@@ -307,6 +327,8 @@ class VentaForm extends Component
             'serial' => $producto->upc,
             'cantidad' => 1,
             'precio' => (float) $producto->precio,
+            'precio_bs' => null,
+            'en_bs' => false,
             'descuento' => 0,
             'garantia_meses' => 3,
             'stock' => 1,
@@ -360,6 +382,8 @@ class VentaForm extends Component
             'codigo' => $articulo->upc,
             'cantidad' => 1,
             'precio' => (float) $articulo->precio,
+            'precio_bs' => null,
+            'en_bs' => false,
             'descuento' => 0,
             'garantia_meses' => null,
             'stock' => $stock,
@@ -464,9 +488,55 @@ class VentaForm extends Component
 
     public function subtotalLinea(array $l): float
     {
-        $bruto = (float) $l['precio'] * max(1, (int) $l['cantidad']);
+        $bruto = $this->precioUsdLinea($l) * max(1, (int) $l['cantidad']);
 
         return round($bruto - min((float) $l['descuento'], $bruto), 2);
+    }
+
+    /**
+     * El precio USD de una linea: el escrito o, si se escribio en Bs, Bs / TC
+     * de la venta (la misma cuenta que hara VentaService::normalizar()). Se
+     * calcula al vuelo y no se escribe en $lineas: escribirlo en la respuesta
+     * de cada tecla pisaria el campo de Bs que se esta tecleando.
+     */
+    public function precioUsdLinea(array $l): float
+    {
+        return !empty($l['en_bs'])
+            ? MontosVentaBs::aUsd((float) ($l['precio_bs'] ?: 0), $this->tcVenta())
+            : round((float) ($l['precio'] ?: 0), 2);
+    }
+
+    /** El precio escrito en Bs de una linea; null si va en USD. */
+    private function precioBsEscrito(array $l): ?float
+    {
+        return !empty($l['en_bs']) ? round((float) ($l['precio_bs'] ?: 0), 2) : null;
+    }
+
+    /**
+     * USD o Bs para el precio de una linea (pedido de la tienda: «te lo dejo
+     * en 11500 Bs» sin calcular 958.33 a mano). Pasar a Bs propone el Bs del
+     * precio; volver a USD deja el USD que salia de esos Bs. Es cambiar el
+     * precio: sin venta.editar-precio no se puede.
+     */
+    public function monedaLinea(int $index, string $moneda): void
+    {
+        if (!isset($this->lineas[$index]) || !$this->puedeEditarPrecio()) {
+            return;
+        }
+
+        $linea = $this->lineas[$index];
+        $enBs = $moneda === Moneda::alterna()->value;
+
+        if ($enBs && empty($linea['en_bs'])) {
+            $this->lineas[$index]['precio_bs'] = Dinero::aBs((float) ($linea['precio'] ?: 0), $this->tcVenta());
+        }
+
+        if (!$enBs && !empty($linea['en_bs'])) {
+            $this->lineas[$index]['precio'] = $this->precioUsdLinea($linea);
+            $this->lineas[$index]['precio_bs'] = null;
+        }
+
+        $this->lineas[$index]['en_bs'] = $enBs;
     }
 
     public function totalCobrosNuevos(): float
@@ -481,16 +551,86 @@ class VentaForm extends Component
         return round($total, 2);
     }
 
+    /**
+     * Los importes de la pantalla en USD y en Bs, con la misma cuenta que hara
+     * Venta::recalcularTotales() al guardar (MontosVentaBs::calcular): con
+     * algo escrito en Bs, el total USD sale del total en Bs.
+     */
     public function totales(): array
     {
+        $tc = $this->tcVenta();
         $subtotal = array_sum(array_map(fn($l) => $this->subtotalLinea($l), $this->lineas))
             + $this->totalCobrosNuevos()
             + array_sum(array_column($this->cobrosExistentes, 'subtotal'));
 
-        return [
-            'subtotal' => round($subtotal, 2),
-            'total' => round($subtotal - (float) ($this->venta['descuento'] ?: 0) + (float) ($this->venta['mano_obra'] ?: 0), 2),
-        ];
+        $lineasBs = array_map(fn($l) => MontosVentaBs::lineaBs(
+            $this->precioBsEscrito($l), $this->precioUsdLinea($l), max(1, (int) $l['cantidad']), (float) ($l['descuento'] ?: 0), $tc,
+        ), $this->lineas);
+
+        // Los cobros de taller van en USD: su Bs al TC.
+        foreach ($this->repuestosVenta as $lineas) {
+            foreach ($lineas as $linea) {
+                $lineasBs[] = Dinero::aBs((float) ($linea['subtotal'] ?? 0), $tc);
+            }
+        }
+        foreach ($this->cobrosExistentes as $cobro) {
+            $lineasBs[] = Dinero::aBs((float) $cobro['subtotal'], $tc);
+        }
+
+        $descuentoBs = $this->descuentoEnBs ? round(is_numeric($this->descuentoBs) ? (float) $this->descuentoBs : 0, 2) : null;
+
+        return MontosVentaBs::calcular(
+            $subtotal,
+            (float) ($this->venta['descuento'] ?: 0),
+            (float) ($this->venta['mano_obra'] ?: 0),
+            $lineasBs,
+            $descuentoBs,
+            $descuentoBs !== null || collect($this->lineas)->contains(fn($l) => !empty($l['en_bs'])),
+            $tc,
+        );
+    }
+
+    /**
+     * Escribir el total calcula el descuento: en Bs, descuento Bs = subtotal Bs
+     * + mano de obra Bs - total; en USD, lo mismo en USD. Mayor que el subtotal
+     * no se puede (seria un recargo).
+     */
+    public function updatedTotalEscrito(): void
+    {
+        $this->totalRecienEscrito = true;
+        $this->resetErrorBag('totalEscrito');
+
+        if (!is_numeric($this->totalEscrito) || (float) $this->totalEscrito < 0) {
+            return;
+        }
+
+        $t = $this->totales();
+        $total = round((float) $this->totalEscrito, 2);
+
+        if ($this->descuentoEnBs) {
+            $maximo = round($t['subtotal_bs'] + $t['mano_obra_bs'], 2);
+
+            if ($total > $maximo) {
+                $this->addError('totalEscrito', 'El total no puede ser mayor que el subtotal (' . Dinero::soloBs($maximo) . ').');
+
+                return;
+            }
+
+            $this->descuentoBs = round($maximo - $total, 2);
+            $this->sincronizarMontoCabecera('descuento');
+
+            return;
+        }
+
+        $maximo = round($t['subtotal'] + $t['mano_obra'], 2);
+
+        if ($total > $maximo) {
+            $this->addError('totalEscrito', 'El total no puede ser mayor que el subtotal (' . Dinero::usd($maximo) . ').');
+
+            return;
+        }
+
+        $this->venta['descuento'] = round($maximo - $total, 2);
     }
 
     // ------------------------------------------------------- cobro
@@ -624,7 +764,8 @@ class VentaForm extends Component
             $articulo = $guardada ? null : ($tipo ? $tipo->buscar((int) $l['id']) : Producto::find((int) $l['id']));
             $precio = (float) ($guardada?->precio ?? $articulo?->precio ?? 0);
 
-            if (round((float) $l['precio'], 2) !== round($precio, 2)) {
+            // En Bs cuenta el USD que sale de esos Bs: otro monto es otro precio.
+            if ($this->precioUsdLinea($l) !== round($precio, 2)) {
                 $errores["lineas.$i.precio"] = "No tienes permiso para cambiar el precio de «{$l['descripcion']}» (" . Dinero::usd($precio) . '). Para rebajarlo, usa el descuento de la venta.';
             }
         }
@@ -645,6 +786,7 @@ class VentaForm extends Component
             'lineas' => 'required|array|min:1',
             'lineas.*.cantidad' => 'required|integer|min:1',
             'lineas.*.precio' => 'required|numeric|min:0',
+            'lineas.*.precio_bs' => 'nullable|numeric|min:0',
             'lineas.*.descuento' => 'nullable|numeric|min:0',
             'lineas.*.garantia_meses' => 'nullable|integer|min:0|max:60',
             'pagos.*.monto' => 'nullable|numeric|min:0',
@@ -676,12 +818,14 @@ class VentaForm extends Component
             'cliente_id' => $this->venta['cliente_id'] ?? null,
             'cliente' => $this->venta['cliente'] ?? null,
             'descuento' => (float) ($this->venta['descuento'] ?: 0),
+            'descuento_bs' => $this->descuentoEnBs ? round(is_numeric($this->descuentoBs) ? (float) $this->descuentoBs : 0, 2) : null,
             'mano_obra' => (float) ($this->venta['mano_obra'] ?: 0),
             'reserva_id' => $this->reservaId,
         ];
         $lineas = array_map(fn($l) => [
             'tipo' => $l['tipo'], 'id' => $l['id'], 'cantidad' => (int) $l['cantidad'],
-            'precio' => (float) $l['precio'], 'descuento' => (float) ($l['descuento'] ?: 0),
+            'precio' => $this->precioUsdLinea($l), 'precio_bs' => $this->precioBsEscrito($l),
+            'descuento' => (float) ($l['descuento'] ?: 0),
             'garantia_meses' => $l['garantia_meses'] !== '' ? $l['garantia_meses'] : null,
             'con_producto_id' => $l['con_producto_id'] ?? null,
         ], $this->lineas);
@@ -731,9 +875,31 @@ class VentaForm extends Component
         return redirect()->route('ventas.detalles', $venta->id);
     }
 
+    /**
+     * El pago en Bs propone el total en Bs EXACTO cuando la fila cubre lo que
+     * falta: con precios en Bs, USD x TC daba 11499.96 en vez de los 11500 que
+     * se le dijo al cliente. Su USD (Bs / TC) es justo el total USD.
+     */
+    protected function bsPropuesto(float $usd, float $tc): float
+    {
+        $t = $this->totales();
+        $falta = round($t['total'] - $this->cobradoFijo(), 2);
+
+        if ($t['con_bs'] && abs($usd - $falta) < 0.005 && abs($tc - $this->tcVenta()) < 0.00005) {
+            return round($t['total_bs'] - Dinero::aBs($this->cobradoFijo(), $tc), 2);
+        }
+
+        return round($usd * $tc, 2);
+    }
+
     public function render()
     {
         $this->seguirTotal();
+
+        if (!$this->totalRecienEscrito) {
+            $t = $this->totales();
+            $this->totalEscrito = number_format($this->descuentoEnBs ? $t['total_bs'] : $t['total'], 2, '.', '');
+        }
 
         // La deuda que ya tiene el cliente: se avisa, no se bloquea (docs/04).
         $deudaCliente = 0.0;
